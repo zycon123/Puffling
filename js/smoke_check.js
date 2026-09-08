@@ -9,7 +9,8 @@
   if(!window.skyPuffAchievements)missing.push('api:skyPuffAchievements');
   if(!window.skyPuffAchievementsMenu)missing.push('api:skyPuffAchievementsMenu');
   if(!window.skyPuffBetaDiagnostics)missing.push('api:skyPuffBetaDiagnostics');
-  const result={ok:missing.length===0,missing,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'unknown',apiMode:API_BASE?'online':'local-fallback',checkedAt:new Date().toISOString()};
+  if(!window.skyPuffAIDiagnostics)missing.push('api:skyPuffAIDiagnostics');
+  const result={ok:missing.length===0,missing,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'unknown',apiMode:API_BASE?'online':'local-fallback',autoDiagnostics:!!window.skyPuffAIDiagnostics,checkedAt:new Date().toISOString()};
   window.skyPuffSmokeCheck=result;
   if(result.ok)console.info('Sky Puff beta smoke check: OK',result);else console.error('Sky Puff beta smoke check failed:',missing);
 })();
