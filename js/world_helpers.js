@@ -1,4 +1,5 @@
 let lastBossTriggerAt=0;
+let nextLifePickupAt=500;
 function addPlatform(y){
  const w=70+Math.random()*55,x=12+Math.random()*(W-w-24);
  platforms.push({x,y,w,h:16,phase:Math.random()*6.28,move:Math.random()<.24,breakable:Math.random()<.11,used:false});
