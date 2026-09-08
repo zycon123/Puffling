@@ -1,18 +1,27 @@
+function renderLeaderboardRows(rows,label){
+ leaderboardListEl.innerHTML='';
+ leaderboardStatusEl.textContent=label||'';
+ if(!rows.length){leaderboardStatusEl.textContent=tr('noScores');return;}
+ leaderboardListEl.innerHTML=rows.slice(0,20).map((row,i)=>{
+   const safeName=String(row.name||'SkyPuff').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+   const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+   return `<div style="display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:9px 10px;margin:5px 0;background:#eef8ff;border-radius:13px;font-weight:800"><span>${medal}</span><span>${safeName}</span><span>${Number(row.height)||0} m</span></div>`;
+ }).join('');
+}
 async function loadLeaderboard(){
  leaderboardStatusEl.textContent=tr('loading');
  leaderboardListEl.innerHTML='';
+ const localRows=typeof readLocalScores==='function'?readLocalScores():[];
+ if(!API_BASE){renderLeaderboardRows(localRows,'BETA • Lokal highscore');return;}
  try{
    const r=await fetch(API_BASE+'/leaderboard?limit=20',{cache:'no-store'});
    if(!r.ok)throw new Error('HTTP '+r.status);
    const rows=await r.json();
-   leaderboardStatusEl.textContent='';
-   if(!rows.length){leaderboardStatusEl.textContent=tr('noScores');return;}
-   leaderboardListEl.innerHTML=rows.map((row,i)=>{
-     const safeName=String(row.name).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-     const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
-     return `<div style="display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:9px 10px;margin:5px 0;background:#eef8ff;border-radius:13px;font-weight:800"><span>${medal}</span><span>${safeName}</span><span>${Number(row.height)||0} m</span></div>`;
-   }).join('');
- }catch(e){leaderboardStatusEl.textContent='⚠️ '+tr('scoreSendFail');}
+   renderLeaderboardRows(Array.isArray(rows)?rows:[], 'Global highscore');
+ }catch(e){
+   console.warn('Leaderboard unavailable; showing local scores',e);
+   renderLeaderboardRows(localRows,'⚠️ Offline • Lokal highscore');
+ }
 }
 function applyLanguage(){
  const t=i18n[lang]||i18n.no;
