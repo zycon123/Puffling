@@ -7,6 +7,8 @@ function cancelBossWarning(){if(window.skyBossWarningTimer){clearTimeout(window.
 function triggerBossWarning(stage){if(bossWarningActive||boss||!stage)return;cancelBossWarning();bossWarningActive=true;bossPendingStage=stage;const tier=stage.tier||1;bossWarningTextEl.textContent=tier>1?`${stage.emoji} ${stage.name} • TIER ${tier}`:tr('bossIncoming');bossWarningEl.style.display='block';window.skyBossWarningTimer=setTimeout(()=>{window.skyBossWarningTimer=null;if(bossWarningEl)bossWarningEl.style.display='none';bossWarningActive=false;const s=bossPendingStage;bossPendingStage=null;if(running&&!paused&&s&&!boss&&s.at>lastBossTriggerAt)spawnBoss(s);},1200);}
 function spawnBoss(stage){
  bossArena=true;
+ // Remove all normal enemies before the boss arena starts so only the boss can damage Puff.
+ enemies.length=0;
  /* Boss fights use the full vertical playfield: Puff stays in the lower quarter
     and the boss in the upper quarter, leaving a large readable dodge lane. */
  bossArenaY=Math.max(330,Math.min(H-105,H*.78));
