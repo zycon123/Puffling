@@ -1,3 +1,4 @@
+function cleanPlayerName(v){return(v||'').trim().replace(/[^\p{L}\p{N} _.-]/gu,'').slice(0,16)||'SkyPuffer';}
 function readLocalScores(){try{return JSON.parse(localStorage.skyPuffLocalScores||'[]')}catch(e){return[]}}
 function writeLocalScores(rows){localStorage.skyPuffLocalScores=JSON.stringify(rows.slice(0,50));}
 function saveLocalScore(name,height,meta={}){const rows=readLocalScores();rows.push({name,height:Math.floor(height),at:Date.now(),...meta});rows.sort((a,b)=>b.height-a.height);writeLocalScores(rows);}
