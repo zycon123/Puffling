@@ -10,5 +10,20 @@ function nextBossStage(){
  if(!base)return null;
  return {...base,...endless,hp:Math.max(base.hp,endlessBossHealth(endless)*24),reward:Math.max(base.reward,endlessBossReward(endless))};
 }
-function triggerBossWarning(stage){if(bossWarningActive||boss||!stage)return;bossWarningActive=true;bossPendingStage=stage;bossWarningTextEl.textContent=tr('bossIncoming');bossWarningEl.style.display='block';setTimeout(()=>{bossWarningEl.style.display='none';bossWarningActive=false;const s=bossPendingStage;bossPendingStage=null;if(running&&!paused&&s&&!boss&&s.at>lastBossTriggerAt)spawnBoss(s);},1200);}
+function cancelBossWarning(){
+ if(window.skyBossWarningTimer){clearTimeout(window.skyBossWarningTimer);window.skyBossWarningTimer=null;}
+ bossWarningActive=false;bossPendingStage=null;
+ if(bossWarningEl)bossWarningEl.style.display='none';
+}
+function triggerBossWarning(stage){
+ if(bossWarningActive||boss||!stage)return;
+ cancelBossWarning();
+ bossWarningActive=true;bossPendingStage=stage;bossWarningTextEl.textContent=tr('bossIncoming');bossWarningEl.style.display='block';
+ window.skyBossWarningTimer=setTimeout(()=>{
+  window.skyBossWarningTimer=null;
+  if(bossWarningEl)bossWarningEl.style.display='none';bossWarningActive=false;
+  const s=bossPendingStage;bossPendingStage=null;
+  if(running&&!paused&&s&&!boss&&s.at>lastBossTriggerAt)spawnBoss(s);
+ },1200);
+}
 function spawnBoss(stage){bossArena=true;bossArenaY=Math.min(H-145,Math.max(260,player.y));player.y=bossArenaY;player.vy=0;boss={id:stage.id,name:stage.name,x:W/2,y:150,hp:stage.hp,maxHp:stage.hp,dir:1,r:stage.id==='galaxy'?48:40,shot:0,reward:stage.reward,emoji:stage.emoji,at:stage.at||0,tier:stage.tier||1};bossSpawned=true;bossWrap.style.display='block';bossBar.style.width='100%';showToast(`${stage.name}! ${stage.emoji}`);startBossMusic(stage.id);}
