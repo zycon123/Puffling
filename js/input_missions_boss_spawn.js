@@ -6,6 +6,7 @@ function nextBossStage(){for(const b of bossStages){if(score>=b.at&&!defeatedBos
 function cancelBossWarning(){if(window.skyBossWarningTimer){clearTimeout(window.skyBossWarningTimer);window.skyBossWarningTimer=null;}bossWarningActive=false;bossPendingStage=null;if(bossWarningEl)bossWarningEl.style.display='none';}
 function triggerBossWarning(stage){if(bossWarningActive||boss||!stage)return;cancelBossWarning();bossWarningActive=true;bossPendingStage=stage;const tier=stage.tier||1;bossWarningTextEl.textContent=tier>1?`${stage.emoji} ${stage.name} • TIER ${tier}`:tr('bossIncoming');bossWarningEl.style.display='block';window.skyBossWarningTimer=setTimeout(()=>{window.skyBossWarningTimer=null;if(bossWarningEl)bossWarningEl.style.display='none';bossWarningActive=false;const s=bossPendingStage;bossPendingStage=null;if(running&&!paused&&s&&!boss&&s.at>lastBossTriggerAt)spawnBoss(s);},1200);}
 function spawnBoss(stage){
+ window.skyBossEntryState={cameraY,score,playerX:player.x,stageAt:stage.at||score};
  bossArena=true;
  // Remove all normal enemies before the boss arena starts so only the boss can damage Puff.
  enemies.length=0;
