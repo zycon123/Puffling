@@ -11,21 +11,20 @@
 
   function alternateAttack(speed,type,variant){
     if(variant%2===0){
-      // Wide three-lane fan.
+      // Wide three-lane fan: exactly 3 projectiles with a dodgeable gap.
       fireAimedBossShot(speed*.96,10,type,-.34);
       fireAimedBossShot(speed+.1,11,type,0);
       fireAimedBossShot(speed*.96,10,type,.34);
       return;
     }
 
-    // Staggered crossfire.
-    fireAimedBossShot(speed+.2,10,type,-.08);
-    fireAimedBossShot(speed+.2,10,type,.08);
+    // Staggered three-shot crossfire: 2 first, then 1 delayed center shot.
+    fireAimedBossShot(speed+.15,10,type,-.18);
+    fireAimedBossShot(speed+.15,10,type,.18);
     setTimeout(()=>{
       if(!running||!boss)return;
       const currentType=boss.id||type;
-      fireAimedBossShot(speed+.35,11,currentType,-.24);
-      fireAimedBossShot(speed+.35,11,currentType,.24);
+      fireAimedBossShot(speed+.3,11,currentType,0);
     },180);
   }
 
