@@ -12,8 +12,6 @@
   const entry=window.skyBossEntryState||{};
   const stageAt=Number.isFinite(entry.stageAt)?entry.stageAt:null;
 
-  // Always return to the exact height where this boss belongs. This prevents a
-  // delayed boss spawn / warning from carrying a higher score into the next boss.
   if(stageAt!=null){
    score=stageAt;
    cameraY=-stageAt*10;
@@ -35,12 +33,38 @@
   player.x=landingX+landingW/2;
   player.y=landingScreenY-player.r-2;
   player.vx=0;
-  player.vy=-8.8;
+  player.vy=0;
   pointerX=player.x;
-  invuln=Math.max(invuln,90);
+  invuln=Math.max(invuln,220);
 
-  // Require real upward progress after a boss before boss checks resume.
   window.skyBossResumeGate=score+80;
   window.skyBossEntryState=null;
+
+  // Freeze Puff safely on the exit platform, then count 3-2-1 before jumping again.
+  window.skyBossExitLockUntil=performance.now()+3000;
+  if(resumeCountdownEl&&resumeCountdownTextEl){
+   resumeCountdownEl.style.display='flex';
+   const started=performance.now();
+   function tick(now){
+    const left=Math.max(0,3000-(now-started));
+    const seconds=Math.max(1,Math.ceil(left/1000));
+    resumeCountdownTextEl.textContent=left>0?String(seconds):'GO!';
+    if(left>0&&running&&!boss){
+     player.y=landingScreenY-player.r-2;
+     player.vx=0;
+     player.vy=0;
+     requestAnimationFrame(tick);
+    }else{
+     resumeCountdownEl.style.display='none';
+     if(running&&!boss){
+      player.vy=-10.6;
+      puffAnim=-1;
+     }
+    }
+   }
+   requestAnimationFrame(tick);
+  }else{
+   setTimeout(()=>{if(running&&!boss)player.vy=-10.6;},3000);
+  }
  };
 })();
