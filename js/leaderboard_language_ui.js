@@ -1,0 +1,31 @@
+async function loadLeaderboard(){
+ leaderboardStatusEl.textContent=tr('loading');
+ leaderboardListEl.innerHTML='';
+ try{
+   const r=await fetch(API_BASE+'/leaderboard?limit=20',{cache:'no-store'});
+   if(!r.ok)throw new Error('HTTP '+r.status);
+   const rows=await r.json();
+   leaderboardStatusEl.textContent='';
+   if(!rows.length){leaderboardStatusEl.textContent=tr('noScores');return;}
+   leaderboardListEl.innerHTML=rows.map((row,i)=>{
+     const safeName=String(row.name).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+     const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+     return `<div style="display:grid;grid-template-columns:42px 1fr auto;gap:8px;align-items:center;padding:9px 10px;margin:5px 0;background:#eef8ff;border-radius:13px;font-weight:800"><span>${medal}</span><span>${safeName}</span><span>${Number(row.height)||0} m</span></div>`;
+   }).join('');
+ }catch(e){leaderboardStatusEl.textContent='⚠️ '+tr('scoreSendFail');}
+}
+function applyLanguage(){
+ const t=i18n[lang]||i18n.no;
+ languageSelectEl.value=lang;playBtnEl.textContent=t.play;upgradeBtnEl.textContent=t.upgrade;shopBtnEl.textContent=t.skins;dailyBtnEl.textContent=t.daily;leaderboardBtnEl.textContent='🏆 '+t.leaderboard;leaderboardTitleEl.textContent=t.globalHighscore;refreshLeaderboardEl.textContent=t.refresh;closeLeaderboardEl.textContent=t.back;playerNameEl.placeholder=t.namePlaceholder;menuTagEl.innerHTML=t.tag;menuHintEl.innerHTML=t.hint;
+ bestStatEl.innerHTML=`🏆 ${t.best}<br><span id="bestHeight">${save.best}</span> m`;bankStatEl.innerHTML=`💰 ${t.bank}<br><span id="bankCoins">${save.bank}</span>`;totalStatEl.innerHTML=`📈 ${t.total}<br><span id="totalHeight">${save.total}</span> m`;streakStatEl.innerHTML=`🔥 ${t.streak}<br><span id="menuStreak">${save.streak}</span>`;
+ closeShopEl.textContent=t.back;closeUpgradesEl.textContent=t.back;retryBtnEl.textContent=t.retry;menuBtnEl.textContent=t.menu;if(continueBtnEl)continueBtnEl.textContent=t.continue;
+ const pt=document.getElementById('pauseTitle');if(pt)pt.textContent=t.pause;if(resumeBtnEl)resumeBtnEl.textContent=t.resume;if(pauseMenuBtnEl)pauseMenuBtnEl.textContent=t.mainMenu;if(pauseTextEl)pauseTextEl.textContent=t.pauseText;
+ document.querySelector('#shop h1').textContent=t.shopTitle;document.querySelector('#upgrades h1').textContent=t.upTitle;document.querySelector('#gameOver h1').textContent=t.gameOver;const mct=document.getElementById('missionCompleteTitle');if(mct)mct.textContent=t.missionComplete;
+ if(skinsLabelEl)skinsLabelEl.textContent=t.skinsLabel;if(faceLabelEl)faceLabelEl.textContent=t.faceLabel;if(hatsLabelEl)hatsLabelEl.textContent=t.hatsLabel;if(trailsLabelEl)trailsLabelEl.textContent=t.trailsLabel;if(upgradeTextEl)upgradeTextEl.textContent=t.upgradeText;
+ if(goHeightLabelEl)goHeightLabelEl.textContent=t.height;if(goCoinsLabelEl)goCoinsLabelEl.textContent=t.coins;if(goComboLabelEl)goComboLabelEl.textContent=t.bestCombo;if(goBankLabelEl)goBankLabelEl.textContent=t.bank;
+ refreshAudioUI();if(running||paused){const m=missions[missionIndex];if(m)missionEl.textContent=t.mission+': '+missionText(m);}
+}
+languageSelectEl.addEventListener('change',()=>{lang=languageSelectEl.value;localStorage.skyPuffLang=lang;applyLanguage();});
+let W=innerWidth,H=innerHeight,dpr=Math.min(devicePixelRatio||1,2);
+function resize(){W=innerWidth;H=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0)}
+addEventListener('resize',resize);resize();
