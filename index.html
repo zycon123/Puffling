@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-<title>Sky Puff v5.23</title>
+<title>Sky Puff v5.24</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -12,33 +12,15 @@
 <div id="hud">
   <div id="top">
     <div class="stack"><div class="badge">☁️ <span id="score">0</span> m</div><div class="badge">🪙 <span id="coins">0</span></div></div>
-    <div class="stack">
-      <div class="badge">❤️ <span id="hp">3</span></div>
-      <div class="badge">🔥 <span id="streak">0</span></div>
-      <button id="pauseBtn" style="pointer-events:auto;margin:0;padding:7px 11px;border-radius:14px;font-size:17px;box-shadow:none">⏸</button>
-    </div>
+    <div class="stack"><div class="badge">❤️ <span id="hp">3</span></div><div class="badge">🔥 <span id="streak">0</span></div><button id="pauseBtn" style="pointer-events:auto;margin:0;padding:7px 11px;border-radius:14px;font-size:17px;box-shadow:none">⏸</button></div>
   </div>
   <div id="mission">Mission: nå 300 m</div>
+  <div id="bossIdentity" style="display:none;text-align:center;color:#fff;font-weight:1000;text-shadow:0 2px 8px rgba(0,0,0,.35);margin-top:5px"><span id="bossIdentityName">BOSS</span> <span id="bossTier"></span></div>
   <div id="bossBarWrap"><div id="bossBar"></div></div>
-  <div id="combo">COMBO x2</div>
-  <div id="boostLabel">RAINBOW PUFF</div>
-  <div id="boostWrap"><div id="boost"></div></div>
+  <div id="combo">COMBO x2</div><div id="boostLabel">RAINBOW PUFF</div><div id="boostWrap"><div id="boost"></div></div>
 </div>
 
-<div id="start" class="overlay">
-  <div class="card">
-    <div class="menuHero"><div class="menuRainbow"></div><div class="menuCloud"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><div class="menuFace"><span class="menuEye l"></span><span class="menuEye r"></span><span class="menuMouth"></span></div></div></div>
-    <h1>Sky Puff</h1>
-    <div class="tag" id="menuTag">Nye himler. Nye utfordringer. Samme regnbuefis. ☁️🌈💨</div>
-    <div class="menuStats"><div class="stat" id="bestStat">🏆 Best<br><span id="bestHeight">0</span> m</div><div class="stat" id="bankStat">💰 Bank<br><span id="bankCoins">0</span></div><div class="stat" id="totalStat">📈 Total<br><span id="totalHeight">0</span> m</div><div class="stat" id="streakStat">🔥 Streak<br><span id="menuStreak">0</span></div></div>
-    <input id="playerName" maxlength="16" placeholder="Spillernavn" style="pointer-events:auto;border:0;border-radius:14px;padding:11px 13px;margin:3px;font-size:16px;font-weight:800;color:#35516b;background:#eef8ff;text-align:center">
-    <div style="margin:8px 0 6px"><select id="languageSelect" style="pointer-events:auto;border:0;border-radius:14px;padding:10px 12px;font-weight:800;color:#35516b;background:#eef8ff"><option value="no">🇳🇴 Norsk</option><option value="en">🇬🇧 English</option><option value="de">🇩🇪 Deutsch</option><option value="es">🇪🇸 Español</option><option value="fr">🇫🇷 Français</option></select></div>
-    <button id="playBtn">SPILL</button>
-    <div class="menuActions"><button id="multiplayerBtn" class="secondary">MULTIPLAYER ⚔️</button><button id="bossRushBtn" class="secondary">BOSS RUSH 👑</button><button id="leaderboardBtn" class="gold">🏆 HIGHSCORE</button><button id="upgradeBtn" class="secondary">OPPGRADER</button><button id="shopBtn" class="secondary">SKINS</button><button id="dailyBtn" class="gold">DAGLIG BELØNNING</button></div>
-    <div class="small" id="menuHint" style="margin-top:12px">Bosser ved 1200, 2000, 3000 og 4500 m – deretter fortsetter jakten uendelig med nye bossrunder.<br>Dobbelttrykk for Rainbow Puff.</div>
-    <div class="menuVersion">SKY PUFF • v5.23</div>
-  </div>
-</div>
+<div id="start" class="overlay"><div class="card"><div class="menuHero"><div class="menuRainbow"></div><div class="menuCloud"><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><div class="menuFace"><span class="menuEye l"></span><span class="menuEye r"></span><span class="menuMouth"></span></div></div></div><h1>Sky Puff</h1><div class="tag" id="menuTag">Nye himler. Nye utfordringer. Samme regnbuefis. ☁️🌈💨</div><div class="menuStats"><div class="stat" id="bestStat">🏆 Best<br><span id="bestHeight">0</span> m</div><div class="stat" id="bankStat">💰 Bank<br><span id="bankCoins">0</span></div><div class="stat" id="totalStat">📈 Total<br><span id="totalHeight">0</span> m</div><div class="stat" id="streakStat">🔥 Streak<br><span id="menuStreak">0</span></div></div><input id="playerName" maxlength="16" placeholder="Spillernavn" style="pointer-events:auto;border:0;border-radius:14px;padding:11px 13px;margin:3px;font-size:16px;font-weight:800;color:#35516b;background:#eef8ff;text-align:center"><div style="margin:8px 0 6px"><select id="languageSelect" style="pointer-events:auto;border:0;border-radius:14px;padding:10px 12px;font-weight:800;color:#35516b;background:#eef8ff"><option value="no">🇳🇴 Norsk</option><option value="en">🇬🇧 English</option><option value="de">🇩🇪 Deutsch</option><option value="es">🇪🇸 Español</option><option value="fr">🇫🇷 Français</option></select></div><button id="playBtn">SPILL</button><div class="menuActions"><button id="multiplayerBtn" class="secondary">MULTIPLAYER ⚔️</button><button id="bossRushBtn" class="secondary">BOSS RUSH 👑</button><button id="leaderboardBtn" class="gold">🏆 HIGHSCORE</button><button id="upgradeBtn" class="secondary">OPPGRADER</button><button id="shopBtn" class="secondary">SKINS</button><button id="dailyBtn" class="gold">DAGLIG BELØNNING</button></div><div class="small" id="menuHint" style="margin-top:12px">Bosser ved 1200, 2000, 3000 og 4500 m – deretter fortsetter jakten uendelig med nye bossrunder.<br>Dobbelttrykk for Rainbow Puff.</div><div class="menuVersion">SKY PUFF • v5.24</div></div></div>
 
 <div id="gameOver" class="overlay"><div class="card"><h1 style="font-size:38px">Puff down! 💨</h1><p><span id="goHeightLabel">Høyde</span>: <b><span id="finalScore">0</span> m</b><br><span id="goCoinsLabel">Mynter</span>: <b><span id="finalCoins">0</span></b><br><span id="goComboLabel">Beste combo</span>: <b>x<span id="finalCombo">1</span></b><br><span id="goBankLabel">Bank</span>: <b>+<span id="bankGain">0</span> 🪙</b></p><button id="retryBtn">PRØV IGJEN</button><button id="menuBtn" class="secondary">MENY</button></div></div>
 <div id="missionComplete" style="display:none;position:fixed;z-index:4;top:105px;left:50%;transform:translateX(-50%);width:min(78vw,300px);pointer-events:none"><div style="background:rgba(255,255,255,.94);border:2px solid rgba(255,215,70,.8);border-radius:18px;padding:10px 14px;box-shadow:0 8px 24px rgba(0,70,120,.2);text-align:center;color:#294b68"><div id="missionCompleteTitle" style="font-size:17px;font-weight:1000;color:#3f8cff">Mission complete! ⭐</div><div id="missionRewardText" style="font-size:13px;font-weight:800;margin-top:3px"></div></div></div>
@@ -55,7 +37,6 @@
 <div id="multiplayerHud" style="display:none;position:fixed;left:50%;top:74px;transform:translateX(-50%);z-index:20;background:rgba(15,20,40,.72);backdrop-filter:blur(8px);padding:8px 14px;border-radius:16px;color:#fff;font-weight:800;min-width:250px;text-align:center"><div id="mpTimer">90</div><div style="display:flex;justify-content:space-between;gap:18px;margin-top:4px"><span>DU <b id="mpYou">0m</b></span><span>RIVAL <b id="mpRival">0m</b></span></div></div>
 <div id="bossRushMenu" class="overlay" style="display:none"><div class="card"><h1 style="font-size:38px">Boss Rush 👑</h1><div class="small">Kjemp mot bosser du allerede har beseiret. Hver seier gir 50 gull.</div><div id="bossRushList" class="skinrow" style="margin-top:14px"></div><br><button id="closeBossRush" class="secondary">TILBAKE</button></div></div>
 <div id="toast"></div>
-<script src="audio_theme.js"></script>
-<script src="game.js"></script>
+<script src="audio_theme.js"></script><script src="game.js"></script>
 </body>
 </html>
