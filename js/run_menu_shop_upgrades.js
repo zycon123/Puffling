@@ -1,5 +1,7 @@
 function stopActiveModes(){
- running=false;paused=false;bossRushMode=false;bossRushSelected=null;bossWarningActive=false;bossPendingStage=null;bossArena=false;boss=null;bossSpawned=false;
+ running=false;paused=false;bossRushMode=false;bossRushSelected=null;
+ if(typeof cancelBossWarning==='function')cancelBossWarning();else{bossWarningActive=false;bossPendingStage=null;if(bossWarningEl)bossWarningEl.style.display='none';}
+ bossArena=false;bossArenaY=0;boss=null;bossSpawned=false;playerShots=[];bossShots=[];
  if(multiplayerInterval){clearInterval(multiplayerInterval);multiplayerInterval=null;}
  multiplayerMode=false;multiplayerState='idle';multiplayerOpponentScore=0;multiplayerEndAt=0;
  stopBossMusic(false);
@@ -8,7 +10,6 @@ function stopActiveModes(){
  if(bossRushMenuEl)bossRushMenuEl.style.display='none';
  if(pauseMenuEl)pauseMenuEl.style.display='none';
  if(resumeCountdownEl)resumeCountdownEl.style.display='none';
- if(bossWarningEl)bossWarningEl.style.display='none';
  if(bossWrap)bossWrap.style.display='none';
 }
 function showMainMenu(){
@@ -18,7 +19,7 @@ function showMainMenu(){
  refreshMenu();startEl.style.display='flex';startMusic();
 }
 function reset(){
- stopBossMusic(false);bossRushMode=false;bossRushSelected=null;lastBossTriggerAt=0;cameraY=0;score=0;coins=0;boost=100;combo=1;bestCombo=1;comboTimer=0;invuln=0;shield=0;magnet=0;mega=0;boss=null;bossSpawned=false;bossDefeated=false;bossWarningActive=false;bossPendingStage=null;bossArena=false;bossArenaY=0;defeatedBosses={storm:false,candy:false,ice:false,galaxy:false};
+ stopBossMusic(false);if(typeof cancelBossWarning==='function')cancelBossWarning();bossRushMode=false;bossRushSelected=null;lastBossTriggerAt=0;cameraY=0;score=0;coins=0;boost=100;combo=1;bestCombo=1;comboTimer=0;invuln=0;shield=0;magnet=0;mega=0;boss=null;bossSpawned=false;bossDefeated=false;bossArena=false;bossArenaY=0;defeatedBosses={storm:false,candy:false,ice:false,galaxy:false};
  player={x:W/2,y:H*.68,vx:0,vy:-9,r:28,rot:0,hp:3+save.upHealth};
  platforms=[];coinItems=[];clouds=[];enemies=[];powerups=[];particles=[];playerShots=[];bossShots=[];skySparkles=[];screenShake=0;puffAnim=0;bossFlash=0;
  let y=H*.82;platforms.push({x:W/2-55,y,w:110,h:18,move:false,breakable:false});
