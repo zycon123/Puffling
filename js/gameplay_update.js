@@ -27,4 +27,12 @@ function update(dt){
  platforms=platforms.filter(p=>p.y-cameraY<H+120&&!p.used);coinItems=coinItems.filter(c=>c.y-cameraY<H+100&&!c.taken);powerups=powerups.filter(p=>p.y-cameraY<H+100&&!p.taken);enemies=enemies.filter(e=>e.y-cameraY<H+130);
  checkMission();if(player.y-player.r>H+90)endGame();
 }
-function endGame(){bossWarningEl.style.display='none';bossWarningActive=false;bossPendingStage=null;bossArena=false;stopBossMusic(false);if(!running)return;running=false;const gain=Math.floor(coins*(1+save.upCoin*.15));save.bank+=gain;save.total+=score;save.best=Math.max(save.best,score);if(score<300)save.streak=0;persist();submitOnlineScore(score);finalScoreEl.textContent=score;finalCoinsEl.textContent=coins;finalComboEl.textContent=bestCombo;bankGainEl.textContent=gain;gameOverEl.style.display='flex'}
+function endGame(){
+ if(!running)return;
+ running=false;paused=false;
+ if(typeof cancelBossWarning==='function')cancelBossWarning();else{bossWarningActive=false;bossPendingStage=null;if(bossWarningEl)bossWarningEl.style.display='none';}
+ stopBossMusic(false);bossArena=false;bossArenaY=0;boss=null;bossSpawned=false;playerShots=[];bossShots=[];
+ if(bossWrap)bossWrap.style.display='none';if(pauseMenuEl)pauseMenuEl.style.display='none';if(resumeCountdownEl)resumeCountdownEl.style.display='none';
+ if(multiplayerInterval){clearInterval(multiplayerInterval);multiplayerInterval=null;}if(multiplayerHudEl)multiplayerHudEl.style.display='none';multiplayerMode=false;multiplayerState='idle';
+ const gain=Math.floor(coins*(1+save.upCoin*.15));save.bank+=gain;save.total+=score;save.best=Math.max(save.best,score);if(score<300)save.streak=0;persist();submitOnlineScore(score);finalScoreEl.textContent=score;finalCoinsEl.textContent=coins;finalComboEl.textContent=bestCombo;bankGainEl.textContent=gain;gameOverEl.style.display='flex';
+}
