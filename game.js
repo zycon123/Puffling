@@ -1,0 +1,13 @@
+(function(){
+const parts=['js/part1.js','js/part2.js','js/part3.js','js/part4.js','js/part5.js'];
+let i=0;
+function next(){
+ if(i>=parts.length)return;
+ const s=document.createElement('script');
+ s.src=parts[i++];
+ s.onload=next;
+ s.onerror=()=>console.error('Kunne ikke laste',s.src);
+ document.body.appendChild(s);
+}
+next();
+})();
