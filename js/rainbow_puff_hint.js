@@ -1,12 +1,25 @@
 (function(){
  const hint=document.createElement('div');
  hint.id='rainbowPuffHint';
- hint.textContent='Dobbeltklikk for Rainbow Puff 🌈';
+ const texts={
+  no:'Dobbeltklikk for Rainbow Puff 🌈',
+  en:'Double tap for Rainbow Puff 🌈',
+  de:'Doppeltippen für Rainbow Puff 🌈',
+  es:'Doble toque para Rainbow Puff 🌈',
+  fr:'Double-tapez pour Rainbow Puff 🌈'
+ };
+ function updateHint(){
+  const selected=(typeof lang!=='undefined'&&lang)||(typeof save!=='undefined'&&save.lang)||'no';
+  hint.textContent=texts[selected]||texts.no;
+ }
  Object.assign(hint.style,{
   position:'fixed',left:'50%',bottom:'calc(env(safe-area-inset-bottom, 0px) + 8px)',transform:'translateX(-50%)',zIndex:'7',
   pointerEvents:'none',fontSize:'12px',fontWeight:'900',letterSpacing:'.2px',color:'rgba(255,255,255,.92)',
   textShadow:'0 2px 6px rgba(0,0,0,.45)',background:'rgba(20,55,90,.22)',backdropFilter:'blur(3px)',
   padding:'4px 9px',borderRadius:'999px',whiteSpace:'nowrap',opacity:'.82'
  });
+ updateHint();
  document.body.appendChild(hint);
+ if(typeof languageSelectEl!=='undefined'&&languageSelectEl){languageSelectEl.addEventListener('change',()=>setTimeout(updateHint,0));}
+ setInterval(updateHint,1000);
 })();
