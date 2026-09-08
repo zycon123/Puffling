@@ -12,15 +12,15 @@ async function loadLeaderboard(){
  leaderboardStatusEl.textContent=tr('loading');
  leaderboardListEl.innerHTML='';
  const localRows=typeof readLocalScores==='function'?readLocalScores():[];
- if(!API_BASE){renderLeaderboardRows(localRows,'BETA • Lokal highscore');return;}
+ if(!API_BASE){renderLeaderboardRows(localRows,lang==='no'?'BETA • Lokal highscore':'BETA • Local highscore');return;}
  try{
    const r=await fetch(API_BASE+'/leaderboard?limit=20',{cache:'no-store'});
    if(!r.ok)throw new Error('HTTP '+r.status);
    const rows=await r.json();
-   renderLeaderboardRows(Array.isArray(rows)?rows:[], 'Global highscore');
+   renderLeaderboardRows(Array.isArray(rows)?rows:[], tr('globalHighscore'));
  }catch(e){
    console.warn('Leaderboard unavailable; showing local scores',e);
-   renderLeaderboardRows(localRows,'⚠️ Offline • Lokal highscore');
+   renderLeaderboardRows(localRows,lang==='no'?'⚠️ Frakoblet • Lokal highscore':'⚠️ Offline • Local highscore');
  }
 }
 function applyLanguage(){
@@ -32,6 +32,12 @@ function applyLanguage(){
  document.querySelector('#shop h1').textContent=t.shopTitle;document.querySelector('#upgrades h1').textContent=t.upTitle;document.querySelector('#gameOver h1').textContent=t.gameOver;const mct=document.getElementById('missionCompleteTitle');if(mct)mct.textContent=t.missionComplete;
  if(skinsLabelEl)skinsLabelEl.textContent=t.skinsLabel;if(faceLabelEl)faceLabelEl.textContent=t.faceLabel;if(hatsLabelEl)hatsLabelEl.textContent=t.hatsLabel;if(trailsLabelEl)trailsLabelEl.textContent=t.trailsLabel;if(upgradeTextEl)upgradeTextEl.textContent=t.upgradeText;
  if(goHeightLabelEl)goHeightLabelEl.textContent=t.height;if(goCoinsLabelEl)goCoinsLabelEl.textContent=t.coins;if(goComboLabelEl)goComboLabelEl.textContent=t.bestCombo;if(goBankLabelEl)goBankLabelEl.textContent=t.bank;
+ if(multiplayerBtnEl)multiplayerBtnEl.textContent=t.multiplayer+' ⚔️';if(bossRushBtnEl)bossRushBtnEl.textContent=t.bossRush+' 👑';if(achievementsBtnEl)achievementsBtnEl.textContent=t.achievements+' 🏅';if(diagnosticsBtnEl)diagnosticsBtnEl.textContent=t.diagnostics+' 🛠️';
+ const mpTitle=document.querySelector('#multiplayerMenu h1');if(mpTitle)mpTitle.textContent=t.multiplayer+' ⚔️';const mpIntro=document.querySelector('#multiplayerMenu .small');if(mpIntro)mpIntro.textContent=t.multiplayerIntro;if(quickMatchBtnEl)quickMatchBtnEl.textContent=t.quickMatch;if(createRoomBtnEl)createRoomBtnEl.textContent=t.createRoom;if(joinRoomBtnEl)joinRoomBtnEl.textContent=t.joinRoom;if(multiplayerStatusEl&&multiplayerState==='idle')multiplayerStatusEl.textContent=t.notConnected;if(closeMultiplayerEl)closeMultiplayerEl.textContent=t.back;
+ const brTitle=document.querySelector('#bossRushMenu h1');if(brTitle)brTitle.textContent=t.bossRush+' 👑';const brIntro=document.querySelector('#bossRushMenu .small');if(brIntro)brIntro.textContent=t.bossRushIntro;if(closeBossRushEl)closeBossRushEl.textContent=t.back;
+ const achTitle=document.querySelector('#achievementsMenu h1');if(achTitle)achTitle.textContent=t.achievementsTitle+' 🏅';if(closeAchievementsEl)closeAchievementsEl.textContent=t.back;
+ const diagTitle=document.querySelector('#diagnosticsMenu h1');if(diagTitle)diagTitle.textContent=t.systemTitle+' 🛠️';if(diagnosticsSummaryEl&&/Laster|Loading|Lädt|Cargando|Chargement/i.test(diagnosticsSummaryEl.textContent))diagnosticsSummaryEl.textContent=t.systemLoading;if(sendBugReportBtnEl)sendBugReportBtnEl.textContent=t.sendReport+' ✉️';if(refreshDiagnosticsBtnEl)refreshDiagnosticsBtnEl.textContent=t.updateStatus;if(closeDiagnosticsEl)closeDiagnosticsEl.textContent=t.back;
+ if(audioTitleEl)audioTitleEl.textContent=t.audioTitle;if(musicLabelEl)musicLabelEl.textContent=t.music;if(volumeLabelEl)volumeLabelEl.textContent=t.musicVolume;if(closeAudioSettingsEl)closeAudioSettingsEl.textContent=t.back;
  refreshAudioUI();if(running||paused){const m=missions[missionIndex];if(m)missionEl.textContent=t.mission+': '+missionText(m);}
 }
 languageSelectEl.addEventListener('change',()=>{lang=languageSelectEl.value;localStorage.skyPuffLang=lang;applyLanguage();});
