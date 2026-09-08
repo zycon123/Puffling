@@ -25,20 +25,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Validate build
-        run: |
-          npm ci
-          npm run build
-
       - name: Prepare Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist  # ← Endre til riktig build-output mappe
+          path: .  # Deployer hele repositoriet
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
