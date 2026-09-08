@@ -1,5 +1,5 @@
 (function(){
-const parts=['js/part1.js','js/part2.js','js/part3.js','js/part4.js','js/part5_1.js','js/part5_2.js','js/part5_3.js','js/part5_4.js'];
+const parts=['js/part1.js','js/part2.js','js/part3.js','js/part4.js','js/part5_1.js','js/part5_helpers.js','js/part5_2.js','js/part5_3.js','js/part5_4.js'];
 let i=0;
 function next(){
  if(i>=parts.length)return;
