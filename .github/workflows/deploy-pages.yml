@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 22
 
-    - name: Validate build
+      - name: Validate build
         run: |
           npm ci
           npm run build
@@ -38,7 +38,7 @@ jobs:
       - name: Prepare Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist  # ← Endre til riktig build-output mappe
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
