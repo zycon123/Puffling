@@ -63,5 +63,3 @@ startMusic();
 document.addEventListener('pointerdown',()=>startMusic(),{once:true});
 document.addEventListener('keydown',()=>startMusic(),{once:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)bgMusicEl.pause();else if(musicEnabled)startMusic();});
-const API_BASE=localStorage.skyPuffApiBase||'https://YOUR-SKY-PUFF-SCORE-SERVER.onrender.com';
-function cleanPlayerName(v){return(v||'').trim().replace(/[^\p{L}\p{N} _.-]/gu,'').slice(0,16)||'SkyPuffer';}
