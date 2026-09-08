@@ -9,7 +9,13 @@
  function check(){try{repairPlayer();repairBoss();repairWorld();repairOverlays();}catch(e){lastIssue={issue:String(e.message||e),at:new Date().toISOString()};}}
  const originalLoop=typeof loop==='function'?loop:null;
  if(originalLoop){loop=function(t){lastLoopPulse=performance.now();return originalLoop(t);};}
- watchdog=setInterval(()=>{check();if(running&&!paused&&performance.now()-lastLoopPulse>2500){try{lastLoopPulse=performance.now();requestAnimationFrame(loop);log('Main animation loop stalled','Animation loop restarted');}catch(e){}}},1500);
+ watchdog=setInterval(()=>{
+   check();
+   if(running&&!paused&&!document.hidden&&performance.now()-lastLoopPulse>2500){
+     lastIssue={issue:'Main animation loop appears stalled; waiting for browser RAF recovery to avoid duplicate loops',at:new Date().toISOString()};
+     console.warn('Sky Puff AI Diagnostics: main loop heartbeat delayed; no forced RAF restart');
+   }
+ },1500);
  try{const old=JSON.parse(localStorage.skyPuffAutoRepairLog||'null');if(old){repairs=old.repairs||0;lastRepair=old.lastRepair||null;lastIssue=old.lastIssue||null;}}catch(e){}
  window.skyPuffAIDiagnostics={get repairs(){return repairs},get lastRepair(){return lastRepair},get lastIssue(){return lastIssue},runCheck:check,clearLog(){repairs=0;lastRepair=null;lastIssue=null;localStorage.removeItem('skyPuffAutoRepairLog');},stop(){if(watchdog){clearInterval(watchdog);watchdog=null;}}};
 })();
