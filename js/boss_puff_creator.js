@@ -1,0 +1,44 @@
+(function(){
+ const KEY='skyPuffBossCreatorV1';
+ const defaults={body:'classic',color:'sky',face:'smile',hat:'none',aura:'rainbow',eyes:'round'};
+ const bodies={classic:'Classic Puff',round:'Round Puff',wide:'Wide Puff',mini:'Mini Puff'};
+ const colors={sky:'#dff4ff',pink:'#ffd8ee',mint:'#d7fff0',gold:'#fff0ad',violet:'#e4d8ff',storm:'#cbd8e8'};
+ const faces={smile:'Smile',happy:'Happy',cool:'Cool',fierce:'Fierce'};
+ const hats={none:'None',crown:'👑',halo:'😇',wizard:'🧙',storm:'⚡',ice:'❄️',star:'⭐'};
+ const auras={rainbow:'Rainbow',fire:'Fire',ice:'Ice',galaxy:'Galaxy',gold:'Gold'};
+ const eyes={round:'Round',spark:'Sparkle',angry:'Battle'};
+ let cfg=load();
+ let overlay=null,preview=null;
+ function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return {...defaults}}}
+ function saveCfg(){localStorage.setItem(KEY,JSON.stringify(cfg));}
+ function anyBossUnlocked(){try{return ['storm','candy','ice','galaxy'].some(id=>!!save['boss'+id.charAt(0).toUpperCase()+id.slice(1)])}catch(e){return false}}
+ function T(){const map={
+  no:{create:'LAG DIN BOSS PUFF',title:'Lag din Boss Puff',body:'Kropp',color:'Farge',face:'Ansikt',hat:'Hodeplagg',aura:'Effekt',eyes:'Øyne',save:'LAGRE FIGUR',back:'TILBAKE',locked:'Beseir minst én boss for å låse opp Boss Puff Creator.',only:'Denne figuren brukes kun i Boss Rush.'},
+  en:{create:'CREATE BOSS PUFF',title:'Create your Boss Puff',body:'Body',color:'Color',face:'Face',hat:'Headwear',aura:'Effect',eyes:'Eyes',save:'SAVE CHARACTER',back:'BACK',locked:'Defeat at least one boss to unlock Boss Puff Creator.',only:'This character is used only in Boss Rush.'},
+  de:{create:'BOSS PUFF ERSTELLEN',title:'Erstelle deinen Boss Puff',body:'Körper',color:'Farbe',face:'Gesicht',hat:'Kopfbedeckung',aura:'Effekt',eyes:'Augen',save:'FIGUR SPEICHERN',back:'ZURÜCK',locked:'Besiege mindestens einen Boss, um den Boss Puff Creator freizuschalten.',only:'Diese Figur wird nur im Boss Rush verwendet.'},
+  es:{create:'CREAR BOSS PUFF',title:'Crea tu Boss Puff',body:'Cuerpo',color:'Color',face:'Cara',hat:'Accesorio',aura:'Efecto',eyes:'Ojos',save:'GUARDAR PERSONAJE',back:'VOLVER',locked:'Derrota al menos a un jefe para desbloquear Boss Puff Creator.',only:'Este personaje solo se usa en Boss Rush.'},
+  fr:{create:'CRÉER BOSS PUFF',title:'Créez votre Boss Puff',body:'Corps',color:'Couleur',face:'Visage',hat:'Accessoire',aura:'Effet',eyes:'Yeux',save:'ENREGISTRER',back:'RETOUR',locked:'Battez au moins un boss pour débloquer Boss Puff Creator.',only:'Ce personnage est utilisé uniquement dans Boss Rush.'}
+ };return map[typeof lang==='string'?lang:'en']||map.en;}
+ function auraColors(id){return id==='fire'?['#fff36b','#ff8a2b','#ff3b30']:id==='ice'?['#eaffff','#8fe7ff','#4db8ff']:id==='galaxy'?['#8b5cf6','#d946ef','#22d3ee']:id==='gold'?['#fff5b8','#ffd43b','#ffb020']:['#ff4d6d','#ff9f1c','#ffe66d','#4cd97b','#4dabf7','#8b5cf6'];}
+ function drawCustom(x,y,scale=1,rotation=0,puff=0){
+  const c=cfg;ctx.save();ctx.translate(x,y);ctx.rotate(rotation||0);ctx.scale(scale,scale);
+  const cols=auraColors(c.aura);ctx.globalAlpha=.42;for(let i=0;i<cols.length;i++){ctx.strokeStyle=cols[i];ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,3,34+i*2,Math.PI*.15+i*.06,Math.PI*.85+i*.06);ctx.stroke();}ctx.globalAlpha=1;
+  let sx=1,sy=1;if(c.body==='round'){sx=.9;sy=1.08}else if(c.body==='wide'){sx=1.18;sy=.88}else if(c.body==='mini'){sx=.82;sy=.82}ctx.scale(sx*(1+puff*.07),sy*(1-puff*.05));
+  const body=colors[c.color]||colors.sky;const g=ctx.createLinearGradient(0,-35,0,32);g.addColorStop(0,'#fff');g.addColorStop(.55,body);g.addColorStop(1,'#cfe9ff');ctx.fillStyle=g;ctx.strokeStyle='rgba(42,105,165,.35)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(-17,3,18,0,Math.PI*2);ctx.arc(-2,-9,22,0,Math.PI*2);ctx.arc(19,1,20,0,Math.PI*2);ctx.arc(0,9,25,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle='#24364a';if(c.eyes==='spark'){ctx.font='14px Arial';ctx.textAlign='center';ctx.fillText('✦',-9,4);ctx.fillText('✦',10,4);}else if(c.eyes==='angry'){ctx.strokeStyle='#24364a';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-15,-1);ctx.lineTo(-5,3);ctx.moveTo(15,-1);ctx.lineTo(5,3);ctx.stroke();ctx.beginPath();ctx.arc(-9,5,2.5,0,Math.PI*2);ctx.arc(10,5,2.5,0,Math.PI*2);ctx.fill();}else{ctx.beginPath();ctx.arc(-9,2,3.8,0,Math.PI*2);ctx.arc(10,2,3.8,0,Math.PI*2);ctx.fill();}
+  ctx.strokeStyle='#24364a';ctx.lineWidth=2.4;if(c.face==='happy'){ctx.beginPath();ctx.arc(1,5,9,.1*Math.PI,.9*Math.PI);ctx.stroke();}else if(c.face==='cool'){ctx.fillStyle='#17202b';ctx.fillRect(-18,-1,14,6);ctx.fillRect(4,-1,14,6);ctx.fillRect(-4,1,8,2);}else if(c.face==='fierce'){ctx.beginPath();ctx.moveTo(-5,12);ctx.lineTo(5,12);ctx.stroke();}else{ctx.beginPath();ctx.arc(1,7,7,.1*Math.PI,.9*Math.PI);ctx.stroke();}
+  if(c.hat!=='none'){ctx.font='27px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(hats[c.hat]||'',0,-30);}
+  ctx.restore();
+ }
+ function makeSelect(label,key,items){const wrap=document.createElement('label');wrap.style.cssText='display:grid;gap:5px;text-align:left;font-weight:900;color:#35516b';wrap.textContent=label;const sel=document.createElement('select');sel.style.cssText='pointer-events:auto;border:0;border-radius:12px;padding:10px 12px;font-weight:800;background:#eef8ff;color:#35516b';for(const [id,name] of Object.entries(items)){const o=document.createElement('option');o.value=id;o.textContent=name;o.selected=cfg[key]===id;sel.appendChild(o)}sel.onchange=()=>{cfg[key]=sel.value;saveCfg();renderPreview()};wrap.appendChild(sel);return wrap;}
+ function renderPreview(){if(!preview)return;const c=preview.getContext('2d');c.clearRect(0,0,preview.width,preview.height);const old=ctx;try{ctx=c;drawCustom(preview.width/2,preview.height/2+8,1.45,0,.15);}finally{ctx=old}}
+ function ensureUI(){if(overlay)return;overlay=document.createElement('div');overlay.id='bossPuffCreator';overlay.className='overlay';overlay.style.display='none';const card=document.createElement('div');card.className='card';card.style.cssText='max-height:88vh;overflow:auto;width:min(88vw,390px)';const title=document.createElement('h1');title.style.fontSize='32px';const note=document.createElement('div');note.className='small';note.style.marginBottom='10px';preview=document.createElement('canvas');preview.width=260;preview.height=150;preview.style.cssText='width:100%;max-width:260px;height:150px;margin:0 auto 12px;display:block;background:linear-gradient(#7dd7ff,#eafcff);border-radius:18px';const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:9px';const saveBtn=document.createElement('button');saveBtn.className='gold';saveBtn.style.marginTop='14px';const backBtn=document.createElement('button');backBtn.className='secondary';backBtn.onclick=()=>{overlay.style.display='none';if(bossRushMenuEl)bossRushMenuEl.style.display='flex'};card.append(title,note,preview,grid,saveBtn,backBtn);overlay.appendChild(card);document.body.appendChild(overlay);
+  overlay._refs={title,note,grid,saveBtn,backBtn};saveBtn.onclick=()=>{saveCfg();showToast(T().save+' ✓');};
+ }
+ function openCreator(){ensureUI();const t=T();if(!anyBossUnlocked()){showToast(t.locked);return;}cfg=load();bossRushMenuEl.style.display='none';overlay.style.display='flex';overlay._refs.title.textContent=t.title;overlay._refs.note.textContent=t.only;overlay._refs.grid.innerHTML='';overlay._refs.grid.append(makeSelect(t.body,'body',bodies),makeSelect(t.color,'color',Object.fromEntries(Object.keys(colors).map(k=>[k,k.charAt(0).toUpperCase()+k.slice(1)]))),makeSelect(t.face,'face',faces),makeSelect(t.hat,'hat',hats),makeSelect(t.aura,'aura',auras),makeSelect(t.eyes,'eyes',eyes));overlay._refs.saveBtn.textContent=t.save;overlay._refs.backBtn.textContent=t.back;renderPreview();}
+ function addCreatorButton(){if(!bossRushMenuEl||document.getElementById('bossPuffCreatorBtn'))return;const btn=document.createElement('button');btn.id='bossPuffCreatorBtn';btn.className='gold';btn.style.margin='10px 0';btn.onclick=openCreator;const list=bossRushListEl;const t=T();btn.textContent=anyBossUnlocked()?('✨ '+t.create):('🔒 '+t.create);if(list&&list.parentNode)list.parentNode.insertBefore(btn,list);else bossRushMenuEl.querySelector('.card')?.appendChild(btn);}
+ const originalOpen=typeof openBossRush==='function'?openBossRush:null;if(originalOpen){openBossRush=function(){originalOpen();addCreatorButton();const b=document.getElementById('bossPuffCreatorBtn');if(b){const t=T();b.textContent=anyBossUnlocked()?('✨ '+t.create):('🔒 '+t.create);}}}
+ const originalDraw=typeof drawPlayer==='function'?drawPlayer:null;if(originalDraw){drawPlayer=function(){if(!bossRushMode)return originalDraw();drawCustom(player.x,player.y,1,player.rot,puffAnim);}}
+ window.skyPuffBossCreator={open:openCreator,getConfig:()=>({...cfg}),isUnlocked:anyBossUnlocked};
+ window.addEventListener('sky-puff-ready',addCreatorButton);
+})();
