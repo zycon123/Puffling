@@ -44,13 +44,19 @@ for (const rel of modules) {
   }
 }
 
-for (const rel of ['audio_theme.js', 'game.js']) {
-  if (!index.includes(`src="${rel}"`) && !index.includes(`src='${rel}'`)) {
-    fail(`index.html does not load ${rel}`);
-  }
+function hasScript(src) {
+  const escaped = src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return new RegExp(`<script[^>]+src=["']${escaped}(?:\\?[^"']*)?["'][^>]*>`, 'i').test(index);
 }
 
-if (index.indexOf('audio_theme.js') > index.indexOf('game.js')) {
+for (const rel of ['audio_theme.js', 'game.js']) {
+  if (!hasScript(rel)) fail(`index.html does not load ${rel}`);
+  else ok(`index.html loads ${rel}`);
+}
+
+const audioPos = index.search(/audio_theme\.js(?:\?[^"']*)?/i);
+const gamePos = index.search(/game\.js(?:\?[^"']*)?/i);
+if (audioPos < 0 || gamePos < 0 || audioPos > gamePos) {
   fail('audio_theme.js must load before game.js');
 } else {
   ok('Bootstrap script order');
@@ -65,6 +71,18 @@ for (const id of requiredIds) {
   if (!index.includes(`id="${id}"`) && !index.includes(`id='${id}'`)) {
     fail(`Missing required DOM id: ${id}`);
   }
+}
+
+if (!/id=["']gameOver["'][^>]*style=["'][^"']*display\s*:\s*none/i.test(index)) {
+  fail('gameOver overlay must be hidden in initial HTML');
+} else {
+  ok('Game-over overlay starts hidden');
+}
+
+if (!/style\.css\?v=/i.test(index) || !/game\.js\?v=/i.test(index)) {
+  fail('Cache-busting version is missing from critical assets');
+} else {
+  ok('Critical assets are cache-busted');
 }
 
 if (!process.exitCode) {
