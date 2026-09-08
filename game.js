@@ -1,5 +1,5 @@
 (function(){
-const parts=['js/dom_refs.js','js/part2.js','js/boss_multiplayer.js','js/music_bridge.js','js/leaderboard_submit.js','js/leaderboard_language_ui.js','js/state_content.js','js/part5_helpers.js','js/part5_2.js','js/part5_3.js','js/part5_4.js'];
+const parts=['js/dom_refs.js','js/part2.js','js/boss_multiplayer.js','js/music_bridge.js','js/leaderboard_submit.js','js/leaderboard_language_ui.js','js/state_content.js','js/part5_helpers.js','js/run_menu_shop_upgrades.js','js/input_missions_boss_spawn.js','js/part5_3.js','js/part5_4.js'];
 let i=0;
 function next(){
  if(i>=parts.length)return;
