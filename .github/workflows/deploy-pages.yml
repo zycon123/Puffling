@@ -2,8 +2,7 @@ name: Deploy Sky Puff Beta to GitHub Pages
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -12,53 +11,39 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   deploy:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: 22
+          cache: npm
 
       - name: Validate build
-        run: node scripts/validate-build.mjs
+        run: |
+          npm ci
+          npm run build
 
       - name: Prepare Pages artifact
-        run: |
-          set -euo pipefail
-          rm -rf dist
-          mkdir -p dist
-
-          cp index.html dist/
-          cp style.css dist/
-          cp game.js dist/
-          cp audio_theme.js dist/
-
-          if [ -d js ]; then
-            cp -R js dist/js
-          fi
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
-
-      - name: Deploy
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-  
