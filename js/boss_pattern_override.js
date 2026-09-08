@@ -1,5 +1,5 @@
 // Boss attack loop: 3 normal attacks, 1 alternate pattern, 2 normal attacks,
-// 1 alternate pattern, then repeat. Projectile visuals still match each boss.
+// 1 alternate pattern, then repeat. Alternate patterns always fire exactly 3 projectiles.
 (function(){
   if(typeof bossAttackPattern!=='function') return;
 
@@ -10,22 +10,18 @@
   }
 
   function alternateAttack(speed,type,variant){
-    if(variant%2===0){
-      // Wide three-lane fan: exactly 3 projectiles with a dodgeable gap.
-      fireAimedBossShot(speed*.96,10,type,-.34);
-      fireAimedBossShot(speed+.1,11,type,0);
-      fireAimedBossShot(speed*.96,10,type,.34);
+    if(variant%2===1){
+      // Alternate A: wide three-lane fan, exactly 3 simultaneous projectiles.
+      fireAimedBossShot(speed*.96,10,type,-.32);
+      fireAimedBossShot(speed+.08,11,type,0);
+      fireAimedBossShot(speed*.96,10,type,.32);
       return;
     }
 
-    // Staggered three-shot crossfire: 2 first, then 1 delayed center shot.
-    fireAimedBossShot(speed+.15,10,type,-.18);
-    fireAimedBossShot(speed+.15,10,type,.18);
-    setTimeout(()=>{
-      if(!running||!boss)return;
-      const currentType=boss.id||type;
-      fireAimedBossShot(speed+.3,11,currentType,0);
-    },180);
+    // Alternate B: tighter three-lane fan, exactly 3 simultaneous projectiles.
+    fireAimedBossShot(speed+.12,10,type,-.20);
+    fireAimedBossShot(speed+.18,11,type,0);
+    fireAimedBossShot(speed+.12,10,type,.20);
   }
 
   bossAttackPattern=function(){
