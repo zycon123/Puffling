@@ -1,57 +1,91 @@
 # Sky Puff
 
-Sky Puff v5.23 modularization and validation checkpoint.
+Sky Puff `5.26-beta.1` – browser beta release candidate.
+
+## Beta status
+The game is now in beta-readiness mode: feature work is frozen unless it fixes a beta issue. Current focus is stability, persistence, browser compatibility, boss flow and test feedback.
 
 ## Project structure
 - `index.html` – game UI and menus
 - `style.css` – visual styling
-- `audio_theme.js` – lightweight menu/game soundtrack engine
+- `audio_theme.js` – menu/game soundtrack engine
 - `game.js` – ordered module loader
+- `js/beta_config.js` – beta version and optional online API configuration
 - `js/dom_refs.js` – cached DOM/UI references
 - `js/localization_core.js` – Norwegian, English, German, Spanish and French text + translation helper
-- `js/audio_core.js` – shared music settings, volume state and boss soundtrack definitions
-- `js/endless_boss_core.js` – endless boss stage, health and reward scaling helpers
+- `js/audio_core.js` – music settings and boss soundtrack definitions
+- `js/endless_boss_core.js` – endless boss stage, health and reward scaling
 - `js/boss_multiplayer.js` – Boss Rush, multiplayer prototype and boss soundtrack control
-- `js/music_bridge.js` – soundtrack bridge to game audio controls
-- `js/leaderboard_submit.js` – online score submission
-- `js/leaderboard_language_ui.js` – leaderboard rendering, language UI and canvas resize handling
-- `js/state_content.js` – save data, cosmetics/content definitions and runtime state
-- `js/world_helpers.js` – platform generation and mission setup helpers
-- `js/run_menu_shop_upgrades.js` – run lifecycle, menus, daily reward, cosmetics shop and upgrades
-- `js/input_missions_boss_spawn.js` – player input, missions, boss warnings and boss spawning
-- `js/gameplay_update.js` – gameplay update loop, collisions, boss combat resolution and end-game handling
-- `js/player_render_helpers.js` – cloud, trail, hat and face rendering helpers
-- `js/renderer_runtime.js` – entity rendering, main draw function, runtime loop and final bootstrap
-- `js/smoke_check.js` – post-bootstrap browser smoke check for required functions, state and DOM elements
+- `js/music_bridge.js` – soundtrack bridge
+- `js/leaderboard_submit.js` – score submission + local fallback storage
+- `js/leaderboard_language_ui.js` – leaderboard rendering, language UI and canvas resize
+- `js/state_content.js` – save data, cosmetics/content and runtime state
+- `js/world_helpers.js` – platform generation and mission setup
+- `js/run_menu_shop_upgrades.js` – run lifecycle, menus, rewards, cosmetics and upgrades
+- `js/input_missions_boss_spawn.js` – input, missions, boss warnings and spawning
+- `js/gameplay_update.js` – gameplay, collisions, pickups, boss combat and end-game handling
+- `js/achievements.js` – persistent achievement progression
+- `js/achievements_menu.js` – achievements UI
+- `js/endless_events.js` – Coin Storm, Low Gravity and Rainbow Frenzy events
+- `js/player_render_helpers.js` – player/cloud/trail/hat/face rendering
+- `js/renderer_runtime.js` – entity renderer, draw loop and bootstrap
+- `js/beta_release_ui.js` – beta label, version display and runtime error capture
+- `js/smoke_check.js` – post-bootstrap beta smoke check
+- `BETA_TESTING.md` – beta tester checklist and known limitations
 
-## Current features
+## Current beta features
 - Endless high-score climb
-- Four main bosses with unique boss soundtracks
+- Extra-life pickup every 500 m
+- Sky Treasure milestone rewards every 2500 m
+- Rare Coin Rush, Super Shield and Rainbow Overcharge powerups
+- Endless Coin Storm, Low Gravity and Rainbow Frenzy events
+- Four main bosses with unique patterns and soundtracks
+- Endless boss tiers and scaling
 - Boss Rush for defeated bosses, 50 gold per win
-- Skins, faces, hats and trails
+- Rainbow Blast fired straight upward from Sky Puff during boss fights
+- Skins, faces, hats, trails and achievement cosmetics
+- Seven persistent achievements
 - Upgrades and 250-gold daily reward
-- Pause/audio settings and multilingual menu
-- Global leaderboard integration hooks
-- Multiplayer prototype with friend code UI and random-match UI; opponent networking is still simulated until the WebSocket backend is connected
+- Pause/resume countdown and audio settings
+- Norwegian, English, German, Spanish and French UI core
+- Local leaderboard fallback when no online API is configured
+- Optional global leaderboard backend integration
+- Multiplayer beta prototype with friend-code/random-match UI
 
-## Validation status
-- `audio_theme.js` loads before `game.js`
-- `game.js` loads all feature modules sequentially
-- No legacy `part*.js` files remain in the repository
-- `smoke_check.js` runs after final bootstrap and exposes `window.skyPuffSmokeCheck`
-- GitHub Actions validates module existence, JavaScript syntax, loader order and required DOM ids on push/PR
-- First automated validation run completed successfully
-- Browser UI/version reports v5.23
+## Beta validation
+- All active JavaScript is split into named feature modules
+- No legacy `part*.js` files remain
+- GitHub Actions validates every push/PR
+- Validation checks module existence, JavaScript syntax, bootstrap order and required DOM ids
+- Browser smoke check exposes `window.skyPuffSmokeCheck`
+- Runtime beta diagnostics expose `window.skyPuffBetaDiagnostics`
+- Leaderboard no longer requires a backend to function
+- Critical transitions clean up boss warnings, projectiles, boss music, overlays and multiplayer timers
+- Achievement/event/boss/treasure progression is persisted in localStorage
 
-## Next planned steps
-1. exercise the modular build in a real browser session and inspect `window.skyPuffSmokeCheck`
-2. test menu → gameplay → pause → game over → restart
-3. test Boss Rush and each unlocked boss
-4. test cosmetics/upgrades/daily reward persistence
-5. connect the real leaderboard / multiplayer backend
-6. continue gameplay, cosmetics and multiplayer feature development on the clean modular structure
+## Before wider public beta
+1. Run the complete checklist in `BETA_TESTING.md` on at least one Android phone, one iPhone/iPad if available, and one desktop browser.
+2. Confirm `window.skyPuffSmokeCheck.ok === true` on the hosted build.
+3. Test all four main bosses plus at least one endless Tier 2+ boss.
+4. Test pause/resume/menu/retry repeatedly for state leaks.
+5. Verify local save persistence after refresh/browser restart.
+6. Decide whether to connect a real leaderboard API before beta or keep local leaderboard mode.
+7. Keep multiplayer clearly labeled beta/simulated until real networking is connected.
 
-## Online services
-The leaderboard client currently uses a placeholder API base URL. The real Render backend URL can be configured when the score/multiplayer server is deployed.
+## Known beta limitations
+- Multiplayer networking is simulated; a real WebSocket/backend service is not connected yet.
+- Progress is local to the browser; there is no account/cloud save yet.
+- Global leaderboard is optional and only activates when `API_BASE` is configured.
+- Payments/IAP are not production-enabled for this browser beta.
 
-The original v5.21 standalone HTML remains the development-history reference for the pre-modular build in Git history.
+## Online API configuration
+By default `API_BASE` is empty and the highscore system uses browser-local scores. A hosted beta can configure the backend at runtime with:
+
+```js
+window.skyPuffConfig.setApiBase('https://your-api.example.com')
+```
+
+The URL is saved locally for subsequent sessions.
+
+## Beta build
+Current release candidate: `5.26-beta.1`.
