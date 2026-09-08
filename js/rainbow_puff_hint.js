@@ -2,11 +2,11 @@
  const hint=document.createElement('div');
  hint.id='rainbowPuffHint';
  const texts={
-  no:'Dobbeltklikk for Rainbow Puff 🌈',
-  en:'Double tap for Rainbow Puff 🌈',
-  de:'Doppeltippen für Rainbow Puff 🌈',
-  es:'Doble toque para Rainbow Puff 🌈',
-  fr:'Double-tapez pour Rainbow Puff 🌈'
+  no:'Dobbeltklikk for boost 🌈',
+  en:'Double tap for boost 🌈',
+  de:'Doppeltippen für Boost 🌈',
+  es:'Doble toque para boost 🌈',
+  fr:'Double-tapez pour le boost 🌈'
  };
  function updateHint(){
   const selected=(typeof lang!=='undefined'&&lang)||(typeof save!=='undefined'&&save.lang)||'no';
