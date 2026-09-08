@@ -20,6 +20,7 @@ function showMainMenu(){
 }
 function reset(){
  stopBossMusic(false);if(typeof cancelBossWarning==='function')cancelBossWarning();bossRushMode=false;bossRushSelected=null;lastBossTriggerAt=0;cameraY=0;score=0;coins=0;boost=100;combo=1;bestCombo=1;comboTimer=0;invuln=0;shield=0;magnet=0;mega=0;boss=null;bossSpawned=false;bossDefeated=false;bossArena=false;bossArenaY=0;defeatedBosses={storm:false,candy:false,ice:false,galaxy:false};
+ nextLifePickupAt=500;
  player={x:W/2,y:H*.68,vx:0,vy:-9,r:28,rot:0,hp:3+save.upHealth};
  platforms=[];coinItems=[];clouds=[];enemies=[];powerups=[];particles=[];playerShots=[];bossShots=[];skySparkles=[];screenShake=0;puffAnim=0;bossFlash=0;
  let y=H*.82;platforms.push({x:W/2-55,y,w:110,h:18,move:false,breakable:false});
