@@ -1,22 +1,26 @@
 let skyPuffRunStartedAt=0;
 let skyPuffLastGameOverReason='none';
 let skyPuffStartupRescues=0;
+let skyPuffSmoothUntil=0;
 
 (function(){
   const originalStartGame=startGame;
   const originalEndGame=endGame;
   const originalUpdate=update;
+  const START_BOUNCE_SPEED=-8.2;
+  const SMOOTH_MS=3600;
+
+  function beginSmoothWindow(){
+    skyPuffSmoothUntil=performance.now()+SMOOTH_MS;
+  }
 
   function markStart(){
     skyPuffRunStartedAt=performance.now();
     skyPuffLastGameOverReason='none';
     skyPuffStartupRescues=0;
+    beginSmoothWindow();
   }
 
-  /* IMPORTANT: when rescueStartup is called from endGame() during update(),
-     the current animation frame is still alive and loop() will schedule the
-     next frame itself. Starting another RAF here would create two concurrent
-     game loops and make physics appear roughly 2x faster after a respawn. */
   function rescueStartup(reason='startup-fall',scheduleFrame=false){
     if(!player||skyPuffStartupRescues>=4)return false;
     skyPuffStartupRescues++;
@@ -26,15 +30,16 @@ let skyPuffStartupRescues=0;
     player.x=W/2;
     player.y=platformY-player.r-2;
     player.vx=0;
-    player.vy=-8.2;
+    player.vy=START_BOUNCE_SPEED;
     cameraY=0;
     invuln=120;
     pointerX=W/2;
     lastTime=performance.now();
+    beginSmoothWindow();
     if(gameOverEl)gameOverEl.style.display='none';
     if(startEl)startEl.style.display='none';
     skyPuffLastGameOverReason=String(reason);
-    console.warn('Sky Puff startup rescue',{reason,rescues:skyPuffStartupRescues,scheduleFrame});
+    console.warn('Sky Puff startup rescue',{reason,rescues:skyPuffStartupRescues,scheduleFrame,smoothUntil:skyPuffSmoothUntil});
     if(scheduleFrame)requestAnimationFrame(loop);
     return true;
   }
@@ -43,9 +48,7 @@ let skyPuffStartupRescues=0;
     markStart();
     const result=originalStartGame();
     skyPuffRunStartedAt=performance.now();
-
-    /* Clear an old stored runtime error only after the new run proves stable.
-       If a fresh runtime error occurs, running becomes false and the new error stays visible. */
+    beginSmoothWindow();
     setTimeout(()=>{
       if(running&&!paused){
         try{localStorage.removeItem('skyPuffLastError');}catch(_){}
@@ -61,12 +64,13 @@ let skyPuffStartupRescues=0;
   if(playBtnEl)playBtnEl.onclick=startGame;
   if(retryBtnEl)retryBtnEl.onclick=startGame;
 
-  /* Keep the first seconds calm when the player has not chosen a direction yet. */
+  /* Use the same calm vertical speed after both a fresh start and a startup respawn.
+     The smoothing window is restarted on every rescue, so a respawn can never jump
+     faster just because the original run had already been alive for a few seconds. */
   update=function(dt){
-    const elapsed=skyPuffRunStartedAt?performance.now()-skyPuffRunStartedAt:Infinity;
-    const noHorizontalIntent=player&&Math.abs((pointerX||W/2)-player.x)<14;
-    if(elapsed<3200&&score<=2&&player&&noHorizontalIntent&&player.vy<-8.2){
-      player.vy=-8.2;
+    const smoothing=performance.now()<skyPuffSmoothUntil;
+    if(smoothing&&!bossArena&&player&&player.vy<START_BOUNCE_SPEED){
+      player.vy=START_BOUNCE_SPEED;
     }
     return originalUpdate(dt);
   };
@@ -75,15 +79,10 @@ let skyPuffStartupRescues=0;
     const elapsed=skyPuffRunStartedAt?performance.now()-skyPuffRunStartedAt:Infinity;
     skyPuffLastGameOverReason=String(reason||'unknown');
     const startup=elapsed<7000&&score<=5&&player&&player.hp>0;
-    /* Do NOT schedule another RAF here. loop() is already executing and will
-       continue naturally because rescueStartup restores running=true. */
     if(startup&&rescueStartup(reason||'endGame',false))return;
     return originalEndGame();
   };
 
-  /* This observer is a last-resort path that may run after another code path
-     has stopped the frame loop, so it is the only rescue allowed to schedule
-     a fresh animation frame. */
   if(gameOverEl&&window.MutationObserver){
     new MutationObserver(()=>{
       const elapsed=skyPuffRunStartedAt?performance.now()-skyPuffRunStartedAt:Infinity;
@@ -95,6 +94,6 @@ let skyPuffStartupRescues=0;
   }
 
   window.skyPuffStartGuard={
-    get status(){return{active:true,runStartedAt:skyPuffRunStartedAt,lastGameOverReason:skyPuffLastGameOverReason,startupRescues:skyPuffStartupRescues}}
+    get status(){return{active:true,runStartedAt:skyPuffRunStartedAt,lastGameOverReason:skyPuffLastGameOverReason,startupRescues:skyPuffStartupRescues,smoothUntil:skyPuffSmoothUntil}}
   };
 })();
