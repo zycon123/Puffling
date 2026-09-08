@@ -1,4 +1,4 @@
-var SKY_PUFF_VERSION='5.26-beta.3';
+var SKY_PUFF_VERSION='5.26-beta.4';
 var SKY_PUFF_BETA=true;
 var SKY_PUFF_SUPPORT_EMAIL='zyconstudios@protonmail.com';
 var API_BASE=(localStorage.skyPuffApiBase||'').trim().replace(/\/$/,'');
