@@ -1,11 +1,11 @@
 # Sky Puff
 
-Sky Puff `5.26-beta.2` – Zycon Studios browser beta release candidate.
+Sky Puff `5.26-beta.3` – Zycon Studios browser beta release candidate.
 
 **Beta support:** `zyconstudios@protonmail.com`
 
 ## Beta status
-The game is now in beta-readiness mode: feature work is frozen unless it fixes a beta issue. Current focus is stability, persistence, browser compatibility, boss flow and test feedback.
+The game is now in beta-readiness mode: feature work is frozen unless it fixes a beta issue. Current focus is stability, persistence, browser compatibility, boss flow, diagnostics and test feedback.
 
 ## Project structure
 - `index.html` – game UI, Zycon Studios startup splash and menus
@@ -19,6 +19,7 @@ The game is now in beta-readiness mode: feature work is frozen unless it fixes a
 - `js/endless_boss_core.js` – endless boss stage, health and reward scaling
 - `js/boss_multiplayer.js` – Boss Rush, multiplayer prototype and boss soundtrack control
 - `js/music_bridge.js` – soundtrack bridge
+- `js/anti_cheat.js` – client-side beta integrity checks and suspicious-score flagging
 - `js/leaderboard_submit.js` – score submission + local fallback storage
 - `js/leaderboard_language_ui.js` – leaderboard rendering, language UI and canvas resize
 - `js/state_content.js` – save data, cosmetics/content and runtime state
@@ -31,9 +32,12 @@ The game is now in beta-readiness mode: feature work is frozen unless it fixes a
 - `js/endless_events.js` – Coin Storm, Low Gravity and Rainbow Frenzy events
 - `js/player_render_helpers.js` – player/cloud/trail/hat/face rendering
 - `js/renderer_runtime.js` – entity renderer, draw loop and bootstrap
+- `js/ai_diagnostics.js` – automatic beta diagnostics and safe self-repair
 - `js/beta_release_ui.js` – beta label, support link, version display and runtime error capture
+- `js/diagnostics_support.js` – SYSTEM & SUPPORT panel and prefilled bug-report mail
 - `js/smoke_check.js` – post-bootstrap beta smoke check
 - `BETA_TESTING.md` – beta tester checklist, support instructions and known limitations
+- `CHANGELOG_BETA.md` – release-candidate change history
 
 ## Current beta features
 - Zycon Studios startup/loading screen
@@ -54,6 +58,9 @@ The game is now in beta-readiness mode: feature work is frozen unless it fixes a
 - Local leaderboard fallback when no online API is configured
 - Optional global leaderboard backend integration
 - Multiplayer beta prototype with friend-code/random-match UI
+- Automatic self-repair diagnostics
+- Client-side beta anti-cheat
+- In-game SYSTEM & SUPPORT diagnostics panel
 - In-game beta support contact for Zycon Studios
 
 ## Beta validation
@@ -63,7 +70,11 @@ The game is now in beta-readiness mode: feature work is frozen unless it fixes a
 - Validation checks module existence, JavaScript syntax, bootstrap order and required DOM ids
 - Browser smoke check exposes `window.skyPuffSmokeCheck`
 - Runtime beta diagnostics expose `window.skyPuffBetaDiagnostics`
+- Automatic self-repair exposes `window.skyPuffAIDiagnostics`
+- Anti-cheat exposes `window.skyPuffAntiCheat`
+- System/support status exposes `window.skyPuffDiagnosticsSupport`
 - Leaderboard no longer requires a backend to function
+- Suspicious client runs are blocked from online leaderboard submission
 - Critical transitions clean up boss warnings, projectiles, boss music, overlays and multiplayer timers
 - Achievement/event/boss/treasure progression is persisted in localStorage
 - Startup splash has a game-ready signal plus failsafe so it cannot permanently block the menu
@@ -74,18 +85,21 @@ The game is now in beta-readiness mode: feature work is frozen unless it fixes a
 3. Test all four main bosses plus at least one endless Tier 2+ boss.
 4. Test pause/resume/menu/retry repeatedly for state leaks.
 5. Verify local save persistence after refresh/browser restart.
-6. Verify the Zycon Studios support mail link opens correctly on test devices.
-7. Decide whether to connect a real leaderboard API before beta or keep local leaderboard mode.
-8. Keep multiplayer clearly labeled beta/simulated until real networking is connected.
+6. Verify the Zycon Studios support mail link and SYSTEM & SUPPORT bug-report button on test devices.
+7. Verify AI Diagnostics reports/recovery do not interrupt normal gameplay.
+8. Verify anti-cheat does not flag normal long runs incorrectly.
+9. Decide whether to connect a real leaderboard API before beta or keep local leaderboard mode.
+10. Keep multiplayer clearly labeled beta/simulated until real networking is connected.
 
 ## Known beta limitations
 - Multiplayer networking is simulated; a real WebSocket/backend service is not connected yet.
 - Progress is local to the browser; there is no account/cloud save yet.
 - Global leaderboard is optional and only activates when `API_BASE` is configured.
+- Client-side anti-cheat is a beta protection layer; production leaderboard security should also validate runs server-side.
 - Payments/IAP are not production-enabled for this browser beta.
 
 ## Beta support
-Players and testers can report bugs to `zyconstudios@protonmail.com`. The address is also shown as a tappable support link in the Sky Puff main menu.
+Players and testers can report bugs to `zyconstudios@protonmail.com`. The address is shown in the main menu and the SYSTEM & SUPPORT panel can prefill a bug report with diagnostics.
 
 Useful bug reports should include the build version, device, operating system/browser, what happened, approximate height/boss/mode, and a screenshot or screen recording when possible.
 
@@ -99,4 +113,4 @@ window.skyPuffConfig.setApiBase('https://your-api.example.com')
 The URL is saved locally for subsequent sessions.
 
 ## Beta build
-Current release candidate: `5.26-beta.2`.
+Current release candidate: `5.26-beta.3`.
