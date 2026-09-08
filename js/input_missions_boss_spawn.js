@@ -1,29 +1,8 @@
 canvas.addEventListener('pointerdown',e=>{active=true;pointerX=e.clientX;const n=performance.now();if(n-lastTap<280)doBoost();lastTap=n});canvas.addEventListener('pointermove',e=>{if(active)pointerX=e.clientX});canvas.addEventListener('pointerup',()=>active=false);canvas.addEventListener('pointercancel',()=>active=false);
-function doBoost(){const cost=Math.max(20,28-save.upBoost*2);if(!running||boost<cost)return;boost-=cost;if(!bossArena)player.vy-=7.8+save.upBoost*.25;puffAnim=1.25;screenShake=Math.max(screenShake,4);combo=Math.min(9,combo+1);bestCombo=Math.max(bestCombo,combo);comboTimer=95;if(boss){playerShots.push({x:player.x,y:player.y-28,vx:0,vy:-9.4,r:10,life:120,damage:12+save.upBoost*2});}for(let i=0;i<25;i++)particles.push({x:player.x+(Math.random()-.5)*22,y:player.y+22,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,life:38+Math.random()*18,hue:(i*15)%360,size:4+Math.random()*7});}
+function doBoost(){const cost=Math.max(20,28-save.upBoost*2);if(!running||boost<cost)return;boost-=cost;if(!bossArena)player.vy-=7.8+save.upBoost*.25;puffAnim=1.25;screenShake=Math.max(screenShake,4);combo=Math.min(9,combo+1);bestCombo=Math.max(bestCombo,combo);comboTimer=95;if(boss){playerShots.push({x:player.x,y:player.y-player.r-8,vx:0,vy:-10.2,r:11,life:120,damage:12+save.upBoost*2});for(let i=0;i<8;i++)particles.push({x:player.x+(Math.random()-.5)*12,y:player.y-player.r,vx:(Math.random()-.5)*1.2,vy:-2-Math.random()*3,life:18+Math.random()*12,hue:(i*42)%360,size:3+Math.random()*4});}for(let i=0;i<25;i++)particles.push({x:player.x+(Math.random()-.5)*22,y:player.y+22,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,life:38+Math.random()*18,hue:(i*15)%360,size:4+Math.random()*7});}
 function hitPlayer(x,y,r){return Math.hypot(player.x-x,player.y-y)<player.r+r}
 function checkMission(){if(missionDone)return;const m=missions[missionIndex];let ok=m.type==='height'?score>=m.target:m.type==='coins'?coins>=m.target:bestCombo>=m.target;if(ok){missionDone=true;save.bank+=m.reward;persist();missionRewardTextEl.textContent=tr('missionReward',{reward:m.reward});missionCompleteEl.style.display='block';clearTimeout(window.skyMissionToastTimer);window.skyMissionToastTimer=setTimeout(()=>{missionCompleteEl.style.display='none'},1800);}}
-function nextBossStage(){
- for(const b of bossStages){if(score>=b.at&&!defeatedBosses[b.id]&&b.at>lastBossTriggerAt)return {...b,tier:1};}
- const endless=getEndlessBossStage(score);
- if(!endless||endless.tier<=1||endless.at<=lastBossTriggerAt||score<endless.at)return null;
- const base=bossStages.find(b=>b.id===endless.id);
- if(!base)return null;
- return {...base,...endless,hp:Math.max(base.hp,endlessBossHealth(endless)*24),reward:Math.max(base.reward,endlessBossReward(endless))};
-}
-function cancelBossWarning(){
- if(window.skyBossWarningTimer){clearTimeout(window.skyBossWarningTimer);window.skyBossWarningTimer=null;}
- bossWarningActive=false;bossPendingStage=null;
- if(bossWarningEl)bossWarningEl.style.display='none';
-}
-function triggerBossWarning(stage){
- if(bossWarningActive||boss||!stage)return;
- cancelBossWarning();
- bossWarningActive=true;bossPendingStage=stage;bossWarningTextEl.textContent=tr('bossIncoming');bossWarningEl.style.display='block';
- window.skyBossWarningTimer=setTimeout(()=>{
-  window.skyBossWarningTimer=null;
-  if(bossWarningEl)bossWarningEl.style.display='none';bossWarningActive=false;
-  const s=bossPendingStage;bossPendingStage=null;
-  if(running&&!paused&&s&&!boss&&s.at>lastBossTriggerAt)spawnBoss(s);
- },1200);
-}
-function spawnBoss(stage){bossArena=true;bossArenaY=Math.min(H-145,Math.max(260,player.y));player.y=bossArenaY;player.vy=0;boss={id:stage.id,name:stage.name,x:W/2,y:150,hp:stage.hp,maxHp:stage.hp,dir:1,r:stage.id==='galaxy'?48:40,shot:0,reward:stage.reward,emoji:stage.emoji,at:stage.at||0,tier:stage.tier||1};bossSpawned=true;bossWrap.style.display='block';bossBar.style.width='100%';showToast(`${stage.name}! ${stage.emoji}`);startBossMusic(stage.id);}
+function nextBossStage(){for(const b of bossStages){if(score>=b.at&&!defeatedBosses[b.id]&&b.at>lastBossTriggerAt)return {...b,tier:1};}const endless=getEndlessBossStage(score);if(!endless||endless.tier<=1||endless.at<=lastBossTriggerAt||score<endless.at)return null;const base=bossStages.find(b=>b.id===endless.id);if(!base)return null;return {...base,...endless,hp:Math.max(base.hp,endlessBossHealth(endless)*24),reward:Math.max(base.reward,endlessBossReward(endless))};}
+function cancelBossWarning(){if(window.skyBossWarningTimer){clearTimeout(window.skyBossWarningTimer);window.skyBossWarningTimer=null;}bossWarningActive=false;bossPendingStage=null;if(bossWarningEl)bossWarningEl.style.display='none';}
+function triggerBossWarning(stage){if(bossWarningActive||boss||!stage)return;cancelBossWarning();bossWarningActive=true;bossPendingStage=stage;const tier=stage.tier||1;bossWarningTextEl.textContent=tier>1?`${stage.emoji} ${stage.name} • TIER ${tier}`:tr('bossIncoming');bossWarningEl.style.display='block';window.skyBossWarningTimer=setTimeout(()=>{window.skyBossWarningTimer=null;if(bossWarningEl)bossWarningEl.style.display='none';bossWarningActive=false;const s=bossPendingStage;bossPendingStage=null;if(running&&!paused&&s&&!boss&&s.at>lastBossTriggerAt)spawnBoss(s);},1200);}
+function spawnBoss(stage){bossArena=true;bossArenaY=Math.min(H-145,Math.max(260,player.y));player.y=bossArenaY;player.vy=0;boss={id:stage.id,name:stage.name,x:W/2,y:150,hp:stage.hp,maxHp:stage.hp,dir:1,r:stage.id==='galaxy'?48:40,shot:0,reward:stage.reward,emoji:stage.emoji,at:stage.at||0,tier:stage.tier||1};bossSpawned=true;bossWrap.style.display='block';bossBar.style.width='100%';if(bossIdentityEl){bossIdentityEl.style.display='block';bossIdentityNameEl.textContent=`${stage.emoji} ${stage.name}`;bossTierEl.textContent=(stage.tier||1)>1?`• TIER ${stage.tier}`:'';}showToast(`${stage.name}! ${stage.emoji}`);startBossMusic(stage.id);}
