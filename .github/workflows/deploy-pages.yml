@@ -25,13 +25,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
         with:
-          path: .  # Deployer hele repositoriet
+          node-version: "22"
+
+      - name: Validate build
+        run: node scripts/validate-build.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
 
       - name: Deploy to GitHub Pages
         id: deployment
