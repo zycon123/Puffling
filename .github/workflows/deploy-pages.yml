@@ -29,9 +29,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - name: Validate build
+    - name: Validate build
         run: |
           npm ci
           npm run build
