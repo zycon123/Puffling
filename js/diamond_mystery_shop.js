@@ -2,7 +2,7 @@
 (function(){
  const KEY='skyPuffDiamonds';
  const COST=25;
- const get=()=>Math.max(0,+localStorage.getItem(KEY)||0);
+ const get=()=>{const n=Number(localStorage.getItem(KEY));return Number.isFinite(n)?Math.max(0,Math.floor(n)):0;};
  const set=v=>{localStorage.setItem(KEY,String(Math.max(0,Math.floor(v))));refresh();};
  const add=n=>{set(get()+Math.max(0,Math.floor(n)));return get();};
  function spend(n){n=Math.max(0,Math.floor(n));if(get()<n)return false;set(get()-n);return true;}
@@ -18,7 +18,7 @@
  function grant(r){const F=window.SkyPuffFusion;
   if(r.type==='coins'){if(typeof save!=='undefined'){save.bank=(save.bank||0)+r.amount;persist?.();refreshMenu?.();}}
   else if(r.type==='egg'){if(window.SkyPuffNurseryVault?.addEgg)window.SkyPuffNurseryVault.addEgg(r.tier,1);else{try{const k='skyPuffPendingEggsV1',v=JSON.parse(localStorage.getItem(k)||'{}');v[r.tier]=(v[r.tier]||0)+1;localStorage.setItem(k,JSON.stringify(v));}catch(e){}}}
-  else if(r.type==='legendaryPuff'&&F){const leg=['eclipse','neonstorm'],id=leg[Math.floor(Math.random()*leg.length)];F.add(id,1);window.SkyPuffFusionUI?.renderDex?.();}
+  else if(r.type==='legendaryPuff'&&F){const leg=[...Object.values(F.BASE||{}),...Object.values(F.FUSIONS||{})].filter(p=>p.rarity==='legendary').map(p=>p.id),id=leg[Math.floor(Math.random()*leg.length)];if(id)F.add(id,1);window.SkyPuffFusionUI?.renderDex?.();}
   else{try{const k='skyPuffItemsV1',v=JSON.parse(localStorage.getItem(k)||'{}');v[r.id]=(v[r.id]||0)+(r.amount||1);localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
  }
  function ensure(){if(document.getElementById('mysteryShopMenu'))return;const el=document.createElement('div');el.id='mysteryShopMenu';el.className='overlay';el.style.display='none';el.innerHTML=`<div class="card" style="max-width:520px"><h1 style="font-size:34px">Mystery Shop 💎</h1><div style="font-size:24px;font-weight:1000;margin:8px 0">💎 <span id="diamondBalance">0</span></div><div class="small" style="margin-bottom:12px">Mystery Box koster ${COST} diamanter. Egg legges i Nursery og klekkes når du vil.</div><button id="buyDiamondBox" class="gold">KJØP MYSTERY BOX • ${COST} 💎</button><div id="diamondBoxResult" style="margin:14px 0;font-weight:900"></div><div style="text-align:left;background:rgba(255,255,255,.6);padding:12px;border-radius:14px;font-size:12px;line-height:1.55"><b>Drop-sjanser</b><br>500 Coins — 38%<br>Fusion Crystal — 26%<br>Rare Puffling Egg — 18%<br>Epic Puffling Egg — 11%<br>Legendary Puffling Egg — 6%<br>Random Legendary Puffling — 1%</div><button id="closeMysteryShop" class="secondary" style="margin-top:12px">TILBAKE</button></div>`;document.body.appendChild(el);
