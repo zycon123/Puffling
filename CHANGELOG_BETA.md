@@ -1,5 +1,10 @@
 # Sky Puff Beta Changelog
 
+## 5.26-beta.87
+- Fixed a startup runtime error in language setup after the obsolete Rainbow Puff menu hint was removed.
+- Treat the removed hint as an optional element so localization continues without interruption.
+- Added build coverage that prevents the null-element crash from returning.
+
 ## 5.26-beta.86
 - Show owned standard and Common Pufflings first when choosing an empty Vault slot.
 - Sort all owned Pufflings consistently by standard set, rarity and name.

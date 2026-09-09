@@ -68,6 +68,10 @@ if(!/#start\s+\.menuActions\s*\{[^}]*display\s*:\s*none\s*!important/i.test(inde
 const compactNavPos=index.search(/id=["']spMainNav["']/i);
 if(compactNavPos<0||gamePos<0||compactNavPos>gamePos)fail('Compact navigation must be present before game.js loads');else ok('Compact navigation is rendered in initial HTML');
 
+const languageUiPath=path.join(root,'js/leaderboard_language_ui.js');
+const languageUiSource=fs.existsSync(languageUiPath)?fs.readFileSync(languageUiPath,'utf8'):'';
+if(!languageUiSource.includes('if(menuHintEl)menuHintEl.innerHTML'))fail('Removed menu hint must be null-guarded during language setup');else ok('Language setup tolerates removed optional menu hint');
+
 const nurseryPath=path.join(root,'js/puffling_nursery_vault.js');
 const nurserySource=fs.existsSync(nurseryPath)?fs.readFileSync(nurseryPath,'utf8'):'';
 for(const token of ['vaultSlots','for(let i=0;i<MAX_VAULT;i++)','TOM PLASS','beginVaultSelection','placeInVault','vaultPicker'])if(!nurserySource.includes(token))fail(`Vault UI is missing ${token}`);
