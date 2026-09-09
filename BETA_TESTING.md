@@ -1,6 +1,6 @@
 # Sky Puff Beta Testing
 
-Build: `5.26-beta.82`
+Build: `5.26-beta.83`
 
 Stable test entry: `beta42.html`
 
@@ -22,12 +22,13 @@ Support: `zyconstudios@protonmail.com`
 13. Open Boss Puff Creator and verify its text explains that Boss Puff is Boss-Rush-only until all four Boss Rush bosses are defeated. Confirm Premium Creator appears even if Creator is first opened several minutes after game launch.
 14. Defeat all four bosses in Boss Rush and confirm Boss Puff can then be enabled/disabled for the main game.
 15. Test achievement cosmetics and confirm selected unlocked headwear is actually visible on Sky Puff.
-16. Open Nursery & Vault on a narrow mobile screen. Verify all three egg types, every owned Puffling, Vault status and the sticky Back button are reachable by scrolling, without clipped content or nested scroll traps.\n17. Test Puffling Treasure milestones, rare powerups and endless events. Each collected treasure must give its coin reward, exactly 1 Mystery Shop diamond and exactly 1 Treasure Hunter progress.
-17. Open Achievements and verify progress persists after refresh.
-18. Open Highscore. Without an API backend it must show local beta scores instead of failing.
-19. Test Cosmetics, Upgrades and Daily Reward, then refresh and verify purchases/progress remain.
-20. Open Multiplayer and verify the beta/simulated-rival flow can be entered and exited without freezing.
-21. Open and close Puffdex, Nursery/Vault, Mystery Shop and Audio settings, then verify AI Diagnostics remains at 0 auto-repairs. Defeat a boss and verify Anti-Cheat remains at 0 flags after the post-boss landing. Confirm the bug-report button can open an email composer.
+16. Open Nursery & Vault on a narrow mobile screen. Verify all three egg types, three permanent Vault slot cards (including empty placeholders), every owned Puffling, Vault status and the sticky Back button are reachable by scrolling, without clipped content or nested scroll traps.
+17. Test Puffling Treasure milestones, rare powerups and endless events. Each collected treasure must give its coin reward, exactly 1 Mystery Shop diamond and exactly 1 Treasure Hunter progress.
+18. Open Achievements and verify progress persists after refresh.
+19. Open Highscore. Without an API backend it must show local beta scores instead of failing.
+20. Test Cosmetics, Upgrades and Daily Reward, then refresh and verify purchases/progress remain.
+21. Open Multiplayer and verify the beta/simulated-rival flow can be entered and exited without freezing.
+22. Open and close Puffdex, Nursery/Vault, Mystery Shop and Audio settings, then verify AI Diagnostics remains at 0 auto-repairs. Defeat a boss and verify Anti-Cheat remains at 0 flags after the post-boss landing. Confirm the bug-report button can open an email composer.
 
 ## Persistence checks
 - selected language
