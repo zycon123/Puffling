@@ -2,7 +2,7 @@
 (function(){
  const EGG_KEY='skyPuffEggInventoryV1',PENDING_KEY='skyPuffPendingEggsV1',MAX_VAULT=3;let hatching=false;
  const F=()=>window.SkyPuffFusion;
- function loadEggs(){try{return JSON.parse(localStorage.getItem(EGG_KEY)||'{}')}catch(e){return {}}}
+ function loadEggs(){try{const raw=JSON.parse(localStorage.getItem(EGG_KEY)||'{}'),out={};for(const t of ['rare','epic','legendary'])out[t]=Math.max(0,Math.floor(Number(raw?.[t])||0));return out;}catch(e){return {rare:0,epic:0,legendary:0}}}
  function saveEggs(v){localStorage.setItem(EGG_KEY,JSON.stringify(v||{}));}
  function migratePending(){try{const p=JSON.parse(localStorage.getItem(PENDING_KEY)||'{}');if(!p||typeof p!=='object')return;const e=loadEggs();let changed=false;for(const t of ['rare','epic','legendary']){const n=Math.max(0,+p[t]||0);if(n){e[t]=(e[t]||0)+n;changed=true;}}if(changed)saveEggs(e);localStorage.removeItem(PENDING_KEY);}catch(e){}}
  function addEgg(tier,count=1){const e=loadEggs();e[tier]=(e[tier]||0)+Math.max(1,count|0);saveEggs(e);render();return e;}

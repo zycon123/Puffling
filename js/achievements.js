@@ -17,6 +17,6 @@
  }
  function treasureCollected(){save.treasuresCollected=(save.treasuresCollected||0)+1;persist();if(save.treasuresCollected>=10)unlock('achTreasureHunter','TREASURE HUNTER',1500);}
  const previousUpdate=update;
- update=function(dt){const hadBoss=!!boss,previousTier=hadBoss?(boss.tier||1):1;previousUpdate(dt);if(running)checkHeight();if(hadBoss&&!boss&&running)recordBossDefeat(previousTier);};
+ update=function(dt){const hadBoss=!!boss,previousTier=hadBoss?(boss.tier||1):1;previousUpdate(dt);if(running)checkHeight();if(hadBoss&&!boss&&running&&bossDefeated)recordBossDefeat(previousTier);};
  window.skyPuffAchievements={eventCleared,bossDefeated:recordBossDefeat,treasureCollected,checkHeight};
 })();

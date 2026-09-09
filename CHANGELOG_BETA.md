@@ -1,5 +1,15 @@
 # Sky Puff Beta Changelog
 
+## 5.26-beta.79
+- Fixed incremental height XP so small score increases accumulate instead of rounding down to zero.
+- Prevented Vault-protected Pufflings from being consumed by Fusion and improved the player-facing error message.
+- Clear an active Puffling automatically when its final owned copy is removed.
+- Connected every catalog ability type used by the 50 additional Pufflings to gameplay effects.
+- Expanded the Mystery Shop's random Legendary reward to the complete Legendary catalog.
+- Require confirmed boss victory before granting boss Puffling rewards, achievement wins or boss XP.
+- Normalize malformed Puffling progress, egg inventory and diamond balance saves.
+- Added runtime-model regression tests to CI for catalog count, Vault-safe Fusion, active selection, XP accumulation and egg saves.
+
 ## 5.26-beta.5
 - Adopted `beta42.html` as the cache-safe stable beta entry and made it generate a unique asset nonce every launch.
 - Updated `game.js` so the stable nonce propagates to every JavaScript module, preventing mixed old/new builds on mobile browsers.

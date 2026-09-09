@@ -13,7 +13,7 @@
   function randomFrom(list){return list.length?list[Math.floor(Math.random()*list.length)]:null}
   function rollPufflingId(){const rr=Math.random();if(rr<LEGENDARY_WITHIN_DROP)return randomFrom(byRarity('legendary'));if(rr<LEGENDARY_WITHIN_DROP+EPIC_WITHIN_DROP)return randomFrom(byRarity('epic'));return randomFrom(commonPool());}
   function rollBossReward(defeated){
-    if(!defeated||typeof bossRushMode!=='undefined'&&bossRushMode)return;
+    if(!defeated||typeof bossRushMode!=='undefined'&&bossRushMode||typeof bossDefeated!=='undefined'&&!bossDefeated)return;
     const key=`${defeated.id||'boss'}:${defeated.at||0}:${defeated.tier||1}`;if(key===rewardedBossKey)return;rewardedBossKey=key;
     if(Math.random()>DROP_CHANCE){if(typeof showToast==='function')showToast('Boss reward: Ingen Puffling denne gangen ☁️');return;}
     const id=rollPufflingId(),F=fusion();if(!id||!F)return;F.add(id,1);const p=puffInfo(id);if(gameplay()&&!gameplay().active())gameplay().setActive(id);window.SkyPuffFusionUI?.renderDex?.();const rarity=(p?.rarity||'common').toUpperCase();const rareText=(p?.rarity==='epic'||p?.rarity==='legendary')?` ${rarity}!`:' ';if(typeof showToast==='function')showToast(`BOSS DROP!${rareText} ${p?.icon||'☁️'} ${p?.name||id} funnet!`);
