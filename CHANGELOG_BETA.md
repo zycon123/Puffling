@@ -1,5 +1,11 @@
 # Sky Puff Beta Changelog
 
+## 5.26-beta.86
+- Show owned standard and Common Pufflings first when choosing an empty Vault slot.
+- Sort all owned Pufflings consistently by standard set, rarity and name.
+- Label each Vault choice with its category and owned count so common choices are easy to find.
+- Added build coverage for the common-first Vault picker.
+
 ## 5.26-beta.85
 - Rendered the compact main navigation directly in the initial HTML so the crowded legacy menu never flashes on startup.
 - Hid legacy feature buttons before the first visible frame while retaining them as existing action targets.

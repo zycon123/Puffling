@@ -1,6 +1,6 @@
 # Sky Puff Beta Testing
 
-Build: `5.26-beta.85`
+Build: `5.26-beta.86`
 
 Stable test entry: `beta42.html`
 
@@ -22,7 +22,7 @@ Support: `zyconstudios@protonmail.com`
 13. Open Boss Puff Creator and verify its text explains that Boss Puff is Boss-Rush-only until all four Boss Rush bosses are defeated. Confirm Premium Creator appears even if Creator is first opened several minutes after game launch.
 14. Defeat all four bosses in Boss Rush and confirm Boss Puff can then be enabled/disabled for the main game.
 15. Test achievement cosmetics and confirm selected unlocked headwear is actually visible on Sky Puff.
-16. Open Nursery & Vault on a narrow mobile screen. Verify all three egg types, three permanent Vault slot cards (including empty placeholders), every owned Puffling, Vault status and the sticky Back button are reachable by scrolling. Tap each empty slot, select a Puffling, confirm it enters the exact selected slot, then remove it again.
+16. Open Nursery & Vault on a narrow mobile screen. Verify all three egg types, three permanent Vault slot cards (including empty placeholders), every owned Puffling, Vault status and the sticky Back button are reachable by scrolling. Tap each empty slot and confirm owned standard/Common Pufflings appear first and are clearly labelled. Select one, confirm it enters the exact selected slot, then remove it again.
 17. Test Puffling Treasure milestones, rare powerups and endless events. Each collected treasure must give its coin reward, exactly 1 Mystery Shop diamond and exactly 1 Treasure Hunter progress.
 18. Open Achievements and verify progress persists after refresh.
 19. Open Highscore. Without an API backend it must show local beta scores instead of failing.

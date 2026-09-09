@@ -71,6 +71,7 @@ if(compactNavPos<0||gamePos<0||compactNavPos>gamePos)fail('Compact navigation mu
 const nurseryPath=path.join(root,'js/puffling_nursery_vault.js');
 const nurserySource=fs.existsSync(nurseryPath)?fs.readFileSync(nurseryPath,'utf8'):'';
 for(const token of ['vaultSlots','for(let i=0;i<MAX_VAULT;i++)','TOM PLASS','beginVaultSelection','placeInVault','vaultPicker'])if(!nurserySource.includes(token))fail(`Vault UI is missing ${token}`);
+for(const token of ['STANDARD_IDS','vaultChoices','VANLIG'])if(!nurserySource.includes(token))fail(`Vault common-first picker is missing ${token}`);
 const menuBetaPath=path.join(root,'js/menu_beta_cleanup.js');
 const menuBetaSource=fs.existsSync(menuBetaPath)?fs.readFileSync(menuBetaPath,'utf8'):'';
 if(/Dobbelttrykk|Double-tap|Doppeltippen|Doble toque|Double-tapez/.test(menuBetaSource))fail('Obsolete Rainbow Puff main-menu hint is still active');else ok('Three-slot Vault UI and clean main menu hint state');
