@@ -1,4 +1,4 @@
-/* Sky Puff — Puffdex + Fusion Lab UI v0.1 */
+/* Sky Puff — Puffdex + Fusion Lab UI v0.2 */
 (function(){
   function allPuffs(){
     const F=window.SkyPuffFusion;if(!F)return [];
@@ -9,7 +9,7 @@
     if(document.getElementById('puffdexMenu'))return;
     const wrap=document.createElement('div');
     wrap.id='puffdexMenu';wrap.className='overlay';wrap.style.display='none';
-    wrap.innerHTML='<div class="card" style="max-width:760px"><h1 style="font-size:36px">Puffdex ☁️</h1><div id="puffdexSummary" class="small" style="margin-bottom:12px"></div><div id="puffdexGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;text-align:left"></div><button id="openFusionLabBtn" class="gold" style="margin-top:14px">FUSION LAB 🧬</button><button id="closePuffdex" class="secondary">TILBAKE</button></div>';
+    wrap.innerHTML='<div class="card" style="max-width:760px"><h1 style="font-size:36px">Puffdex ☁️</h1><div id="puffdexSummary" class="small" style="margin-bottom:12px"></div><div id="puffdexGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;text-align:left"></div><button id="openFusionLabBtn" class="gold" style="margin-top:14px">FUSION LAB 🧬</button><button id="closePuffdex" class="secondary">TILBAKE</button></div>';
     document.body.appendChild(wrap);
     const lab=document.createElement('div');
     lab.id='fusionLabMenu';lab.className='overlay';lab.style.display='none';
@@ -32,8 +32,17 @@
   }
   function renderDex(){
     const F=window.SkyPuffFusion;if(!F)return;const s=F.load();const grid=document.getElementById('puffdexGrid');grid.innerHTML='';
-    const list=allPuffs();document.getElementById('puffdexSummary').textContent=`Oppdaget ${s.discovered.length} / ${list.length} Pufflings`;
-    list.forEach(p=>{const owned=s.owned[p.id]||0;const found=s.discovered.includes(p.id);const d=document.createElement('div');d.style.cssText='padding:12px;border-radius:16px;background:rgba(255,255,255,.78);min-height:108px';d.innerHTML=found?`<div style="font-size:30px">${p.icon||'☁️'}</div><b>${p.name}</b><div class="small">${rarityLabel(p.rarity)} • x${owned}</div><div class="small">${p.ability||''}</div>`:`<div style="font-size:30px">❔</div><b>???</b><div class="small">Ikke oppdaget</div>`;grid.appendChild(d);});
+    const list=allPuffs();const activeId=window.SkyPuffPufflingGameplay?.active?.()||'';
+    document.getElementById('puffdexSummary').textContent=`Oppdaget ${s.discovered.length} / ${list.length} Pufflings`;
+    list.forEach(p=>{
+      const owned=s.owned[p.id]||0,found=s.discovered.includes(p.id),isActive=activeId===p.id;
+      const d=document.createElement('div');d.style.cssText=`padding:12px;border-radius:16px;background:${isActive?'rgba(215,248,255,.95)':'rgba(255,255,255,.78)'};min-height:132px;border:${isActive?'2px solid #55c8ff':'2px solid transparent'}`;
+      if(found){
+        d.innerHTML=`<div style="font-size:30px">${p.icon||'☁️'}</div><b>${p.name}</b><div class="small">${rarityLabel(p.rarity)} • x${owned}</div><div class="small">${p.ability||''}</div>${owned>0?`<button data-equip="${p.id}" class="${isActive?'gold':'secondary'}" style="margin-top:8px;padding:8px 10px;font-size:12px">${isActive?'AKTIV ✓':'EQUIP'}</button>`:''}`;
+      }else d.innerHTML='<div style="font-size:30px">❔</div><b>???</b><div class="small">Ikke oppdaget</div>';
+      grid.appendChild(d);
+    });
+    grid.querySelectorAll('[data-equip]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.getAttribute('data-equip');if(window.SkyPuffPufflingGameplay?.setActive?.(id)){const p=allPuffs().find(x=>x.id===id);if(typeof showToast==='function')showToast(`${p?.icon||'☁️'} ${p?.name||id} er nå aktiv!`);renderDex();}}));
   }
   function openLab(){ensureUI();document.getElementById('fusionLabMenu').style.display='flex';populateSelectors();renderPreview();}
   function populateSelectors(){
