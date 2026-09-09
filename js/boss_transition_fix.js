@@ -15,6 +15,7 @@
   if(stageAt!=null){score=stageAt;cameraY=-stageAt*10;}
   else{if(Number.isFinite(entry.cameraY))cameraY=entry.cameraY;if(Number.isFinite(entry.score))score=entry.score;}
   scoreEl.textContent=score;
+  window.skyPuffAntiCheat?.acceptTransition?.(score,coins);
 
   // Always create a guaranteed landing cloud under Puff plus a reachable continuation cloud above it.
   const landingScreenY=Math.min(H-105,H*.76);

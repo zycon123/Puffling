@@ -1,6 +1,6 @@
 # Sky Puff Beta Testing
 
-Build: `5.26-beta.79`
+Build: `5.26-beta.80`
 
 Stable test entry: `beta42.html`
 
@@ -27,7 +27,7 @@ Support: `zyconstudios@protonmail.com`
 18. Open Highscore. Without an API backend it must show local beta scores instead of failing.
 19. Test Cosmetics, Upgrades and Daily Reward, then refresh and verify purchases/progress remain.
 20. Open Multiplayer and verify the beta/simulated-rival flow can be entered and exited without freezing.
-21. Open System & Support and verify smoke check, save status and Anti-Cheat details appear. Confirm the bug-report button can open an email composer.
+21. Open and close Puffdex, Nursery/Vault, Mystery Shop and Audio settings, then verify AI Diagnostics remains at 0 auto-repairs. Defeat a boss and verify Anti-Cheat remains at 0 flags after the post-boss landing. Confirm the bug-report button can open an email composer.
 
 ## Persistence checks
 - selected language
