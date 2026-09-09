@@ -1,116 +1,98 @@
 # Sky Puff
 
-Sky Puff `5.26-beta.3` – Zycon Studios browser beta release candidate.
+Sky Puff `5.26-beta.5` – Zycon Studios browser beta.
 
+**Stable beta entry:** `beta42.html`  
 **Beta support:** `zyconstudios@protonmail.com`
 
 ## Beta status
-The game is now in beta-readiness mode: feature work is frozen unless it fixes a beta issue. Current focus is stability, persistence, browser compatibility, boss flow, diagnostics and test feedback.
+The current focus is stability, persistence, browser compatibility, boss flow, performance, diagnostics and tester feedback. `beta42.html` is the canonical test entry because it bypasses stale browser/GitHub Pages asset caches on every launch.
 
 ## Project structure
-- `index.html` – game UI, Zycon Studios startup splash and menus
+- `index.html` – game UI, startup splash and menus
+- `beta42.html` – cache-safe stable beta loader
 - `style.css` – visual styling
 - `audio_theme.js` – menu/game soundtrack engine
-- `game.js` – ordered module loader
+- `game.js` – ordered module loader; propagates the current cache key to every game module
 - `js/beta_config.js` – beta version, support contact and optional online API configuration
 - `js/dom_refs.js` – cached DOM/UI references
-- `js/localization_core.js` – Norwegian, English, German, Spanish and French text + translation helper
-- `js/audio_core.js` – music settings and boss soundtrack definitions
+- `js/localization_core.js` + `js/language_default.js` – Norwegian, English, German, Spanish and French UI with English default for new players and saved language persistence
+- `js/audio_core.js` + `js/music_bridge.js` – music settings, soundtrack bridge and boss soundtrack definitions
 - `js/endless_boss_core.js` – endless boss stage, health and reward scaling
 - `js/boss_multiplayer.js` – Boss Rush, multiplayer prototype and boss soundtrack control
-- `js/music_bridge.js` – soundtrack bridge
-- `js/anti_cheat.js` – client-side beta integrity checks and suspicious-score flagging
-- `js/leaderboard_submit.js` – score submission + local fallback storage
-- `js/leaderboard_language_ui.js` – leaderboard rendering, language UI and canvas resize
+- `js/anti_cheat.js` – client-side beta integrity checks
+- `js/leaderboard_submit.js` + `js/leaderboard_language_ui.js` – score submission, local fallback and leaderboard UI
 - `js/state_content.js` – save data, cosmetics/content and runtime state
-- `js/world_helpers.js` – platform generation and mission setup
+- `js/world_helpers.js` – platform generation
 - `js/run_menu_shop_upgrades.js` – run lifecycle, menus, rewards, cosmetics and upgrades
-- `js/input_missions_boss_spawn.js` – input, missions, boss warnings and spawning
+- `js/input_missions_boss_spawn.js` – input, Rainbow Puff and boss spawning
 - `js/gameplay_update.js` – gameplay, collisions, pickups, boss combat and end-game handling
-- `js/achievements.js` – persistent achievement progression
-- `js/achievements_menu.js` – achievements UI
+- `js/boss_pattern_override.js` – current boss firing loop
+- `js/boss_movement_fix.js` – boss arena boundary protection
+- `js/boss_transition_fix.js` + `js/post_boss_guard.js` – safe post-boss landing, 3-second countdown and input lock
+- `js/boss_boost_tuning.js` – faster Rainbow Puff recharge in boss fights
+- `js/rainbow_puff_hint.js` – localized in-game boost hint
+- `js/start_guard.js` – safe startup recovery without lowering normal first-jump height
+- `js/achievements.js` + `js/achievements_menu.js` – persistent achievements
 - `js/endless_events.js` – Coin Storm, Low Gravity and Rainbow Frenzy events
-- `js/player_render_helpers.js` – player/cloud/trail/hat/face rendering
-- `js/renderer_runtime.js` – entity renderer, draw loop and bootstrap
-- `js/ai_diagnostics.js` – automatic beta diagnostics and safe self-repair
-- `js/beta_release_ui.js` – beta label, support link, version display and runtime error capture
-- `js/diagnostics_support.js` – SYSTEM & SUPPORT panel and prefilled bug-report mail
-- `js/smoke_check.js` – post-bootstrap beta smoke check
-- `BETA_TESTING.md` – beta tester checklist, support instructions and known limitations
-- `CHANGELOG_BETA.md` – release-candidate change history
+- `js/player_render_helpers.js` + `js/renderer_runtime.js` – player/entity rendering and main loop
+- `js/boss_puff_creator_v2.js` – Boss Puff Creator
+- `js/boss_puff_premium.js` – 100-item premium catalog prepared for later payment integration
+- `js/boss_puff_main_unlock.js` – Boss Rush completion tracking and main-game Boss Puff unlock
+- `js/boss_visual_override.js` – boss visual upgrade
+- `js/ai_diagnostics.js` – safe diagnostics/self-repair without forced duplicate animation loops
+- `js/beta_release_ui.js` + `js/diagnostics_support.js` – beta status, runtime errors and System & Support
+- `js/smoke_check.js` – post-bootstrap smoke check
+- `scripts/validate-build.mjs` – full static build validation
 
 ## Current beta features
-- Zycon Studios startup/loading screen
-- Endless high-score climb
-- Extra-life pickup every 500 m
-- Sky Treasure milestone rewards every 2500 m
-- Rare Coin Rush, Super Shield and Rainbow Overcharge powerups
-- Endless Coin Storm, Low Gravity and Rainbow Frenzy events
-- Four main bosses with unique patterns and soundtracks
-- Endless boss tiers and scaling
-- Boss Rush for defeated bosses, 50 gold per win
-- Rainbow Blast fired straight upward from Sky Puff during boss fights
-- Skins, faces, hats, trails and achievement cosmetics
+- Endless high-score climb and persistent local progression
+- Four main bosses plus endless boss tiers
+- Boss attack loop: 3 normal attacks, alternate 3-projectile pattern, 2 normal attacks, alternate pattern, repeat
+- Safe 3-second post-boss countdown before normal jumping resumes
+- Boss Rush for defeated bosses, **100 coins per win**
+- Boss Puff Creator; Boss Puff is Boss-Rush-only until all four Boss Rush bosses are defeated, then can be enabled in the main game
+- Premium Creator catalog prepared with 100 additional accessories/styles; payments are not enabled in this beta
+- Rainbow Puff: up to five rapid uses in normal play, escalating chain boost, then cooldown/reset
+- Faster Rainbow Puff recharge in boss fights
+- Extra-life pickups, milestone treasures, rare powerups and endless events
+- Skins, faces, hats, trails, boss rewards and achievement cosmetics
 - Seven persistent achievements
-- Upgrades and 250-gold daily reward
+- Upgrades and 250-coin daily reward
 - Pause/resume countdown and audio settings
-- Norwegian, English, German, Spanish and French UI core
-- Local leaderboard fallback when no online API is configured
-- Optional global leaderboard backend integration
-- Multiplayer beta prototype with friend-code/random-match UI
-- Automatic self-repair diagnostics
-- Client-side beta anti-cheat
-- In-game SYSTEM & SUPPORT diagnostics panel
-- In-game beta support contact for Zycon Studios
+- English default for new players; saved Norwegian/English/German/Spanish/French language preference
+- Local leaderboard fallback, optional online leaderboard API
+- Multiplayer beta prototype with simulated rival
+- Diagnostics, anti-cheat and bug-report support
 
 ## Beta validation
-- All active JavaScript is split into named feature modules
-- No legacy `part*.js` files remain
-- GitHub Actions validates every push/PR
-- Validation checks module existence, JavaScript syntax, bootstrap order and required DOM ids
-- Browser smoke check exposes `window.skyPuffSmokeCheck`
-- Runtime beta diagnostics expose `window.skyPuffBetaDiagnostics`
-- Automatic self-repair exposes `window.skyPuffAIDiagnostics`
-- Anti-cheat exposes `window.skyPuffAntiCheat`
-- System/support status exposes `window.skyPuffDiagnosticsSupport`
-- Leaderboard no longer requires a backend to function
-- Suspicious client runs are blocked from online leaderboard submission
-- Critical transitions clean up boss warnings, projectiles, boss music, overlays and multiplayer timers
-- Achievement/event/boss/treasure progression is persisted in localStorage
-- Startup splash has a game-ready signal plus failsafe so it cannot permanently block the menu
+GitHub Actions validates every push and deployment. Validation checks:
+- every active module exists and has valid JavaScript syntax
+- every JavaScript file under `js/` has valid syntax
+- no duplicate active modules or legacy `part*.js` modules
+- required DOM ids and bootstrap order
+- cache-busting on critical assets
+- the stable `beta42.html` loader uses `no-store` and a unique asset nonce
+- obsolete experiment files do not reappear
+- critical boss/boost/creator regression-fix modules remain active
 
-## Before wider public beta
-1. Run the complete checklist in `BETA_TESTING.md` on at least one Android phone, one iPhone/iPad if available, and one desktop browser.
-2. Confirm `window.skyPuffSmokeCheck.ok === true` on the hosted build.
-3. Test all four main bosses plus at least one endless Tier 2+ boss.
-4. Test pause/resume/menu/retry repeatedly for state leaks.
-5. Verify local save persistence after refresh/browser restart.
-6. Verify the Zycon Studios support mail link and SYSTEM & SUPPORT bug-report button on test devices.
-7. Verify AI Diagnostics reports/recovery do not interrupt normal gameplay.
-8. Verify anti-cheat does not flag normal long runs incorrectly.
-9. Decide whether to connect a real leaderboard API before beta or keep local leaderboard mode.
-10. Keep multiplayer clearly labeled beta/simulated until real networking is connected.
+Runtime checks expose `window.skyPuffSmokeCheck`, `window.skyPuffBetaDiagnostics`, `window.skyPuffAIDiagnostics`, `window.skyPuffAntiCheat` and `window.skyPuffDiagnosticsSupport`.
 
 ## Known beta limitations
 - Multiplayer networking is simulated; a real WebSocket/backend service is not connected yet.
 - Progress is local to the browser; there is no account/cloud save yet.
 - Global leaderboard is optional and only activates when `API_BASE` is configured.
-- Client-side anti-cheat is a beta protection layer; production leaderboard security should also validate runs server-side.
+- Client-side anti-cheat is a beta protection layer; production leaderboard security should validate runs server-side too.
 - Payments/IAP are not production-enabled for this browser beta.
 
-## Beta support
-Players and testers can report bugs to `zyconstudios@protonmail.com`. The address is shown in the main menu and the SYSTEM & SUPPORT panel can prefill a bug report with diagnostics.
-
-Useful bug reports should include the build version, device, operating system/browser, what happened, approximate height/boss/mode, and a screenshot or screen recording when possible.
+## Beta testing
+Use `beta42.html`, then follow `BETA_TESTING.md`. Important device coverage is at least one Android phone, one iPhone/iPad if available, and one desktop browser. Test a normal run, all four bosses, Boss Rush, Creator, pause/retry/menu transitions, language persistence, audio, save persistence and System & Support.
 
 ## Online API configuration
-By default `API_BASE` is empty and the highscore system uses browser-local scores. A hosted beta can configure the backend at runtime with:
+By default `API_BASE` is empty and Highscore uses browser-local scores. A hosted beta can configure a backend at runtime with:
 
 ```js
 window.skyPuffConfig.setApiBase('https://your-api.example.com')
 ```
 
 The URL is saved locally for subsequent sessions.
-
-## Beta build
-Current release candidate: `5.26-beta.3`.
