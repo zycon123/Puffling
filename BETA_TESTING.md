@@ -1,6 +1,6 @@
 # Sky Puff Beta Testing
 
-Build: `5.26-beta.80`
+Build: `5.26-beta.81`
 
 Stable test entry: `beta42.html`
 
@@ -9,7 +9,7 @@ Support: `zyconstudios@protonmail.com`
 ## Critical test flow
 1. Open `beta42.html` and confirm the Zycon Studios splash reaches the main menu without visible lag.
 2. Confirm English is the default for a fresh browser profile; change language, refresh/reopen and confirm the selected language is remembered.
-3. Confirm menu music starts and Audio settings can mute/unmute and change volume.
+3. Confirm the main menu shows only Play, Pufflings, Game Modes and More. Open each category and verify every existing feature remains is reachable, then confirm menu music starts and Audio settings can mute/unmute and change volume.
 4. Start a run and confirm the **first jump has normal height** and reaches the next platform without needing boost.
 5. Confirm movement, coins, powerups and Rainbow Puff work. In normal play, use up to five rapid boosts, then confirm cooldown and reset to five new uses.
 6. Pause, resume with countdown, return to menu, then start a new run. Confirm the boost hint is visible only while actively playing.
