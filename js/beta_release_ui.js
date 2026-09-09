@@ -1,7 +1,7 @@
 (function(){
  const version=typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'beta';
  const supportEmail=typeof SKY_PUFF_SUPPORT_EMAIL==='string'?SKY_PUFF_SUPPORT_EMAIL:'zyconstudios@protonmail.com';
- document.title='Sky Puff';
+ document.title='Puffling';
  // Keep diagnostics/support plumbing, but do not show a beta badge or beta popup in the player-facing UI.
  const oldBadge=document.getElementById('betaBadge');if(oldBadge)oldBadge.remove();
  if(multiplayerBtnEl){multiplayerBtnEl.textContent='MULTIPLAYER ⚔️';multiplayerBtnEl.removeAttribute('title');}
