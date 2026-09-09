@@ -28,7 +28,6 @@ for(const rel of modules){if(!fs.existsSync(path.join(root,rel)))fail(`Loader re
 checkSyntax('game.js');
 checkSyntax('audio_theme.js');
 
-// Validate every JavaScript source in js/, including files not currently active.
 const jsDir=path.join(root,'js');
 const allJs=fs.readdirSync(jsDir).filter(f=>f.endsWith('.js')).map(f=>`js/${f}`).sort();
 for(const rel of allJs){if(!modules.includes(rel))checkSyntax(rel)}
@@ -44,17 +43,18 @@ for(const id of requiredIds)if(!index.includes(`id="${id}"`)&&!index.includes(`i
 if(!/id=["']gameOver["'][^>]*style=["'][^"']*display\s*:\s*none/i.test(index))fail('gameOver overlay must be hidden in initial HTML');else ok('Game-over overlay starts hidden');
 if(!/style\.css\?v=/i.test(index)||!/game\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
 
-// beta42.html is the canonical stable loader. It must always bypass stale HTML/assets.
 if(!/cache\s*:\s*['"]no-store['"]/i.test(stable))fail('Stable loader must fetch index.html with no-store');
 if(!/Date\.now\(\)/.test(stable))fail('Stable loader must generate a unique asset nonce');
 for(const asset of ['game.js','audio_theme.js','style.css'])if(!stable.includes(asset))fail(`Stable loader does not refresh ${asset}`);
+if(!/<title>Puffling Beta<\/title>/i.test(stable))fail('Stable loader title must use Puffling branding');
 if(!process.exitCode)ok('Stable loader cache-safety checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js'];
 for(const rel of forbidden)if(fs.existsSync(path.join(root,rel)))fail(`Obsolete file still present: ${rel}`);
 if(!process.exitCode)ok('No obsolete experiment files remain');
 
-// Basic regression checks for systems that were previously broken.
-const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js'];
-for(const rel of requiredActive)if(!modules.includes(rel))fail(`Required regression fix is not active: ${rel}`);
-if(!process.exitCode){ok(`Loader references ${modules.length} named modules`);ok('Static Sky Puff build validation passed')}
+const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/puffling_nursery_vault.js','js/diamond_mystery_shop.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
+for(const rel of requiredActive)if(!modules.includes(rel))fail(`Required regression/system module is not active: ${rel}`);
+const orderPairs=[['js/late_game_bosses.js','js/late_boss_persistence_fix.js'],['js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js'],['js/puff_fusion_core.js','js/puffling_nursery_vault.js'],['js/steal_my_puff_ui.js','js/steal_my_puffling_menu.js'],['js/puffling_rebrand.js','js/smoke_check.js']];
+for(const [a,b] of orderPairs)if(modules.indexOf(a)<0||modules.indexOf(b)<0||modules.indexOf(a)>=modules.indexOf(b))fail(`Loader order invalid: ${a} must load before ${b}`);
+if(!process.exitCode){ok(`Loader references ${modules.length} named modules`);ok('Static Puffling build validation passed')}
