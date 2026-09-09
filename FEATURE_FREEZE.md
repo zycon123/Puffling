@@ -1,10 +1,10 @@
 # Sky Puff Beta Feature Freeze
 
 Status: FROZEN
-Build: 5.26-beta.4
-Freeze date: 2026-09-08
+Build: 5.26-beta.5
+Freeze date: 2026-09-09
 
-Sky Puff is now feature-frozen for external beta testing.
+Sky Puff is feature-frozen for stability-focused external beta testing. The canonical test entry is `beta42.html`.
 
 ## Allowed during freeze
 - Crash fixes
@@ -14,7 +14,7 @@ Sky Puff is now feature-frozen for external beta testing.
 - Broken UI/text/localization fixes
 - Security / anti-cheat fixes
 - Beta diagnostics and support fixes
-- Balance changes only when beta feedback shows a clear problem
+- Small balance changes only when beta feedback shows a clear problem
 
 ## Not allowed during freeze
 - New game modes
@@ -25,4 +25,4 @@ Sky Puff is now feature-frozen for external beta testing.
 - New multiplayer features
 - New cosmetics/content unless required to repair existing content
 
-New feature ideas should be held for beta.5 or later. The public beta.4 build should remain stable and comparable across testers so feedback is meaningful.
+Existing prepared systems such as Boss Puff Creator and Premium Creator may receive bug fixes, but should not expand in scope during the freeze. New feature ideas should wait until the current beta is stable across Android, iOS/iPadOS and desktop testing.
