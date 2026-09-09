@@ -1,7 +1,37 @@
 (function(){
-const FALLBACK_BUILD='20260909-beta88-error-log-cleanup';
+const FALLBACK_BUILD='20260909-beta89-startup-recovery';
 let BUILD=FALLBACK_BUILD;
 try{const src=document.currentScript&&document.currentScript.src;if(src){const v=new URL(src,location.href).searchParams.get('v');if(v)BUILD=v;}}catch(e){}
 const parts=['js/platform_compat.js','js/beta_config.js','js/dom_refs.js','js/localization_core.js','js/language_default.js','js/audio_core.js','js/endless_boss_core.js','js/boss_multiplayer.js','js/music_bridge.js','js/leaderboard_submit.js','js/leaderboard_language_ui.js','js/state_content.js','js/world_helpers.js','js/run_menu_shop_upgrades.js','js/anti_cheat.js','js/input_missions_boss_spawn.js','js/gameplay_update.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/boss_pattern_override.js','js/late_game_boss_patterns.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/boss_boost_tuning.js','js/combo_ui_remove.js','js/mission_ui_remove.js','js/rainbow_puff_hint.js','js/start_guard.js','js/achievements.js','js/achievements_menu.js','js/endless_events.js','js/player_render_helpers.js','js/renderer_runtime.js','js/boss_puff_creator_v2.js','js/boss_puff_premium.js','js/boss_puff_main_unlock.js','js/boss_visual_override.js','js/late_boss_visuals.js','js/ai_diagnostics.js','js/beta_release_ui.js','js/diagnostics_support.js','js/puff_fusion_core.js','js/puffling_collection_50.js','js/steal_my_puff_core.js','js/puffling_visual_upgrade.js','js/puffling_performance_mode.js','js/performance_settings_ui.js','js/puff_fusion_ui.js','js/main_menu_cleanup.js','js/puffling_nursery_vault.js','js/diamond_mystery_shop.js','js/menu_beta_cleanup.js','js/puffling_gameplay.js','js/puffling_progression.js','js/puffling_evolution.js','js/puffling_evolution_perks.js','js/puffling_boss_rewards.js','js/diamond_boss_rewards.js','js/puffling_follower.js','js/puffling_abilities_v2.js','js/puffling_fusion_abilities.js','js/puffling_fusion_signature.js','js/steal_my_puff_ui.js','js/steal_my_puff_multiplayer_bridge.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
-let i=0;function next(){if(i>=parts.length)return;const s=document.createElement('script');s.src=parts[i++]+'?v='+encodeURIComponent(BUILD);s.onload=next;s.onerror=()=>console.error('Kunne ikke laste',s.src);document.body.appendChild(s)}next();
+// Keep the menu inert until every module has loaded. A failed request must
+// retry the same module before any dependent module is allowed to execute.
+const start=document.getElementById('start');
+if(start)start.inert=true;
+let norwegian=false;try{norwegian=localStorage.getItem('skyPuffLang')==='no';}catch(e){}
+let i=0,notice=null;
+function loadingNotice(failed){
+ if(!notice){
+  notice=document.createElement('div');notice.id='skyPuffLoadNotice';
+  notice.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#58c4ff;padding:24px;text-align:center;font:700 18px system-ui;color:#173650';
+  notice.innerHTML='<div><p role="status" aria-live="polite"></p><button type="button" style="display:none;padding:14px 24px;border:0;border-radius:16px;background:#fff;color:#173650;font:inherit"></button></div>';
+  notice.querySelector('button').textContent=norwegian?'Prøv igjen':'Try again';
+  notice.querySelector('button').onclick=()=>location.reload();
+  document.body.appendChild(notice);
+ }
+ notice.querySelector('p').textContent=failed?(norwegian?'Puffling kunne ikke lastes. Sjekk forbindelsen og prøv igjen.':'Could not load Puffling. Check your connection and try again.'):(norwegian?'Laster Puffling …':'Loading Puffling …');
+ notice.querySelector('button').style.display=failed?'inline-block':'none';
+}
+function next(attempt=0){
+ if(i>=parts.length){if(start)start.inert=false;if(notice)notice.remove();return;}
+ const s=document.createElement('script');
+ s.src=parts[i]+'?v='+encodeURIComponent(BUILD)+(attempt?'&retry='+attempt:'');
+ s.onload=()=>{i++;next();};
+ s.onerror=()=>{
+  s.remove();
+  if(attempt<2){loadingNotice(false);setTimeout(()=>next(attempt+1),500*(attempt+1));}
+  else{loadingNotice(true);console.error('Puffling module could not load after 3 attempts',parts[i]);}
+ };
+ document.body.appendChild(s);
+}
+next();
 })();

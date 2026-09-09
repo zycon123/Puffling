@@ -76,4 +76,42 @@ function run(context,relativePath){
  ok('AI diagnostics dynamic overlay detection and legacy log migration');
 }
 
+
+{
+ function loaderScenario(failures){
+  const pending=[],timers=[],attempts=[],executed=[],nodes=new Map(),start={inert:false};let reloads=0;
+  const localStorage=storage({skyPuffLang:'no',skyPuffPufflings:'saved inventory'});
+  const document={currentScript:null,getElementById:id=>id==='start'?start:nodes.get(id),
+   createElement:tag=>{
+    const children={p:{},button:{style:{}}};
+    const el={tag,style:{},querySelector:selector=>children[selector],remove:()=>nodes.delete(el.id)};return el;
+   },body:{appendChild:el=>{if(el.tag==='script')pending.push(el);else nodes.set(el.id,el);}}
+  };
+  const context={document,localStorage,console:{error:()=>{}},location:{reload:()=>reloads++},setTimeout:fn=>timers.push(fn)};
+  context.window=context;run(context,'game.js');
+  if(!start.inert)fail('Main menu enabled before modules finished loading');
+  let steps=0;
+  while((pending.length||timers.length)&&steps++<500){
+   if(!pending.length){timers.shift()();continue;}
+   const script=pending.shift(),path=script.src.split('?')[0];attempts.push(path);
+   if(path==='js/puffling_nursery_vault.js'&&failures>0){failures--;script.onerror();}
+   else{executed.push(path);script.onload();}
+  }
+  if(steps>=500)fail('Loader did not stop retrying');
+  return {start,nodes,attempts,executed,localStorage,get reloads(){return reloads;}};
+ }
+ const normal=loaderScenario(0);
+ if(normal.start.inert||normal.nodes.size||!normal.executed.includes('js/smoke_check.js'))fail('Normal module startup did not complete');
+ const recovered=loaderScenario(1);
+ if(recovered.start.inert||recovered.nodes.size||JSON.stringify(recovered.executed)!==JSON.stringify(normal.executed))fail('Transient module failure changed execution order or failed recovery');
+ if(recovered.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==2)fail('Transient module failure was not retried once');
+ const failed=loaderScenario(Infinity),notice=failed.nodes.get('skyPuffLoadNotice');
+ if(!failed.start.inert||!notice||failed.executed.includes('js/diamond_mystery_shop.js'))fail('Permanent module failure allowed partial startup');
+ if(failed.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==3)fail('Module retry limit was not respected');
+ if(notice.querySelector('button').style.display!=='inline-block')fail('Startup recovery button is hidden');
+ notice.querySelector('button').onclick();
+ if(failed.reloads!==1||failed.localStorage.getItem('skyPuffPufflings')!=='saved inventory')fail('Startup recovery did not preserve saved inventory');
+ ok('Module loader order, bounded retries, recovery button and saved progress');
+}
+
 console.log('✅ Runtime model regression checks passed');
