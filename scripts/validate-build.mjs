@@ -62,6 +62,11 @@ const menuCleanupPath=path.join(root,'js/main_menu_cleanup.js');
 const menuCleanup=fs.existsSync(menuCleanupPath)?fs.readFileSync(menuCleanupPath,'utf8'):'';
 for(const token of ['spMainNav','spMenuHub','pufflingsHubBtn','modesHubBtn','moreHubBtn'])if(!menuCleanup.includes(token))fail(`Compact main menu is missing ${token}`);
 if(/menuCollectionGroup|menuMoreGroup/.test(menuCleanup))fail('Legacy crowded main-menu groups are still active');else ok('Compact categorized main navigation');
+const firstPaintIds=['menuPrimaryGroup','spMainNav','pufflingsHubBtn','modesHubBtn','moreHubBtn'];
+for(const id of firstPaintIds)if(!index.includes(`id="${id}"`)&&!index.includes(`id='${id}'`))fail(`Compact first paint is missing DOM id: ${id}`);
+if(!/#start\s+\.menuActions\s*\{[^}]*display\s*:\s*none\s*!important/i.test(index))fail('Legacy main-menu actions are not hidden before first paint');else ok('Legacy actions hidden before first paint');
+const compactNavPos=index.search(/id=["']spMainNav["']/i);
+if(compactNavPos<0||gamePos<0||compactNavPos>gamePos)fail('Compact navigation must be present before game.js loads');else ok('Compact navigation is rendered in initial HTML');
 
 const nurseryPath=path.join(root,'js/puffling_nursery_vault.js');
 const nurserySource=fs.existsSync(nurseryPath)?fs.readFileSync(nurseryPath,'utf8'):'';
