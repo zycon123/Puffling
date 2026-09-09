@@ -7,7 +7,7 @@
   [/Sky Treasure/g,'Puffling Treasure'],[/SKY TREASURE/g,'PUFFLING TREASURE'],
   [/Sky Legend/g,'Puffling Legend'],[/SKY LEGEND/g,'PUFFLING LEGEND'],
   [/Sky Immortal/g,'Puffling Immortal'],[/SKY IMMORTAL/g,'PUFFLING IMMORTAL'],
-  [/Steal My Puff/g,'Steal My Puffling'],[/STEAL MY PUFF/g,'STEAL MY PUFFLING']
+  [/Steal My Puff(?!ling)/g,'Steal My Puffling'],[/STEAL MY PUFF(?!LING)/g,'STEAL MY PUFFLING']
  ];
  function replaceText(s){let out=String(s??'');for(const [re,v] of textRules)out=out.replace(re,v);return out;}
  function cleanNode(root){
