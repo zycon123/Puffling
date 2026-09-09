@@ -1,13 +1,13 @@
 # Sky Puff Beta Changelog
 
-## 5.26-beta.81
+## 5.26-beta.82
 - Fixed false AI Diagnostics repairs when newer overlay menus such as Puffdex, Nursery/Vault, Mystery Shop or Audio settings are open.
 - Migrated away from the legacy repair log so old false `Main menu restored` counts are cleared automatically.
 - Added an explicit Anti-Cheat baseline sync for the intentional score adjustment after boss victories.
 - Deduplicated identical Anti-Cheat warnings and clear stale session flags when a new run starts.
 - Added regression coverage for dynamic overlay detection, legacy diagnostic cleanup and boss-transition integrity checks.
 
-## 5.26-beta.81
+## 5.26-beta.82
 - Fixed incremental height XP so small score increases accumulate instead of rounding down to zero.
 - Prevented Vault-protected Pufflings from being consumed by Fusion and improved the player-facing error message.
 - Clear an active Puffling automatically when its final owned copy is removed.
