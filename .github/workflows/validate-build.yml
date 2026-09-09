@@ -1,4 +1,4 @@
-name: Validate Sky Puff Build
+name: Validate Puffling Build
 
 on:
   push:
