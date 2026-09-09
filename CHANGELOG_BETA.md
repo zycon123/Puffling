@@ -1,5 +1,12 @@
 # Sky Puff Beta Changelog
 
+## 5.26-beta.85
+- Rendered the compact main navigation directly in the initial HTML so the crowded legacy menu never flashes on startup.
+- Hid legacy feature buttons before the first visible frame while retaining them as existing action targets.
+- Bound category controls whether the compact navigation is pre-rendered or created as a runtime fallback.
+- Matched first-paint and runtime menu styling to prevent layout shifts on slower mobile loads.
+- Added build checks that reject regressions to the crowded first paint.
+
 ## 5.26-beta.84
 - Made every empty Vault slot tappable and added an in-panel Puffling picker.
 - Store the chosen Puffling in the exact slot the player selected, including non-sequential slots.
