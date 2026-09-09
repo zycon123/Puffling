@@ -1,6 +1,6 @@
-# Sky Puff
+# Puffling
 
-Sky Puff `5.26-beta.5` – Zycon Studios browser beta.
+Puffling `5.26-beta.79` – Zycon Studios browser beta.
 
 **Stable beta entry:** `beta42.html`  
 **Beta support:** `zyconstudios@protonmail.com`
