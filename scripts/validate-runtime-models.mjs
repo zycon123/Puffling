@@ -40,10 +40,16 @@ function run(context,relativePath){
 
 {
  const localStorage=storage({skyPuffEggInventoryV1:JSON.stringify({rare:-3,epic:'4.8',legendary:'bad'})});
- const context={window:{},localStorage,console,document:{readyState:'loading',addEventListener:()=>{}}};context.window=context;
- run(context,'js/puffling_nursery_vault.js');const eggs=context.SkyPuffNurseryVault.loadEggs();
+ const context={window:{},localStorage,console,document:{readyState:'loading',addEventListener:()=>{},getElementById:()=>null}};context.window=context;
+ run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');
+ context.SkyPuffFusion.add('ember',1);context.SkyPuffFusion.add('prism',1);
+ run(context,'js/puffling_nursery_vault.js');const nursery=context.SkyPuffNurseryVault,eggs=nursery.loadEggs();
  if(eggs.rare!==0||eggs.epic!==4||eggs.legendary!==0)fail('Egg inventory normalization failed');
- ok('Egg inventory normalization');
+ if(!nursery.placeInVault('ember',2)||nursery.loadVaultSlots()[2]!=='ember')fail('Empty Vault slot did not accept selected Puffling');
+ if(!nursery.placeInVault('prism',0)||nursery.loadVaultSlots()[0]!=='prism')fail('Vault picker did not preserve the selected slot');
+ if(!nursery.removeVaultSlot(2)||nursery.loadVaultSlots()[2]!==null)fail('Occupied Vault slot could not be cleared');
+ if(context.SkyPuffFusion.load().vault.join(',')!=='prism')fail('Interactive Vault slots did not sync protection state');
+ ok('Egg normalization and interactive fixed Vault slots');
 }
 
 {
