@@ -46,4 +46,28 @@ function run(context,relativePath){
  ok('Egg inventory normalization');
 }
 
+{
+ const localStorage=storage({skyPuffAntiCheatFlags:'legacy'}),timers=[];
+ const context={window:{},localStorage,console,navigator:{userAgent:'test'},SKY_PUFF_VERSION:'test',score:1000,coins:10,running:true,player:{hp:3},save:{bank:0},startGame:()=>{},setInterval:fn=>timers.push(fn)};context.window=context;
+ run(context,'js/anti_cheat.js');const anti=context.skyPuffAntiCheat;
+ if(localStorage.getItem('skyPuffAntiCheatFlags')!==null)fail('Anti-cheat did not clear stale flags at run start');
+ if(!anti.inspectState())fail('Normal run state was incorrectly rejected');
+ context.score=500;anti.acceptTransition(context.score,context.coins);
+ if(!anti.inspectState()||anti.status.flags.length)fail('Approved boss score transition was flagged');
+ context.score=400;anti.inspectState();anti.inspectState();
+ if(anti.status.flags.length!==1||anti.status.flags[0].type!=='score_rollback')fail('Repeated identical anti-cheat flags were not deduplicated');
+ ok('Anti-cheat boss transition baseline and duplicate suppression');
+}
+
+{
+ const localStorage=storage({skyPuffAutoRepairLog:JSON.stringify({repairs:27,lastRepair:{repair:'Main menu restored'}})}),timers=[];
+ const startEl={isConnected:true,style:{display:'none'}},otherOverlay={isConnected:true,style:{display:'flex'}};let restored=0;
+ const context={window:{},localStorage,console,performance:{now:()=>0},setInterval:fn=>timers.push(fn),clearInterval:()=>{},document:{hidden:false,querySelectorAll:()=>[startEl,otherOverlay]},getComputedStyle:el=>el.style,startEl,gameOverEl:{isConnected:true,style:{display:'none'}},player:null,boss:null,running:false,paused:false,bossArena:false,platforms:[],W:390,H:844,showMainMenu:()=>{restored++}};context.window=context;
+ run(context,'js/ai_diagnostics.js');const ai=context.skyPuffAIDiagnostics;
+ if(ai.repairs!==0||localStorage.getItem('skyPuffAutoRepairLog')!==null)fail('Legacy false repair count was not cleared');
+ ai.runCheck();if(restored!==0||ai.repairs!==0)fail('Visible dynamic overlay was incorrectly replaced by main menu');
+ otherOverlay.style.display='none';ai.runCheck();if(restored!==1||ai.repairs!==1)fail('Missing-menu recovery no longer works');
+ ok('AI diagnostics dynamic overlay detection and legacy log migration');
+}
+
 console.log('✅ Runtime model regression checks passed');
