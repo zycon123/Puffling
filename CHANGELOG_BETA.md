@@ -1,13 +1,20 @@
 # Sky Puff Beta Changelog
 
-## 5.26-beta.83
+## 5.26-beta.84
+- Made every empty Vault slot tappable and added an in-panel Puffling picker.
+- Store the chosen Puffling in the exact slot the player selected, including non-sequential slots.
+- Preserve fixed slot positions between sessions while keeping the existing three-slot protection limit.
+- Added keyboard-accessible empty slots, picker cancellation and direct removal from occupied slots.
+- Added runtime regression coverage for selecting, preserving and clearing exact Vault slots.
+
+## 5.26-beta.84
 - Fixed false AI Diagnostics repairs when newer overlay menus such as Puffdex, Nursery/Vault, Mystery Shop or Audio settings are open.
 - Migrated away from the legacy repair log so old false `Main menu restored` counts are cleared automatically.
 - Added an explicit Anti-Cheat baseline sync for the intentional score adjustment after boss victories.
 - Deduplicated identical Anti-Cheat warnings and clear stale session flags when a new run starts.
 - Added regression coverage for dynamic overlay detection, legacy diagnostic cleanup and boss-transition integrity checks.
 
-## 5.26-beta.83
+## 5.26-beta.84
 - Fixed incremental height XP so small score increases accumulate instead of rounding down to zero.
 - Prevented Vault-protected Pufflings from being consumed by Fusion and improved the player-facing error message.
 - Clear an active Puffling automatically when its final owned copy is removed.
