@@ -25,9 +25,10 @@
     return {owned,vault,discovered};
   }
   function load(){try{return normalize(JSON.parse(localStorage.getItem('skyPuffPufflings')||'null'));}catch(e){return normalize(null);}}
-  function save(s){const n=normalize(s);localStorage.setItem('skyPuffPufflings',JSON.stringify(n));return n;}
+  function save(s){const n=normalize(s);localStorage.setItem('skyPuffPufflings',JSON.stringify(n));try{const active=localStorage.getItem('skyPuffActivePuffling');if(active&&!(n.owned[active]>0))localStorage.removeItem('skyPuffActivePuffling');}catch(e){}return n;}
   function add(id,count=1){const s=load(),inc=Math.max(0,Math.floor(+count||0));if(!id||inc<=0)return s;s.owned[id]=(s.owned[id]||0)+inc;if(!s.discovered.includes(id))s.discovered.push(id);return save(s);}
-  function canFuse(a,b){const s=load(),recipe=FUSIONS[key(a,b)];return !!recipe&&(s.owned[a]||0)>0&&(s.owned[b]||0)>0;}
-  function fuse(a,b){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false};const s=load();if((s.owned[a]||0)<=0||(s.owned[b]||0)<=0)return {ok:false};s.owned[a]--;s.owned[b]--;s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state};}
-  window.SkyPuffFusion={BASE,FUSIONS,key,load,save,add,canFuse,fuse,normalize};
+  function availableCount(s,id){return Math.max(0,(s.owned[id]||0)-(s.vault.includes(id)?1:0));}
+  function canFuse(a,b){const s=load(),recipe=FUSIONS[key(a,b)];if(!recipe)return false;return a===b?availableCount(s,a)>=2:availableCount(s,a)>0&&availableCount(s,b)>0;}
+  function fuse(a,b){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load();if(a===b?availableCount(s,a)<2:availableCount(s,a)<=0||availableCount(s,b)<=0)return {ok:false,reason:'protected_or_missing'};s.owned[a]--;s.owned[b]--;s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state};}
+  window.SkyPuffFusion={BASE,FUSIONS,key,load,save,add,canFuse,fuse,normalize,availableCount:(id)=>availableCount(load(),id)};
 })();
