@@ -43,9 +43,12 @@
  function open(){render('headwear');const creator=document.getElementById('bossPuffCreator');if(creator)creator.style.display='none';overlay.style.display='flex';}
  function addButton(){
   const creator=document.getElementById('bossPuffCreator');if(!creator)return false;const card=creator.querySelector('.card');if(!card)return false;
-  let b=document.getElementById('bossPuffPremiumBtn');if(!b){b=document.createElement('button');b.id='bossPuffPremiumBtn';b.className='gold';b.style.marginTop='10px';b.onclick=open;const back=card.querySelector('button.secondary:last-child');if(back)card.insertBefore(b,back);else card.appendChild(b);}b.textContent='✨ '+T().open;return true;
+  let b=document.getElementById('bossPuffPremiumBtn');if(!b){b=document.createElement('button');b.id='bossPuffPremiumBtn';b.className='gold';b.style.marginTop='10px';b.onclick=open;const back=[...card.querySelectorAll('button.secondary')].pop();if(back)card.insertBefore(b,back);else card.appendChild(b);}b.textContent='✨ '+T().open;return true;
  }
- let tries=0;const timer=setInterval(()=>{tries++;if(addButton()||tries>80)clearInterval(timer);},250);
+ if(!addButton()&&window.MutationObserver){
+  const observer=new MutationObserver(()=>{if(addButton())observer.disconnect();});
+  observer.observe(document.body,{childList:true,subtree:true});
+ }
  if(typeof languageSelectEl!=='undefined'&&languageSelectEl)languageSelectEl.addEventListener('change',()=>setTimeout(addButton,0));
  window.skyPuffPremiumCreator={catalog:premiumCatalog,open,purchase,productCount:premiumCatalog.length,setPurchaseProvider(provider){window.skyPuffPremiumPurchaseProvider=provider;}};
 })();
