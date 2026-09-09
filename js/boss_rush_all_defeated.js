@@ -22,13 +22,13 @@
   }
   if(!any){const empty=document.createElement('div');empty.className='small';empty.textContent=t.locked;bossRushListEl.appendChild(empty);}
  }
- window.renderBossRush=render;
- const oldOpen=window.openBossRush;
- window.openBossRush=function(){
+ function open(){
   if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='none';
   if(typeof multiplayerHudEl!=='undefined'&&multiplayerHudEl)multiplayerHudEl.style.display='none';
   render();
   if(typeof bossRushMenuEl!=='undefined'&&bossRushMenuEl)bossRushMenuEl.style.display='flex';
- };
- window.PufflingBossRush={render,allStages,unlocked};
+ }
+ window.renderBossRush=render;window.openBossRush=open;
+ const btn=document.getElementById('bossRushBtn');if(btn)btn.onclick=open;
+ window.PufflingBossRush={render,allStages,unlocked,open};
 })();
