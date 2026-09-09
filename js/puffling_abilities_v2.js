@@ -10,15 +10,15 @@
     const beforeShots=typeof playerShots!=='undefined'?playerShots.length:0;
     const beforeBoost=typeof boost==='number'?boost:0;
     const r=oldBoost.apply(this,arguments);
-    const id=active(),scale=t01(id);
+    const id=active(),ability=window.SkyPuffPufflingGameplay?.getPuff?.(id)?.ability,scale=t01(id);
     if(typeof playerShots!=='undefined'&&playerShots.length>beforeShots){
       const shot=playerShots[playerShots.length-1];
-      if((id==='ember'||id==='thunderflame'||id==='eclipse')&&shot){
+      if((ability==='blastDamage'||ability==='chainBlast')&&shot){
         const dmg=1.18+scale*.14; // 1.18 -> 1.32
         shot.damage*=dmg;
         shot.r*=1.08+scale*.06;
       }
-      if((id==='volt'||id==='thunderflame'||id==='neonstorm')&&shot&&typeof player!=='undefined'){
+      if((ability==='chainShot'||ability==='chainBlast'||ability==='rainbowChain')&&shot&&typeof player!=='undefined'){
         const sideDamage=.42+scale*.16; // .42 -> .58
         const spread=1.25+scale*.35;
         const sideR=Math.max(7,shot.r*(.72+scale*.06));
@@ -26,7 +26,7 @@
         playerShots.push({x:player.x+8,y:player.y-player.r-8,vx:spread,vy:shot.vy*.94,r:sideR,life:100,damage:shot.damage*sideDamage});
       }
     }
-    if((id==='shadow'||id==='eclipse')&&typeof performance!=='undefined'&&typeof invuln!=='undefined'&&typeof boost==='number'&&boost<beforeBoost){
+    if((ability==='airDash'||ability==='phaseDash')&&typeof performance!=='undefined'&&typeof invuln!=='undefined'&&typeof boost==='number'&&boost<beforeBoost){
       const now=performance.now();
       const cooldown=6500-scale*1600; // 6.5s -> 4.9s
       const phase=34+Math.round(scale*18); // 34 -> 52 frames-ish
