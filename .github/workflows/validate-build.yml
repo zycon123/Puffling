@@ -18,3 +18,5 @@ jobs:
           node-version: '22'
       - name: Validate modular browser build
         run: node scripts/validate-build.mjs
+      - name: Validate runtime models
+        run: node scripts/validate-runtime-models.mjs
