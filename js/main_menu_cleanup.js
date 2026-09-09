@@ -1,32 +1,55 @@
-/* Sky Puff — cleaner grouped main menu v0.1 */
+/* Puffling — compact categorized main navigation v1.0 */
 (function(){
+ const COPY={
+  no:{pufflings:'PUFFLINGS ☁️',modes:'SPILLMODUSER ⚔️',more:'MER ☰',back:'TILBAKE',titles:{pufflings:'Pufflings',modes:'Spillmoduser',more:'Mer'},sub:{pufflings:'Samling, egg og Mystery Shop',modes:'Velg hvordan du vil spille',more:'Belønninger, oppgraderinger og hjelp'}},
+  en:{pufflings:'PUFFLINGS ☁️',modes:'GAME MODES ⚔️',more:'MORE ☰',back:'BACK',titles:{pufflings:'Pufflings',modes:'Game Modes',more:'More'},sub:{pufflings:'Collection, eggs and Mystery Shop',modes:'Choose how you want to play',more:'Rewards, upgrades and help'}}};
+ const GROUPS={
+  pufflings:[['puffdexBtn','☁️','Puffdex'],['nurseryVaultBtn','🥚','Nursery & Vault'],['mysteryShopBtn','💎','Mystery Shop']],
+  modes:[['multiplayerBtn','⚔️','Multiplayer'],['bossRushBtn','👑','Boss Rush'],['leaderboardBtn','🏆','Highscore']],
+  more:[['dailyBtn','🎁','Daglig belønning'],['shopBtn','🎨','Cosmetics'],['upgradeBtn','⬆️','Oppgraderinger'],['achievementsBtn','🏅','Achievements'],['audioSettingsBtn','🔊','Lyd'],['diagnosticsBtn','🛠️','System & Support']]
+ };
+ let currentGroup='';
+ function copy(){try{return COPY[typeof lang!=='undefined'&&lang==='no'?'no':'en']}catch(e){return COPY.en}}
+ function ensureHub(){
+  let hub=document.getElementById('spMenuHub');if(hub)return hub;
+  hub=document.createElement('div');hub.id='spMenuHub';hub.className='overlay';hub.style.display='none';
+  hub.innerHTML='<div class="card spHubCard"><div class="spHubIcon">☁️</div><h1 id="spHubTitle"></h1><div id="spHubSubtitle" class="small"></div><div id="spHubGrid"></div><button id="spHubBack" class="secondary">TILBAKE</button></div>';
+  document.body.appendChild(hub);document.getElementById('spHubBack').onclick=closeHub;return hub;
+ }
+ function closeHub(){const hub=document.getElementById('spMenuHub');if(hub)hub.style.display='none';if(startEl)startEl.style.display='flex';currentGroup='';}
+ function openHub(group){
+  currentGroup=group;const hub=ensureHub(),t=copy(),grid=document.getElementById('spHubGrid');
+  document.getElementById('spHubTitle').textContent=t.titles[group];document.getElementById('spHubSubtitle').textContent=t.sub[group];document.getElementById('spHubBack').textContent=t.back;grid.innerHTML='';
+  for(const [id,icon,fallback] of GROUPS[group]){
+   const original=document.getElementById(id);if(!original)continue;
+   const button=document.createElement('button');button.className=original.classList.contains('gold')?'spHubItem gold':'spHubItem secondary';
+   const label=(original.textContent||fallback).replace(/[☁️🥚🔐💎⚔️👑🏆🎁🎨⬆️🏅🔊🛠️😈]/gu,'').trim()||fallback;
+   button.innerHTML=`<span>${icon}</span><b>${label}</b><small>ÅPNE →</small>`;
+   button.onclick=()=>{hub.style.display='none';if(startEl)startEl.style.display='flex';currentGroup='';original.click();};grid.appendChild(button);
+  }
+  if(startEl)startEl.style.display='none';hub.style.display='flex';
+ }
+ function updateLabels(){const t=copy();const p=document.getElementById('pufflingsHubBtn'),m=document.getElementById('modesHubBtn'),m2=document.getElementById('moreHubBtn');if(p)p.textContent=t.pufflings;if(m)m.textContent=t.modes;if(m2)m2.textContent=t.more;if(currentGroup)openHub(currentGroup);}
  function ensure(){
-  const actions=document.querySelector('#start .menuActions');if(!actions||document.getElementById('menuPrimaryGroup'))return;
-  const play=document.getElementById('playBtn');
-  const primary=document.createElement('div');primary.id='menuPrimaryGroup';primary.className='spMenuGroup';
-  const collection=document.createElement('div');collection.id='menuCollectionGroup';collection.className='spMenuGroup spMenuGrid';
-  const more=document.createElement('details');more.id='menuMoreGroup';more.className='spMenuMore';more.innerHTML='<summary>MER ☰</summary><div class="spMenuGroup spMenuGrid" id="menuMoreGrid"></div>';
-  actions.parentNode.insertBefore(primary,actions);actions.parentNode.insertBefore(collection,actions);actions.parentNode.insertBefore(more,actions);actions.style.display='none';
-  if(play)primary.appendChild(play);
-  const move=(id,parent)=>{const e=document.getElementById(id);if(e)parent.appendChild(e)};
-  // Keep only the most-used options visible.
-  ['multiplayerBtn','bossRushBtn','puffdexBtn','dailyBtn'].forEach(id=>move(id,collection));
-  const mg=document.getElementById('menuMoreGrid');
-  ['shopBtn','upgradeBtn','leaderboardBtn','achievementsBtn','diagnosticsBtn'].forEach(id=>move(id,mg));
-  const style=document.createElement('style');style.id='spMenuCleanupCss';style.textContent=`
-  #start .card{max-width:430px!important;padding:18px 16px!important}
-  #start h1{margin:4px 0 2px!important}.menuStats{margin:9px 0!important}
-  .spMenuGroup{display:grid;gap:8px;margin-top:9px}.spMenuGrid{grid-template-columns:1fr 1fr}
-  .spMenuGroup button{margin:0!important;min-height:44px;padding:10px 8px!important;font-size:13px!important}
-  #menuPrimaryGroup button{font-size:17px!important;min-height:50px!important}
-  .spMenuMore{margin-top:8px;border-radius:14px;background:rgba(255,255,255,.34);overflow:hidden}
-  .spMenuMore summary{cursor:pointer;list-style:none;padding:10px 12px;font-weight:900;color:#35516b;user-select:none}.spMenuMore summary::-webkit-details-marker{display:none}
-  .spMenuMore[open] summary{border-bottom:1px solid rgba(60,100,140,.12)}.spMenuMore .spMenuGroup{padding:9px;margin:0}
-  #start .small#menuHint{font-size:11px!important;line-height:1.3;margin-top:9px!important;opacity:.8}
-  #start .menuVersion{font-size:10px!important;margin-top:7px!important;opacity:.65}
-  @media(max-width:390px){.spMenuGrid{grid-template-columns:1fr 1fr}.spMenuGroup button{font-size:12px!important;padding:9px 5px!important}.menuStats{grid-template-columns:repeat(2,1fr)!important}}
-  `;document.head.appendChild(style);
+  const actions=document.querySelector('#start .menuActions');if(!actions)return;
+  let primary=document.getElementById('menuPrimaryGroup');
+  if(!primary){primary=document.createElement('div');primary.id='menuPrimaryGroup';primary.className='spMenuPrimary';actions.parentNode.insertBefore(primary,actions);const play=document.getElementById('playBtn');if(play)primary.appendChild(play);}
+  let nav=document.getElementById('spMainNav');
+  if(!nav){nav=document.createElement('div');nav.id='spMainNav';nav.innerHTML='<button id="pufflingsHubBtn" class="gold"></button><button id="modesHubBtn" class="secondary"></button><button id="moreHubBtn" class="secondary spNavWide"></button>';actions.parentNode.insertBefore(nav,actions);document.getElementById('pufflingsHubBtn').onclick=()=>openHub('pufflings');document.getElementById('modesHubBtn').onclick=()=>openHub('modes');document.getElementById('moreHubBtn').onclick=()=>openHub('more');}
+  actions.style.display='none';ensureHub();updateLabels();
+  if(!document.getElementById('spCompactMenuCss')){const style=document.createElement('style');style.id='spCompactMenuCss';style.textContent=`
+   #start .card{max-width:430px!important;padding:16px!important;max-height:96vh;overflow:auto}
+   #start h1{margin:2px 0!important}.menuHero{height:82px!important;margin-bottom:2px!important}.menuRainbow{top:52px!important}.menuCloud{transform:translate(-50%,-50%) scale(.78)!important}
+   #start .tag{margin-bottom:8px!important;font-size:12px!important}.menuStats{margin:7px 0!important;gap:6px!important}.menuStats .stat{padding:7px 4px!important;font-size:11px!important}
+   #menuPrimaryGroup{margin-top:8px}#menuPrimaryGroup button{width:100%!important;max-width:none!important;min-height:50px!important;margin:0!important}
+   #spMainNav{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}#spMainNav button{width:100%;min-width:0!important;min-height:44px;margin:0!important;padding:10px 7px!important;font-size:12px!important}.spNavWide{grid-column:1/-1}
+   #start .menuActions{display:none!important}#start .small#menuHint{font-size:10px!important;line-height:1.25;margin-top:7px!important;opacity:.72}#start .menuVersion{font-size:9px!important;margin-top:5px!important;opacity:.58}
+   .spHubCard{width:min(88vw,420px)!important;padding:22px 18px!important}.spHubIcon{font-size:42px;margin-bottom:2px}.spHubCard h1{font-size:34px!important;margin:2px 0 4px!important}.spHubCard>.small{margin-bottom:14px}
+   #spHubGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.spHubItem{min-width:0!important;min-height:86px!important;margin:0!important;padding:12px 8px!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.spHubItem span{font-size:23px}.spHubItem b{font-size:13px}.spHubItem small{font-size:9px;opacity:.68}
+   #spHubBack{margin-top:4px!important}@media(max-width:360px){#spHubGrid{gap:7px}.spHubItem{min-height:78px!important;padding:9px 5px!important}.spHubItem b{font-size:11px}}
+  `;document.head.appendChild(style);}
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ensure,0));else setTimeout(ensure,0);
- window.SkyPuffMenuCleanup={ensure};
+ [120,450,1100].forEach(ms=>setTimeout(ensure,ms));document.getElementById('languageSelect')?.addEventListener('change',()=>setTimeout(updateLabels,0));
+ window.SkyPuffMenuCleanup={ensure,openHub,closeHub};
 })();
