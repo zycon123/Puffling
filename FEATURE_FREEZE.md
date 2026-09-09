@@ -1,7 +1,7 @@
 # Sky Puff Beta Feature Freeze
 
 Status: FROZEN
-Build: 5.26-beta.79
+Build: 5.26-beta.80
 Freeze date: 2026-09-09
 
 Puffling is feature-frozen for stability-focused external beta testing. The canonical test entry is `beta42.html`.
