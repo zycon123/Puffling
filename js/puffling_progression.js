@@ -1,4 +1,4 @@
-/* Sky Puff — Puffling XP + Levels v0.1 */
+/* Sky Puff — Puffling XP + Levels v0.2 */
 (function(){
  const KEY='skyPuffPufflingProgressV1';
  const MAX_LEVEL=20;
@@ -10,7 +10,22 @@
  function addXp(id,amount){if(!id||amount<=0)return get(id);const d=load(),row=d[id]||{level:1,xp:0};row.xp+=Math.floor(amount);let leveled=false;while(row.level<MAX_LEVEL&&row.xp>=xpNeed(row.level)){row.xp-=xpNeed(row.level);row.level++;leveled=true;}if(row.level>=MAX_LEVEL)row.xp=0;d[id]=row;saveData(d);if(leveled&&typeof showToast==='function'){const p=window.SkyPuffPufflingGameplay?.getPuff?.(id);showToast(`${p?.icon||'☁️'} ${p?.name||'Puffling'} nådde level ${row.level}!`);}window.SkyPuffFusionUI?.renderDex?.();return {...row,next:row.level>=MAX_LEVEL?0:xpNeed(row.level)}}
  function multiplier(id){const g=get(id);return 1+Math.min(.20,(g.level-1)*.01)}
  function active(){return window.SkyPuffPufflingGameplay?.active?.()||''}
- function tick(){try{if(typeof running!=='undefined'&&running&&typeof score==='number'){const id=active();if(id&&score>lastScore){const gain=Math.floor((score-lastScore)/25);if(gain>0)addXp(id,gain);}lastScore=score}else lastScore=0;if(typeof boss!=='undefined'){if(boss)lastBossSeen=boss.id;else if(lastBossSeen){const id=active();if(id)addXp(id,35);lastBossSeen=null;}}}catch(e){}requestAnimationFrame(tick)}
+ function tick(){
+  try{
+   const isRunning=typeof running!=='undefined'&&running;
+   if(isRunning&&typeof score==='number'){
+    const id=active();if(id&&score>lastScore){const gain=Math.floor((score-lastScore)/25);if(gain>0)addXp(id,gain);}lastScore=score;
+   }else lastScore=0;
+   if(typeof boss!=='undefined'){
+    if(boss&&isRunning)lastBossSeen={id:boss.id,tier:boss.tier||1};
+    else if(lastBossSeen){
+      if(isRunning){const id=active();if(id)addXp(id,35);}
+      lastBossSeen=null;
+    }
+   }
+  }catch(e){}
+  requestAnimationFrame(tick)
+ }
  requestAnimationFrame(tick);
  window.SkyPuffPufflingProgress={get,addXp,multiplier,xpNeed,maxLevel:MAX_LEVEL};
 })();
