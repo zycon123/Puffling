@@ -1,20 +1,24 @@
-/* Puffling — Steal My Puffling menu entry v0.1 */
+/* Puffling — Steal My Puffling multiplayer entry v0.2 */
 (function(){
  function ensure(){
-  if(document.getElementById('stealMyPufflingBtn'))return;
-  const b=document.createElement('button');b.id='stealMyPufflingBtn';b.className='secondary';b.textContent='STEAL MY PUFFLING 😈';
+  let b=document.getElementById('stealMyPufflingBtn');
+  if(!b){b=document.createElement('button');b.id='stealMyPufflingBtn';b.className='gold';}
+  b.textContent='STEAL MY PUFFLING 😈';
   b.onclick=()=>{
-   // This mode uses the existing multiplayer race: winner chooses Mystery Box or stealing one unprotected Puffling.
-   if(typeof openMultiplayer==='function')openMultiplayer();
-   else if(typeof multiplayerBtnEl!=='undefined'&&multiplayerBtnEl)multiplayerBtnEl.click();
+   if(typeof multiplayerStatusEl!=='undefined'&&multiplayerStatusEl)multiplayerStatusEl.textContent='Steal My Puffling: Vinn kampen og velg Mystery Box eller stjel én ubeskyttet Puffling.';
+   if(typeof quickMatch==='function')quickMatch();
   };
-  const group=document.getElementById('menuCollectionGroup')||document.getElementById('menuMoreGrid')||document.querySelector('#start .menuActions');
-  if(group)group.appendChild(b);
+  const card=document.querySelector('#multiplayerMenu .card');
+  if(card){
+   const close=document.getElementById('closeMultiplayer');
+   if(b.parentElement!==card)card.insertBefore(b,close||null);
+   b.style.marginTop='12px';
+  }
  }
  function rename(){
   const result=document.getElementById('stealMyPuffResult');if(result){const small=result.querySelector('.card>.small');if(small)small.textContent='Velg Mystery Box eller stjel én ubeskyttet Puffling fra motstanderen.';}
-  const steal=document.getElementById('chooseStealPuff');if(steal)steal.textContent='😈 STEAL PUFFLING';
+  const steal=document.getElementById('chooseStealPuff');if(steal)steal.textContent='😈 STJEL PUFFLING';
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensure();rename();},100));else setTimeout(()=>{ensure();rename();},100);
- window.PufflingStealMode={ensure,open:()=>document.getElementById('stealMyPufflingBtn')?.click()};
+ window.PufflingStealMode={ensure,open:()=>{if(typeof openMultiplayer==='function')openMultiplayer();setTimeout(()=>document.getElementById('stealMyPufflingBtn')?.focus(),50);}};
 })();
