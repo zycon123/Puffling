@@ -1,4 +1,4 @@
-/* Puffling — compact categorized main navigation v1.0 */
+/* Puffling — compact categorized main navigation v1.1 */
 (function(){
  const COPY={
   no:{pufflings:'PUFFLINGS ☁️',modes:'SPILLMODUSER ⚔️',more:'MER ☰',back:'TILBAKE',titles:{pufflings:'Pufflings',modes:'Spillmoduser',more:'Mer'},sub:{pufflings:'Samling, egg og Mystery Shop',modes:'Velg hvordan du vil spille',more:'Belønninger, oppgraderinger og hjelp'}},
@@ -35,7 +35,8 @@
   let primary=document.getElementById('menuPrimaryGroup');
   if(!primary){primary=document.createElement('div');primary.id='menuPrimaryGroup';primary.className='spMenuPrimary';actions.parentNode.insertBefore(primary,actions);const play=document.getElementById('playBtn');if(play)primary.appendChild(play);}
   let nav=document.getElementById('spMainNav');
-  if(!nav){nav=document.createElement('div');nav.id='spMainNav';nav.innerHTML='<button id="pufflingsHubBtn" class="gold"></button><button id="modesHubBtn" class="secondary"></button><button id="moreHubBtn" class="secondary spNavWide"></button>';actions.parentNode.insertBefore(nav,actions);document.getElementById('pufflingsHubBtn').onclick=()=>openHub('pufflings');document.getElementById('modesHubBtn').onclick=()=>openHub('modes');document.getElementById('moreHubBtn').onclick=()=>openHub('more');}
+  if(!nav){nav=document.createElement('div');nav.id='spMainNav';nav.innerHTML='<button id="pufflingsHubBtn" class="gold"></button><button id="modesHubBtn" class="secondary"></button><button id="moreHubBtn" class="secondary spNavWide"></button>';actions.parentNode.insertBefore(nav,actions);}
+  const pufflings=document.getElementById('pufflingsHubBtn'),modes=document.getElementById('modesHubBtn'),more=document.getElementById('moreHubBtn');if(pufflings)pufflings.onclick=()=>openHub('pufflings');if(modes)modes.onclick=()=>openHub('modes');if(more)more.onclick=()=>openHub('more');
   actions.style.display='none';ensureHub();updateLabels();
   if(!document.getElementById('spCompactMenuCss')){const style=document.createElement('style');style.id='spCompactMenuCss';style.textContent=`
    #start .card{max-width:430px!important;padding:16px!important;max-height:96vh;overflow:auto}
