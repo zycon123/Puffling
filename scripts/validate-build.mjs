@@ -63,4 +63,11 @@ const menuCleanup=fs.existsSync(menuCleanupPath)?fs.readFileSync(menuCleanupPath
 for(const token of ['spMainNav','spMenuHub','pufflingsHubBtn','modesHubBtn','moreHubBtn'])if(!menuCleanup.includes(token))fail(`Compact main menu is missing ${token}`);
 if(/menuCollectionGroup|menuMoreGroup/.test(menuCleanup))fail('Legacy crowded main-menu groups are still active');else ok('Compact categorized main navigation');
 
+const nurseryPath=path.join(root,'js/puffling_nursery_vault.js');
+const nurserySource=fs.existsSync(nurseryPath)?fs.readFileSync(nurseryPath,'utf8'):'';
+for(const token of ['id="vaultSlots"','for(let i=0;i<MAX_VAULT;i++)','TOM PLASS'])if(!nurserySource.includes(token))fail(`Vault UI is missing ${token}`);
+const menuBetaPath=path.join(root,'js/menu_beta_cleanup.js');
+const menuBetaSource=fs.existsSync(menuBetaPath)?fs.readFileSync(menuBetaPath,'utf8'):'';
+if(/Dobbelttrykk|Double-tap|Doppeltippen|Doble toque|Double-tapez/.test(menuBetaSource))fail('Obsolete Rainbow Puff main-menu hint is still active');else ok('Three-slot Vault UI and clean main menu hint state');
+
 if(!process.exitCode){ok(`Loader references ${modules.length} named modules`);ok('Static Puffling build validation passed')}
