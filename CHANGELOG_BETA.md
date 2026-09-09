@@ -1,5 +1,11 @@
 # Sky Puff Beta Changelog
 
+## 5.26-beta.89
+- Retry a failed module request up to two times before stopping startup.
+- Keep the main menu inactive until the entire ordered module list has loaded.
+- Show a localized retry screen when startup cannot recover, preserving browser saves.
+- Add regression checks for normal startup, transient/permanent request failures, execution order and recovery.
+
 ## 5.26-beta.88
 - Clear stored runtime errors when they belong to an older beta build.
 - Keep current-build errors available for diagnostics and bug reports.

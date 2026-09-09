@@ -1,6 +1,6 @@
 # Sky Puff Beta Testing
 
-Build: `5.26-beta.88`
+Build: `5.26-beta.89`
 
 Stable test entry: `beta42.html`
 
@@ -29,6 +29,11 @@ Support: `zyconstudios@protonmail.com`
 20. Test Cosmetics, Upgrades and Daily Reward, then refresh and verify purchases/progress remain.
 21. Open Multiplayer and verify the beta/simulated-rival flow can be entered and exited without freezing.
 22. Open and close Puffdex, Nursery/Vault, Mystery Shop and Audio settings, then verify AI Diagnostics remains at 0 auto-repairs. Defeat a boss and verify Anti-Cheat remains at 0 flags after the post-boss landing. Confirm the bug-report button can open an email composer.
+
+## Startup connection recovery
+- Interrupt one module request during startup. The same module should retry, then all remaining modules should load in order before the menu becomes interactive.
+- Keep that request blocked. After three total attempts, a clear Try again button should appear; dependent modules must not run.
+- Restore the connection and select Try again. Confirm startup succeeds and the saved Puffling inventory, Vault slots, eggs and currency are unchanged.
 
 ## Persistence checks
 - selected language
