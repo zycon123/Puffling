@@ -25,7 +25,7 @@ async function loadLeaderboard(){
 }
 function applyLanguage(){
  const t=i18n[lang]||i18n.no;
- languageSelectEl.value=lang;playBtnEl.textContent=t.play;upgradeBtnEl.textContent=t.upgrade;shopBtnEl.textContent=t.skins;dailyBtnEl.textContent=t.daily;leaderboardBtnEl.textContent='🏆 '+t.leaderboard;leaderboardTitleEl.textContent=t.globalHighscore;refreshLeaderboardEl.textContent=t.refresh;closeLeaderboardEl.textContent=t.back;playerNameEl.placeholder=t.namePlaceholder;menuTagEl.innerHTML=t.tag;menuHintEl.innerHTML=t.hint;
+ languageSelectEl.value=lang;playBtnEl.textContent=t.play;upgradeBtnEl.textContent=t.upgrade;shopBtnEl.textContent=t.skins;dailyBtnEl.textContent=t.daily;leaderboardBtnEl.textContent='🏆 '+t.leaderboard;leaderboardTitleEl.textContent=t.globalHighscore;refreshLeaderboardEl.textContent=t.refresh;closeLeaderboardEl.textContent=t.back;playerNameEl.placeholder=t.namePlaceholder;menuTagEl.innerHTML=t.tag;if(menuHintEl)menuHintEl.innerHTML=t.hint;
  bestStatEl.innerHTML=`🏆 ${t.best}<br><span id="bestHeight">${save.best}</span> m`;bankStatEl.innerHTML=`💰 ${t.bank}<br><span id="bankCoins">${save.bank}</span>`;totalStatEl.innerHTML=`📈 ${t.total}<br><span id="totalHeight">${save.total}</span> m`;streakStatEl.innerHTML=`🔥 ${t.streak}<br><span id="menuStreak">${save.streak}</span>`;
  closeShopEl.textContent=t.back;closeUpgradesEl.textContent=t.back;retryBtnEl.textContent=t.retry;menuBtnEl.textContent=t.menu;if(continueBtnEl)continueBtnEl.textContent=t.continue;
  const pt=document.getElementById('pauseTitle');if(pt)pt.textContent=t.pause;if(resumeBtnEl)resumeBtnEl.textContent=t.resume;if(pauseMenuBtnEl)pauseMenuBtnEl.textContent=t.mainMenu;if(pauseTextEl)pauseTextEl.textContent=t.pauseText;
