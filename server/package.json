@@ -1,15 +1,15 @@
 {
-  "name": "sky-puff-race-server",
-  "version": "0.1.0",
+  "name": "puffling-race-server",
+  "version": "0.2.0",
   "private": true,
-  "description": "Authoritative WebSocket room server for Sky Puff Race My Puffling",
+  "description": "Authoritative WebSocket room server for Race My Puffling",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "check": "node --check index.js"
+    "check": "node --check index.js && node --check integration-check.js && node integration-check.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "ws": "^8.18.0"
