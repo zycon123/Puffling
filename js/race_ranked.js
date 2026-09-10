@@ -93,7 +93,7 @@
     return '<div id="raceRankResult" style="margin-top:14px;padding:12px;border-radius:15px;background:rgba(255,255,255,.72);font-size:12px;font-weight:900">Rank unchanged — live Race server is required for ranked results.</div>';
   }
   function decorateResult(){
-    const body=document.getElementById('raceResultBody');if(!body)return;
+    if(typeof document==='undefined')return;const body=document.getElementById('raceResultBody');if(!body)return;
     body.querySelector('#raceRankResult')?.remove();const html=resultRankHtml();if(html)body.insertAdjacentHTML('beforeend',html);
   }
   function ensureCard(){
@@ -110,6 +110,10 @@
     if(typeof document==='undefined')return;const p=profile(),box=ensureCard();if(!box)return;
     const next=p.rank.nextMin?`${Math.max(0,p.rank.nextMin-p.rating)} MMR to ${p.rank.nextName}`:'Top rank';
     box.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><div><div style="font-size:11px;font-weight:1000;letter-spacing:.8px;opacity:.62">QUICK RACE RANK</div><div style="font-size:21px;font-weight:1000;margin-top:2px">${p.rank.label}</div></div><div style="text-align:right"><div style="font-size:19px;font-weight:1000">${p.rating}</div><div style="font-size:10px;font-weight:900;opacity:.64">MMR</div></div></div><div style="height:7px;background:rgba(40,80,120,.12);border-radius:999px;margin-top:9px;overflow:hidden"><div style="height:100%;width:${Math.round(p.rank.progress*100)}%;background:linear-gradient(90deg,#63b7ff,#9b75ff);border-radius:999px"></div></div><div style="display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:10px;font-weight:900;opacity:.72"><span>${p.wins}W • ${p.losses}L${p.streak?` • 🔥${p.streak}`:''}</span><span>${next}</span></div>`;
+  }
+  function patchTransportConnect(){
+    const T=window.SkyPuffRaceTransport;if(!T?.connect||T.connect.__rankWrapped)return;
+    const base=T.connect;const wrapped=function(opts={}){return base.call(this,{...opts,rankRating:profile().rating});};wrapped.__rankWrapped=true;T.connect=wrapped;
   }
   function bindTransport(){
     if(transportBound)return;const T=window.SkyPuffRaceTransport;if(!T)return;transportBound=true;
@@ -133,9 +137,9 @@
       const base=window.openMultiplayer;const wrapped=function(){const out=base.apply(this,arguments);setTimeout(render,0);return out;};wrapped.__rankWrapped=true;window.openMultiplayer=wrapped;
     }
   }
-  function init(){bindTransport();patchGameHooks();render();}
+  function init(){patchTransportConnect();bindTransport();patchGameHooks();render();}
   window.SkyPuffQuickRank={profile,rankFor,recordResult,render,decorateResult,get lastUpdate(){return lastUpdate;},START_RATING,MIN_RATING,version:1};
   if(typeof document!=='undefined'){
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,40));else setTimeout(init,40);
-  }else{bindTransport();patchGameHooks();}
+  }else{patchTransportConnect();bindTransport();patchGameHooks();}
 })();
