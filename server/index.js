@@ -6,6 +6,8 @@ const GOAL = 1500;
 const MAX_ATTACKS = 3;
 const ATTACK_COOLDOWN_MS = 4000;
 const MAX_POSITION_HZ = 25;
+const COUNTDOWN_MS = 4000;
+const START_GRACE_MS = 120;
 const rooms = new Map();
 let quickWaiting = null;
 let nextRaceId = 1;
@@ -28,12 +30,19 @@ function playerPublic(p){
 function broadcast(room, msg, exceptId=null){
   for(const p of room.players.values()) if(p.playerId !== exceptId) safeJson(p.ws, msg);
 }
+function raceHasStarted(room, at=now()){
+  return !!room.startedAt && at + START_GRACE_MS >= room.startedAt;
+}
+function rejectBeforeStart(ws, room){
+  const remaining=Math.max(0,(room.startedAt||now())-now());
+  safeJson(ws,{type:'race:notStarted',room:room.id,serverStartAt:room.startedAt||0,remaining});
+}
 function maybeStart(room){
   if(room.startedAt || room.players.size !== 2) return;
   if(![...room.players.values()].every(p=>p.ready)) return;
-  room.startedAt = now() + 1500;
+  room.startedAt = now() + COUNTDOWN_MS;
   const players = [...room.players.values()].map(playerPublic);
-  broadcast(room,{type:'race:start',room:room.id,serverStartAt:room.startedAt,goal:GOAL,players});
+  broadcast(room,{type:'race:start',room:room.id,serverStartAt:room.startedAt,countdownMs:COUNTDOWN_MS,goal:GOAL,players});
 }
 function joinBoundRoom(ws, requestedRoom, playerId){
   let room;
@@ -60,6 +69,7 @@ function getBound(ws){
 }
 function finishAuthoritative(room, player){
   if(room.winnerId || player.finishedAt) return;
+  if(!raceHasStarted(room)) return;
   if(player.height < GOAL) return;
   player.finishedAt = now();
   if(!room.winnerId){
@@ -108,6 +118,7 @@ wss.on('connection', ws=>{
     }
 
     if(m.type==='race:position'){
+      if(!raceHasStarted(room)) return rejectBeforeStart(ws,room);
       const t=now();
       if(t-player.lastPositionAt < (1000/MAX_POSITION_HZ)) return;
       player.lastPositionAt=t;
@@ -121,6 +132,7 @@ wss.on('connection', ws=>{
 
     if(m.type==='race:attack'){
       const t=now();
+      if(!raceHasStarted(room,t)) return rejectBeforeStart(ws,room);
       if(room.winnerId) return;
       if(player.attacksUsed>=MAX_ATTACKS) return safeJson(ws,{type:'race:attackRejected',reason:'empty',remaining:0});
       if(t-player.lastAttackAt<ATTACK_COOLDOWN_MS) return safeJson(ws,{type:'race:attackRejected',reason:'cooldown',cooldownLeft:ATTACK_COOLDOWN_MS-(t-player.lastAttackAt),remaining:MAX_ATTACKS-player.attacksUsed});
@@ -131,6 +143,7 @@ wss.on('connection', ws=>{
     }
 
     if(m.type==='race:finish'){
+      if(!raceHasStarted(room)) return rejectBeforeStart(ws,room);
       finishAuthoritative(room,player); return;
     }
   });
