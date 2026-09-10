@@ -30,7 +30,8 @@ if(new Set(profiles.map(t=>t.traitName)).size!==100)fail('Trait names are not un
 const fingerprints=profiles.map(t=>[t.jumpScale,t.boostRegen,t.shotPower,t.controlBonus,t.rescueChance,t.raceStrength,t.raceDuration,t.raceCooldown].join('|'));
 if(new Set(fingerprints).size!==100)fail('At least two Pufflings share the same gameplay trait profile');
 const starters=['starterpuff','starterspark','starterdrop'].map(id=>F.BASE[id]);
-if(starters.some(p=>!p.starterOnly||p.trait.raceStrength!==0.08||p.trait.boostRegen!==0))fail('Starter Pufflings are no longer the weakest starter tier');
+if(starters.some(p=>!p.starterOnly||p.trait.raceStrength>.08||p.trait.shotPower>=.82))fail('Starter Pufflings are no longer clearly below normal Pufflings');
+if(new Set(starters.map(p=>fingerprints[all.findIndex(x=>x.id===p.id)])).size!==3)fail('Starter Pufflings must also have distinct trait profiles');
 
 console.log('✅ 100 Pufflings loaded');
 console.log('✅ New rarity split: 10 Common / 8 Rare / 8 Epic / 10 Legendary');
