@@ -1,4 +1,4 @@
-# Sky Puff Race Server
+# Puffling Race Server
 
 WebSocket backend for **Race My Puffling**.
 

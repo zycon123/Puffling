@@ -1,4 +1,4 @@
-name: Deploy Sky Puff Beta to GitHub Pages
+name: Deploy Puffling Beta to GitHub Pages
 
 on:
   push:
