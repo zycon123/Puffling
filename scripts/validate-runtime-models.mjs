@@ -15,16 +15,21 @@ function run(context,relativePath){
 
 {
  const localStorage=storage(),context={window:{},localStorage,console};context.window=context;
- run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');
+ run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');run(context,'js/steal_my_puff_core.js');
  const F=context.SkyPuffFusion;
- if(Object.keys(F.BASE).length+Object.keys(F.FUSIONS).length!==61)fail('Puffling catalog must contain 61 entries');
+ if(Object.keys(F.BASE).length+Object.keys(F.FUSIONS).length!==64)fail('Puffling catalog must contain 64 entries');
+ const starterIds=['starterpuff','starterspark','starterdrop'];
+ for(const id of starterIds){const p=F.BASE[id];if(!p||p.rarity!=='common'||p.starterOnly!==true||p.value!==0.35||p.ability!=='starter')fail(`Starter Puffling ${id} is not configured as a weak Common starter`);}
+ if(!starterIds.every(id=>F.load().discovered.includes(id)))fail('Starter Pufflings must stay visible in Puffdex before selection');
+ const starterRaceAbility=context.SkyPuffRace?.abilityFor?.('starterpuff');
+ if(!starterRaceAbility||starterRaceAbility.id!=='tinyGust'||starterRaceAbility.strength!==0.08||starterRaceAbility.duration!==350)fail('Starter Puffling Race ability is not the weak Tiny Gust profile');
  F.add('ember',1);F.add('volt',1);let state=F.load();state.vault=['ember'];F.save(state);
  if(F.canFuse('ember','volt'))fail('Vaulted Puffling was incorrectly available for Fusion');
  F.add('ember',1);if(!F.canFuse('ember','volt'))fail('Extra unprotected Puffling was not available for Fusion');
  if(!F.fuse('ember','volt').ok||F.load().owned.ember!==1||!F.load().vault.includes('ember'))fail('Fusion did not preserve the protected Vault copy');
  localStorage.setItem('skyPuffActivePuffling','volt');state=F.load();state.owned.volt=0;F.save(state);
  if(localStorage.getItem('skyPuffActivePuffling'))fail('Invalid active Puffling was not cleared');
- ok('Puffling catalog, Vault-safe Fusion and active selection');
+ ok('Puffling catalog, starter Puffdex visibility, starter tuning, Vault-safe Fusion and active selection');
 }
 
 {
@@ -75,7 +80,6 @@ function run(context,relativePath){
  otherOverlay.style.display='none';ai.runCheck();if(restored!==1||ai.repairs!==1)fail('Missing-menu recovery no longer works');
  ok('AI diagnostics dynamic overlay detection and legacy log migration');
 }
-
 
 {
  function loaderScenario(failures){
