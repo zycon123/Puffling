@@ -1,4 +1,4 @@
-/* Sky Puff — Multiplayer -> Race My Puffling bridge v1.1
+/* Sky Puff — Multiplayer -> Race My Puffling bridge v1.2
  * Compatibility filename retained for the current beta loader.
  */
 (function(){
@@ -11,6 +11,7 @@
   let onlineMode=false;
   let transportBound=false;
   let lastLocalHeight=0;
+  let serverResult=null;
 
   function currentPufflingId(){
     try{
@@ -30,6 +31,13 @@
     if(transportBound)return;transportBound=true;
     const T=window.SkyPuffRaceTransport;if(!T)return;
     T.on('state',m=>{onlineMode=m?.state==='online';});
+    T.on('race:matched',m=>{
+      if(m?.room) multiplayerRoom=m.room;
+      if(typeof showToast==='function')showToast(m?.mode==='quick'?'🔎 Motstander funnet!':'👥 Race room ready');
+    });
+    T.on('race:start',m=>{
+      if(typeof showToast==='function')showToast('🏁 GO!');
+    });
     T.on('race:position',m=>{
       if(!m||m.playerId===T.snapshot().playerId)return;
       onlineOpponent={x:Number(m.x)||0,height:Math.max(0,Number(m.height)||0),state:m.state||'jumping',pufflingId:m.pufflingId||null,skin:m.skin||null,t:Number(m.t)||Date.now()};
@@ -41,10 +49,16 @@
       window.SkyPuffRace?.receiveAttack?.(m.ability||m.abilityId,m);
       window.dispatchEvent(new CustomEvent('race:incomingAttack',{detail:m}));
     });
-    T.on('race:finish',m=>{
-      if(!m||m.playerId===T.snapshot().playerId)return;
-      multiplayerOpponentScore=Math.max(multiplayerOpponentScore,1500);
-      if(multiplayerMode&&multiplayerState==='racing')finishMultiplayerRace();
+    T.on('race:attackRejected',m=>{
+      if(typeof showToast==='function')showToast(m?.reason==='cooldown'?'⏳ Attack on cooldown':'⚠️ Attack rejected');
+    });
+    T.on('race:result',m=>{
+      if(!m?.winnerId)return;
+      serverResult=m;
+      if(multiplayerMode) finishMultiplayerRace();
+    });
+    T.on('race:opponentLeft',()=>{
+      if(multiplayerMode&&typeof showToast==='function')showToast('Motstanderen koblet fra.');
     });
   }
   function connectTransport(type){
@@ -62,7 +76,7 @@
     if(!multiplayerMode)return;
     multiplayerRaceSeconds=9999;
     multiplayerEndAt=Date.now()+multiplayerRaceSeconds*1000;
-    onlineOpponent=null;onlineMode=false;lastLocalHeight=0;
+    onlineOpponent=null;onlineMode=false;lastLocalHeight=0;serverResult=null;
     const R=window.SkyPuffRace;
     R?.start?.({selectedPufflingId:currentPufflingId()});
     window.SkyPuffRaceUI?.show?.();
@@ -85,8 +99,7 @@
 
     if(onlineMode&&onlineOpponent){
       multiplayerOpponentScore=Math.max(0,Number(onlineOpponent.height)||0);
-    }else{
-      // Local fallback/test ghost while no real backend connection exists.
+    }else if(!onlineMode){
       const difficulty=.78+Math.random()*.18;
       let ghostGain=(8+Math.random()*18)*difficulty;
       const now=Date.now();
@@ -105,17 +118,24 @@
 
     if(you>=1500&&lastLocalHeight<1500)T?.sendFinish?.({height:you,pufflingId:currentPufflingId()});
     lastLocalHeight=you;
-    if(next&&!next.active)finishMultiplayerRace();
+    if(next&&!next.active){
+      if(onlineMode&&!serverResult){if(typeof showToast==='function')showToast('🏁 Venter på serverresultat…');return;}
+      finishMultiplayerRace();
+    }
   };
 
   finishMultiplayerRace=function(){
     if(!multiplayerMode)return;
     const R=window.SkyPuffRace,T=window.SkyPuffRaceTransport;
+    if(onlineMode&&!serverResult)return;
     let s=R?.snapshot?.();
     const you=Math.floor(score),rival=Math.floor(multiplayerOpponentScore);
     if(!s)R?.start?.({selectedPufflingId:currentPufflingId()});
     s=R?.updateHeights?.(you,rival)||R?.snapshot?.();
-    if(s?.active){
+    if(serverResult){
+      const mine=T?.snapshot?.().playerId;
+      s=s||{};s.active=false;s.finishedAt=Number(serverResult.finishedAt)||Date.now();s.winner=serverResult.winnerId===mine?'you':'rival';
+    }else if(s?.active){
       const winner=you>=1500&&rival<1500?'you':rival>=1500&&you<1500?'rival':you>=rival?'you':'rival';
       s=R?.finish?.(winner)||s;
     }
@@ -131,7 +151,6 @@
     const a=ev.detail?.ability;if(!a)return;
     const T=window.SkyPuffRaceTransport;
     if(onlineMode){T?.sendAttack?.({ability:a,abilityId:a.id||a.abilityType||a.name});return;}
-    // Test ghost reaction in fallback mode only.
     const penalty=Math.max(4,Math.round(24*(a.strength||.25)));
     multiplayerOpponentScore=Math.max(0,multiplayerOpponentScore-penalty);
   });
@@ -139,6 +158,7 @@
   window.SkyPuffRaceNetwork={
     isOnline:()=>onlineMode,
     opponent:()=>onlineOpponent?{...onlineOpponent}:null,
+    serverResult:()=>serverResult?{...serverResult}:null,
     transport:()=>window.SkyPuffRaceTransport?.snapshot?.()||null
   };
 })();
