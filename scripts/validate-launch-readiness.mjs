@@ -12,14 +12,16 @@ const runtime=read('scripts/validate-runtime-models.mjs');
 const render=read('render.yaml');
 const race=read('js/steal_my_puff_core.js');
 const progress=read('js/race_progress_sync.js');
+const ranked=read('js/race_ranked.js');
+const raceServer=read('server/index.js');
 const beta=read('js/beta_config.js');
 
 if(smoke.includes("'SkyPuffSteal'")||smoke.includes('steal:box-weight'))fail('Smoke Check still depends on retired Steal My Puffling API');
 else ok('Smoke Check no longer depends on retired Steal API');
-for(const token of ['SkyPuffRace','SkyPuffRaceProgress','expected-100-total','PufflingExpansion36','SkyPuffUniqueTraits']){
+for(const token of ['SkyPuffRace','SkyPuffRaceProgress','SkyPuffQuickRank','expected-100-total','PufflingExpansion36','SkyPuffUniqueTraits']){
   if(!smoke.includes(token))fail(`Smoke Check missing current launch invariant: ${token}`);
 }
-if(!process.exitCode)ok('Smoke Check covers current Race and 100-Puffling systems');
+if(!process.exitCode)ok('Smoke Check covers current Race, rank and 100-Puffling systems');
 
 if(!nursery.includes('allPuffs().filter(p=>!p.starterOnly)'))fail('Starter Pufflings can leak into Nursery egg pools');
 else ok('Starter Pufflings are exclusive to starter selection');
@@ -42,6 +44,10 @@ if(!race.includes('const GOAL_METERS=1500')||!race.includes('const MAX_ATTACKS=3
 else ok('Race goal, attack count and cooldown are pinned');
 if(!progress.includes("CustomEvent('race:progress'")||!progress.includes("getElementById('multiplayerHud')"))fail('Shared Race progress/HUD compatibility layer is missing');
 else ok('Race live progress source and legacy HUD guard are active');
+
+for(const token of ['pufflingQuickRaceRankV1','server-required','duplicate-result','Silver','Champion'])if(!ranked.includes(token))fail(`Ranked Quick Race missing invariant: ${token}`);
+if(!raceServer.includes('rankRating')||!raceServer.includes('players:[...room.players.values()].map(playerPublic)'))fail('Race server does not relay authoritative MMR/player profiles');
+else ok('Ranked Quick Race is server-result-only with authoritative opponent MMR');
 
 if(!/SKY_PUFF_VERSION='5\.26-beta\.\d+'/.test(beta))fail('Beta version format is invalid');
 else ok('Build has an explicit beta release version');

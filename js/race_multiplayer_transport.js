@@ -1,4 +1,4 @@
-/* Sky Puff — Race My Puffling network transport v0.2
+/* Sky Puff — Race My Puffling network transport v0.3
  * WebSocket transport with local fallback before a race and automatic reconnect during live races.
  */
 (function(){
@@ -7,6 +7,7 @@
   let state='offline';
   let room='';
   let playerId='';
+  let rankRating=1000;
   let lastSentAt=0;
   let manualClose=false;
   let reconnectTimer=null;
@@ -63,7 +64,7 @@
         connectedOnce=true;
         reconnectAttempt=0;
         setState('online',{resumed:isReconnect});
-        sendRaw({type:'race:hello',room,playerId,protocol:2,resume:isReconnect});
+        sendRaw({type:'race:hello',room,playerId,protocol:2,resume:isReconnect,rankRating});
       };
       socket.onmessage=handleMessage;
       socket.onerror=()=>{};
@@ -82,21 +83,22 @@
   }
   function connect(opts={}){
     room=opts.room||room||'';playerId=opts.playerId||playerId||('p_'+Math.random().toString(36).slice(2,10));
+    rankRating=Math.max(600,Math.min(3000,Math.round(Number(opts.rankRating)||1000)));
     activeUrl=opts.url||endpoint();manualClose=false;reconnectAttempt=0;reconnectDeadline=0;connectedOnce=false;
-    if(!activeUrl){setState('local');return Promise.resolve({mode:'local',room,playerId});}
+    if(!activeUrl){setState('local');return Promise.resolve({mode:'local',room,playerId,rankRating});}
     return new Promise(resolve=>{
       let settled=false;
       const off=on('state',m=>{
         if(settled)return;
-        if(m.state==='online'){settled=true;off();resolve({mode:'online',room,playerId});}
+        if(m.state==='online'){settled=true;off();resolve({mode:'online',room,playerId,rankRating});}
         if(m.state==='connect_failed'){
-          settled=true;off();manualClose=true;try{socket?.close()}catch(e){}socket=null;setState('local');resolve({mode:'local',room,playerId});
+          settled=true;off();manualClose=true;try{socket?.close()}catch(e){}socket=null;setState('local');resolve({mode:'local',room,playerId,rankRating});
         }
       });
       openSocket(activeUrl,false);
       setTimeout(()=>{
         if(settled)return;
-        settled=true;off();manualClose=true;try{socket?.close()}catch(e){}socket=null;setState('local');resolve({mode:'local',room,playerId});
+        settled=true;off();manualClose=true;try{socket?.close()}catch(e){}socket=null;setState('local');resolve({mode:'local',room,playerId,rankRating});
       },4200);
     });
   }
@@ -108,6 +110,6 @@
     manualClose=true;clearReconnect();reconnectDeadline=0;reconnectAttempt=0;
     if(socket){try{socket.close(1000,'leave race')}catch(e){}}socket=null;setState('offline');
   }
-  function snapshot(){return{state,room,playerId,online:state==='online',reconnecting:state==='reconnecting',reconnectDeadline,endpoint:endpoint(),protocolVersion:2};}
+  function snapshot(){return{state,room,playerId,rankRating,online:state==='online',reconnecting:state==='reconnecting',reconnectDeadline,endpoint:endpoint(),protocolVersion:2};}
   window.SkyPuffRaceTransport={connect,disconnect,on,sendPosition,sendAttack,sendFinish,sendReady,snapshot,protocolVersion:2};
 })();
