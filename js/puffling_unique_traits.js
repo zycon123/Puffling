@@ -1,4 +1,4 @@
-/* Sky Puff — unique trait profiles for all Pufflings v1.0 */
+/* Sky Puff — unique trait profiles for all Pufflings v1.1 */
 (function(){
  const F=window.SkyPuffFusion;if(!F)return;
  const all=[...Object.values(F.BASE||{}),...Object.values(F.FUSIONS||{})];
@@ -6,10 +6,11 @@
  function round(n,d=3){const p=10**d;return Math.round(n*p)/p;}
  function profileFor(p,index){
   const r=rarityBase[p.rarity]??0;
-  if(p.starterOnly){
-   return {traitId:`starter-${p.id}`,traitName:`${p.name} Basics`,signatureIndex:index+1,jumpScale:1,boostRegen:0,shotPower:.82,controlBonus:0,rescueChance:0,raceStrength:.08,raceDuration:350,raceCooldown:4000};
-  }
   const unique=index+1;
+  if(p.starterOnly){
+   const starterRank=Math.max(0,['starterpuff','starterspark','starterdrop'].indexOf(p.id));
+   return {traitId:`starter-${p.id}`,traitName:`${p.name} Basics`,signatureIndex:unique,jumpScale:round(1+starterRank*.0004,4),boostRegen:round(starterRank*.0003,4),shotPower:round(.78+starterRank*.015,3),controlBonus:round(starterRank*.001,3),rescueChance:round(starterRank*.0005,4),raceStrength:round(.06+starterRank*.01,3),raceDuration:300+starterRank*25,raceCooldown:4400-starterRank*100};
+  }
   return {
    traitId:`trait-${String(unique).padStart(3,'0')}-${p.id}`,
    traitName:`${p.name} Instinct`,
