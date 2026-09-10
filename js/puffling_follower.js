@@ -1,4 +1,4 @@
-/* Sky Puff — Visible Puffling follower v0.4 */
+/* Puffling — Visible Puffling follower v0.5 */
 (function(){
   let el=null,lastVisualKey='';
   function ensure(){
@@ -15,6 +15,9 @@
     lastVisualKey=key;
     d.innerHTML=window.SkyPuffVisuals?.art?.(id,stage)||`<span style="font-size:23px">${p?.icon||'☁️'}</span>`;
   }
+  function screenX(gameX){
+    try{const r=canvas.getBoundingClientRect();return r.left+Number(gameX||0);}catch(e){return Number(gameX||0);}
+  }
   function tick(t){
     const d=ensure(),G=window.SkyPuffPufflingGameplay;
     try{
@@ -23,7 +26,8 @@
       setVisual(d,id,p);
       const bob=Math.sin(t/280)*4;
       const side=(typeof player.vx==='number'&&player.vx<0)?36:-36;
-      d.style.left=`${Math.max(22,Math.min(innerWidth-22,player.x+side))}px`;
+      const x=screenX(player.x+side);
+      d.style.left=`${Math.max(22,Math.min(innerWidth-22,x))}px`;
       d.style.top=`${Math.max(22,Math.min(innerHeight-22,player.y-12+bob))}px`;
       d.style.display='flex';
     }catch(e){d.style.display='none'}
