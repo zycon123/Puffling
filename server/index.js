@@ -21,13 +21,19 @@ function safeJson(ws, msg){
 function cleanRoomId(value){
   return String(value || '').toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,24);
 }
+function cleanText(value,max=64){ return String(value || '').slice(0,max) || null; }
+function cleanEvolution(value){ return Math.max(0,Math.min(2,Math.floor(Number(value)||0))); }
+function cleanNumber(value,min,max,fallback=0){ const n=Number(value); return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback; }
 function makeRaceId(){ return `race_${now().toString(36)}_${nextRaceId++}`; }
 function createRoom(id, kind='friend'){
   const room = { id, kind, players:new Map(), createdAt:now(), startedAt:0, resumeAt:0, paused:false, finishedAt:0, winnerId:null };
   rooms.set(id, room); return room;
 }
 function playerPublic(p){
-  return { playerId:p.playerId, pufflingId:p.pufflingId || null, ready:!!p.ready, connected:!!p.connected, height:p.height||0, x:p.x||0, attacksUsed:p.attacksUsed||0 };
+  return {
+    playerId:p.playerId,pufflingId:p.pufflingId||null,skin:p.skin||null,evolutionStage:p.evolutionStage||0,
+    ready:!!p.ready,connected:!!p.connected,height:p.height||0,x:p.x||0,y:p.y??null,worldY:p.worldY??null,attacksUsed:p.attacksUsed||0
+  };
 }
 function broadcast(room, msg, exceptId=null){
   for(const p of room.players.values()) if(p.playerId !== exceptId && p.connected) safeJson(p.ws, msg);
@@ -107,7 +113,11 @@ function joinBoundRoom(ws, requestedRoom, playerId, resumeRequested=false){
     }
   }
   if(room.players.has(playerId)) return {error:'player_already_connected'};
-  const p={ws,playerId,connected:true,ready:false,pufflingId:null,lastPositionAt:0,height:0,x:0,attacksUsed:0,lastAttackAt:0,finishedAt:0,disconnectedAt:0,reconnectDeadline:0,reconnectTimer:null};
+  const p={
+    ws,playerId,connected:true,ready:false,pufflingId:null,skin:null,evolutionStage:0,
+    lastPositionAt:0,height:0,x:0,y:null,worldY:null,attacksUsed:0,lastAttackAt:0,finishedAt:0,
+    disconnectedAt:0,reconnectDeadline:0,reconnectTimer:null
+  };
   room.players.set(playerId,p); ws.raceRoom=room.id; ws.racePlayerId=playerId;
   safeJson(ws,{type:'race:matched',room:room.id,mode:room.kind,players:[...room.players.values()].map(playerPublic)});
   broadcast(room,{type:'race:opponentJoined',room:room.id,player:playerPublic(p)},playerId);
@@ -177,8 +187,11 @@ wss.on('connection', ws=>{
     const {room,player}=getBound(ws); if(!room || !player || player.ws!==ws) return;
 
     if(m.type==='race:ready'){
-      player.ready=true; player.pufflingId=String(m.pufflingId||'').slice(0,64)||null;
-      broadcast(room,{type:'race:ready',room:room.id,playerId:player.playerId,pufflingId:player.pufflingId,ready:true},player.playerId);
+      player.ready=true;
+      player.pufflingId=cleanText(m.pufflingId,64);
+      player.skin=cleanText(m.skin,64);
+      player.evolutionStage=cleanEvolution(m.evolutionStage);
+      broadcast(room,{type:'race:ready',room:room.id,playerId:player.playerId,pufflingId:player.pufflingId,skin:player.skin,evolutionStage:player.evolutionStage,ready:true},player.playerId);
       maybeStart(room); return;
     }
 
@@ -187,11 +200,20 @@ wss.on('connection', ws=>{
       const t=now();
       if(t-player.lastPositionAt < (1000/MAX_POSITION_HZ)) return;
       player.lastPositionAt=t;
-      const height=Math.max(0,Math.min(GOAL+100,Number(m.height)||0));
-      const x=Math.max(-10000,Math.min(10000,Number(m.x)||0));
+      const height=cleanNumber(m.height,0,GOAL+100,0);
+      const x=cleanNumber(m.x,-10000,10000,0);
+      const y=m.y===null||m.y===undefined?null:cleanNumber(m.y,-5000,5000,0);
+      const worldY=m.worldY===null||m.worldY===undefined?null:cleanNumber(m.worldY,-250000,250000,0);
       if(height < player.height-120) player.height=height; else player.height=Math.max(player.height,height);
-      player.x=x;
-      broadcast(room,{type:'race:position',room:room.id,playerId:player.playerId,t,x:player.x,height:player.height,state:String(m.state||'jumping').slice(0,20),pufflingId:String(m.pufflingId||player.pufflingId||'').slice(0,64)||null},player.playerId);
+      player.x=x;player.y=y;player.worldY=worldY;
+      player.pufflingId=cleanText(m.pufflingId||player.pufflingId,64);
+      player.skin=cleanText(m.skin||player.skin,64);
+      player.evolutionStage=cleanEvolution(m.evolutionStage ?? player.evolutionStage);
+      broadcast(room,{
+        type:'race:position',room:room.id,playerId:player.playerId,t,
+        x:player.x,y:player.y,worldY:player.worldY,height:player.height,
+        state:String(m.state||'jumping').slice(0,20),pufflingId:player.pufflingId,skin:player.skin,evolutionStage:player.evolutionStage
+      },player.playerId);
       finishAuthoritative(room,player); return;
     }
 

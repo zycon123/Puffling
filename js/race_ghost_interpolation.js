@@ -1,4 +1,4 @@
-/* Sky Puff — Race My Puffling ghost interpolation v0.1
+/* Sky Puff — Race My Puffling ghost interpolation v0.2
  * Visual-only opponent ghost. Never participates in collisions or gameplay state.
  */
 (function(){
@@ -12,17 +12,21 @@
   function now(){return typeof performance!=='undefined'?performance.now():Date.now();}
   function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
   function lerp(a,b,t){return a+(b-a)*t;}
+  function finiteOrNull(v){if(v===null||v===undefined||v==='')return null;const n=Number(v);return Number.isFinite(n)?n:null;}
+  function lerpMaybe(a,b,t){if(Number.isFinite(a)&&Number.isFinite(b))return lerp(a,b,t);return Number.isFinite(b)?b:Number.isFinite(a)?a:null;}
   function reset(){samples.length=0;lastSample=null;attackPulseUntil=0;}
   function push(raw){
     if(!raw)return;
     const s={
       receivedAt:now(),
       x:Number(raw.x)||0,
+      y:finiteOrNull(raw.y),
+      worldY:finiteOrNull(raw.worldY),
       height:Math.max(0,Number(raw.height)||0),
       state:String(raw.state||'jumping'),
       pufflingId:raw.pufflingId||null,
       skin:raw.skin||null,
-      evolutionStage:Number(raw.evolutionStage)||0
+      evolutionStage:Math.max(0,Math.min(2,Number(raw.evolutionStage)||0))
     };
     samples.push(s);
     while(samples.length>MAX_SAMPLES)samples.shift();
@@ -39,6 +43,8 @@
     lastSample={
       receivedAt:lerp(a.receivedAt,b.receivedAt,f),
       x:lerp(a.x,b.x,f),
+      y:lerpMaybe(a.y,b.y,f),
+      worldY:lerpMaybe(a.worldY,b.worldY,f),
       height:lerp(a.height,b.height,f),
       state:f<.5?a.state:b.state,
       pufflingId:b.pufflingId||a.pufflingId,
@@ -60,14 +66,21 @@
     }catch(e){}
     return '#dff5ff';
   }
+  function screenYFor(s){
+    try{
+      if(Number.isFinite(s.worldY)&&typeof cameraY==='number')return s.worldY-cameraY;
+      if(Number.isFinite(s.y)&&typeof player!=='undefined')return player.y+(s.y-player.y);
+      if(typeof player!=='undefined'&&typeof score==='number')return player.y-(s.height-score)*10;
+    }catch(e){}
+    return null;
+  }
   function drawGhost(){
     try{
       if(typeof multiplayerMode==='undefined'||!multiplayerMode)return;
       if(!window.SkyPuffRaceNetwork?.isOnline?.())return;
       if(typeof ctx==='undefined'||typeof player==='undefined'||typeof score!=='number'||typeof H==='undefined')return;
       const s=sample();if(!s)return;
-      const y=player.y-(s.height-score)*10;
-      if(y<-90||y>H+90)return;
+      const y=screenYFor(s);if(!Number.isFinite(y)||y<-90||y>H+90)return;
       const p=pufflingInfo(s.pufflingId);
       const pulse=attackPulseUntil>now()?1.13:1;
       const phase=now()/150;
