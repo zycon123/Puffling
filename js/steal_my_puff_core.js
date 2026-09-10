@@ -1,4 +1,4 @@
-/* Sky Puff — Race My Puffling foundation v1.1
+/* Sky Puff — Race My Puffling foundation v1.2
  * Compatibility note: filename is retained so older beta loaders keep working.
  * The API is exposed as window.SkyPuffRace; SkyPuffSteal is intentionally retired.
  */
@@ -21,10 +21,15 @@
     shock:{id:'thunderPop',name:'Thunder Pop',description:'Avbryter rivalens bevegelse svært kort.',duration:500,strength:1,icon:'⚡',visualEffect:'shock'},
     boostSteal:{id:'puffDrain',name:'Puff Drain',description:'Bremser rivalens momentum og gir deg et lite boost.',duration:1000,strength:.22,icon:'✨',visualEffect:'drain'}
   };
+  const STARTER_ABILITY={id:'tinyGust',name:'Tiny Gust',description:'Et lite starter-vindpuff som forstyrrer rivalen svært kort.',duration:350,strength:.08,icon:'☁️',visualEffect:'wind',type:'wind'};
 
   function hash(text){let h=2166136261;for(const ch of String(text||'puffling')){h^=ch.charCodeAt(0);h=Math.imul(h,16777619);}return h>>>0;}
   function allPufflings(){const F=window.SkyPuffFusion;if(!F)return [];return [...Object.values(F.BASE||{}),...Object.values(F.FUSIONS||{})];}
-  function abilityFor(puffling){const p=typeof puffling==='string'?allPufflings().find(x=>x.id===puffling):puffling;const idx=hash(p?.id||p?.name||'puffling')%TYPES.length;const type=TYPES[idx],base=ABILITIES[type];return {...base,type,cooldown:ATTACK_COOLDOWN_MS,rarityModifier:1,pufflingId:p?.id||null};}
+  function abilityFor(puffling){
+    const p=typeof puffling==='string'?allPufflings().find(x=>x.id===puffling):puffling;
+    if(p?.starterOnly)return {...STARTER_ABILITY,cooldown:ATTACK_COOLDOWN_MS,rarityModifier:.25,pufflingId:p.id};
+    const idx=hash(p?.id||p?.name||'puffling')%TYPES.length;const type=TYPES[idx],base=ABILITIES[type];return {...base,type,cooldown:ATTACK_COOLDOWN_MS,rarityModifier:1,pufflingId:p?.id||null};
+  }
   function abilityMap(){const out={};allPufflings().forEach(p=>{out[p.id]=abilityFor(p)});return out;}
   function createState(opts={}){return {
     active:true,startedAt:opts.startedAt||Date.now(),finishedAt:0,winner:null,
@@ -76,6 +81,6 @@
   function reset(){state=null;emit('race:reset',null);}
   function emit(name,detail){try{window.dispatchEvent(new CustomEvent(name,{detail}));}catch(e){}}
 
-  window.SkyPuffRace={GOAL_METERS,MAX_ATTACKS,ATTACK_COOLDOWN_MS,STATUS_IMMUNITY_MS,CHECKPOINTS,TYPES,ABILITIES,allPufflings,abilityFor,abilityMap,start,snapshot,updateHeights,canAttack,attack,receiveEffect,receiveAttack,tickEffects,recordFall,finish,reset,requiresServerAuthority:true};
+  window.SkyPuffRace={GOAL_METERS,MAX_ATTACKS,ATTACK_COOLDOWN_MS,STATUS_IMMUNITY_MS,CHECKPOINTS,TYPES,ABILITIES,STARTER_ABILITY,allPufflings,abilityFor,abilityMap,start,snapshot,updateHeights,canAttack,attack,receiveEffect,receiveAttack,tickEffects,recordFall,finish,reset,requiresServerAuthority:true};
   try{delete window.SkyPuffSteal;}catch(e){window.SkyPuffSteal=undefined;}
 })();
