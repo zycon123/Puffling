@@ -20,3 +20,5 @@ jobs:
         run: node scripts/validate-build.mjs
       - name: Validate runtime models
         run: node scripts/validate-runtime-models.mjs
+      - name: Validate 100 Pufflings and unique traits
+        run: node scripts/validate-100-pufflings.mjs
