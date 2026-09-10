@@ -24,6 +24,7 @@ function cleanRoomId(value){
 function cleanText(value,max=64){ return String(value || '').slice(0,max) || null; }
 function cleanEvolution(value){ return Math.max(0,Math.min(2,Math.floor(Number(value)||0))); }
 function cleanNumber(value,min,max,fallback=0){ const n=Number(value); return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback; }
+function cleanRankRating(value){ return Math.max(600,Math.min(3000,Math.round(Number(value)||1000))); }
 function makeRaceId(){ return `race_${now().toString(36)}_${nextRaceId++}`; }
 function createRoom(id, kind='friend'){
   const room = { id, kind, players:new Map(), createdAt:now(), startedAt:0, resumeAt:0, paused:false, finishedAt:0, winnerId:null };
@@ -31,7 +32,7 @@ function createRoom(id, kind='friend'){
 }
 function playerPublic(p){
   return {
-    playerId:p.playerId,pufflingId:p.pufflingId||null,skin:p.skin||null,evolutionStage:p.evolutionStage||0,
+    playerId:p.playerId,pufflingId:p.pufflingId||null,skin:p.skin||null,evolutionStage:p.evolutionStage||0,rankRating:p.rankRating||1000,
     ready:!!p.ready,connected:!!p.connected,height:p.height||0,x:p.x||0,y:p.y??null,worldY:p.worldY??null,attacksUsed:p.attacksUsed||0
   };
 }
@@ -58,7 +59,7 @@ function maybeStart(room){
   room.resumeAt = 0;
   room.paused = false;
   const players = [...room.players.values()].map(playerPublic);
-  broadcast(room,{type:'race:start',room:room.id,serverStartAt:room.startedAt,countdownMs:COUNTDOWN_MS,goal:GOAL,players});
+  broadcast(room,{type:'race:start',room:room.id,serverStartAt:room.startedAt,countdownMs:COUNTDOWN_MS,goal:GOAL,mode:room.kind,players});
 }
 function bindPlayerSocket(ws, room, player){
   if(player.reconnectTimer){ clearTimeout(player.reconnectTimer); player.reconnectTimer=null; }
@@ -70,7 +71,7 @@ function scheduleResume(room){
   if(![...room.players.values()].every(p=>p.connected)) return;
   room.paused=false;
   room.resumeAt=now()+RESUME_COUNTDOWN_MS;
-  broadcast(room,{type:'race:resume',room:room.id,serverResumeAt:room.resumeAt,countdownMs:RESUME_COUNTDOWN_MS,players:[...room.players.values()].map(playerPublic)});
+  broadcast(room,{type:'race:resume',room:room.id,serverResumeAt:room.resumeAt,countdownMs:RESUME_COUNTDOWN_MS,mode:room.kind,players:[...room.players.values()].map(playerPublic)});
 }
 function tryResume(ws, room, playerId){
   const existing=room.players.get(playerId);
@@ -80,7 +81,7 @@ function tryResume(ws, room, playerId){
   safeJson(ws,{type:'race:resumed',room:room.id,mode:room.kind,serverStartAt:room.startedAt,resumeAt:room.resumeAt,paused:room.paused,winnerId:room.winnerId,player:playerPublic(existing),players:[...room.players.values()].map(playerPublic)});
   broadcast(room,{type:'race:opponentReconnected',room:room.id,player:playerPublic(existing)},playerId);
   if(room.winnerId){
-    safeJson(ws,{type:'race:result',room:room.id,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason:'finished'});
+    safeJson(ws,{type:'race:result',room:room.id,mode:room.kind,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason:'finished',players:[...room.players.values()].map(playerPublic)});
   }else if(room.startedAt){
     scheduleResume(room);
   }else{
@@ -88,7 +89,7 @@ function tryResume(ws, room, playerId){
   }
   return {room,p:existing,resumed:true};
 }
-function joinBoundRoom(ws, requestedRoom, playerId, resumeRequested=false){
+function joinBoundRoom(ws, requestedRoom, playerId, resumeRequested=false, rankRating=1000){
   let room;
   if(resumeRequested){
     if(!requestedRoom || requestedRoom.toLowerCase()==='quickmatch') return {error:'resume_expired'};
@@ -114,7 +115,7 @@ function joinBoundRoom(ws, requestedRoom, playerId, resumeRequested=false){
   }
   if(room.players.has(playerId)) return {error:'player_already_connected'};
   const p={
-    ws,playerId,connected:true,ready:false,pufflingId:null,skin:null,evolutionStage:0,
+    ws,playerId,connected:true,ready:false,pufflingId:null,skin:null,evolutionStage:0,rankRating:cleanRankRating(rankRating),
     lastPositionAt:0,height:0,x:0,y:null,worldY:null,attacksUsed:0,lastAttackAt:0,finishedAt:0,
     disconnectedAt:0,reconnectDeadline:0,reconnectTimer:null
   };
@@ -127,13 +128,16 @@ function getBound(ws){
   const room=rooms.get(ws.raceRoom); if(!room) return {};
   const player=room.players.get(ws.racePlayerId); return {room,player};
 }
+function resultPayload(room, reason='finish'){
+  return {type:'race:result',room:room.id,mode:room.kind,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason,players:[...room.players.values()].map(playerPublic)};
+}
 function finishAuthoritative(room, player, reason='finish'){
   if(room.winnerId || player.finishedAt) return;
   if(!raceAcceptingInput(room)) return;
   if(player.height < GOAL) return;
   player.finishedAt = now();
   room.winnerId=player.playerId; room.finishedAt=player.finishedAt; room.paused=false;
-  broadcast(room,{type:'race:result',room:room.id,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason});
+  broadcast(room,resultPayload(room,reason));
 }
 function expireReconnect(roomId, playerId){
   const room=rooms.get(roomId); if(!room) return;
@@ -143,7 +147,7 @@ function expireReconnect(roomId, playerId){
   const survivor=[...room.players.values()].find(p=>p.connected);
   if(!room.winnerId && room.startedAt && survivor){
     room.winnerId=survivor.playerId; room.finishedAt=now(); room.paused=false;
-    broadcast(room,{type:'race:result',room:room.id,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason:'opponent_disconnect'});
+    broadcast(room,resultPayload(room,'opponent_disconnect'));
   }else{
     broadcast(room,{type:'race:opponentLeft',room:room.id,playerId});
     if(!room.startedAt && room.kind==='quick' && survivor) quickWaiting=room;
@@ -179,7 +183,7 @@ wss.on('connection', ws=>{
       if(ws.raceRoom) return;
       const playerId=String(m.playerId||'').slice(0,40);
       if(!playerId) return safeJson(ws,{type:'race:error',code:'invalid_player'});
-      const joined=joinBoundRoom(ws,m.room,playerId,!!m.resume);
+      const joined=joinBoundRoom(ws,m.room,playerId,!!m.resume,m.rankRating);
       if(joined.error) safeJson(ws,{type:'race:error',code:joined.error});
       return;
     }
@@ -191,7 +195,7 @@ wss.on('connection', ws=>{
       player.pufflingId=cleanText(m.pufflingId,64);
       player.skin=cleanText(m.skin,64);
       player.evolutionStage=cleanEvolution(m.evolutionStage);
-      broadcast(room,{type:'race:ready',room:room.id,playerId:player.playerId,pufflingId:player.pufflingId,skin:player.skin,evolutionStage:player.evolutionStage,ready:true},player.playerId);
+      broadcast(room,{type:'race:ready',room:room.id,playerId:player.playerId,pufflingId:player.pufflingId,skin:player.skin,evolutionStage:player.evolutionStage,rankRating:player.rankRating,ready:true},player.playerId);
       maybeStart(room); return;
     }
 
