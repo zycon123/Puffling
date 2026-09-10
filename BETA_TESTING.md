@@ -1,66 +1,63 @@
-# Sky Puff Beta Testing
+# Puffling Beta Testing
 
-Build: `5.26-beta.89`
+Build: `5.26-beta.90`
 
 Stable test entry: `beta42.html`
 
 Support: `zyconstudios@protonmail.com`
 
 ## Critical test flow
-1. Open `beta42.html` and confirm the Zycon Studios splash reaches the main menu without visible lag.
-2. Confirm English is the default for a fresh browser profile; change language, refresh/reopen and confirm the selected language is remembered without a runtime error in System & Support. Confirm errors recorded by an older beta are cleared after the newer build loads.
-3. Hard-refresh or reopen the beta and confirm the crowded legacy button grid never flashes before the compact menu. The main menu must show only Play, Pufflings, Game Modes and More from the first visible frame. Open each category and verify every existing feature is still reachable, then confirm menu music starts and Audio settings can mute/unmute and change volume.
-4. Start a run and confirm the **first jump has normal height** and reaches the next platform without needing boost.
-5. Confirm movement, coins, powerups and Rainbow Puff work. In normal play, use up to five rapid boosts, then confirm cooldown and reset to five new uses.
-6. Pause, resume with countdown, return to menu, then start a new run. Confirm the boost hint is visible only while actively playing.
-7. Reach Game Over, retry, then return to menu.
-8. Verify bosses at 1200 / 2000 / 3000 / 4500 m and endless bosses after 4500 m. Bosses must stay inside the arena.
-9. Verify boss attack loop: 3 normal attacks → alternate 3-projectile pattern → 2 normal attacks → alternate pattern → repeat.
-10. Defeat a boss and confirm Sky Puff lands safely, stays still for a 3-second countdown, then resumes normal jumping without skipping directly to the next boss.
-11. Verify Rainbow Puff recharge is faster in boss fights and Rainbow Blast fires straight upward.
-12. Test Boss Rush with unlocked bosses and confirm **100-coin reward**.
-13. Open Boss Puff Creator and verify its text explains that Boss Puff is Boss-Rush-only until all four Boss Rush bosses are defeated. Confirm Premium Creator appears even if Creator is first opened several minutes after game launch.
-14. Defeat all four bosses in Boss Rush and confirm Boss Puff can then be enabled/disabled for the main game.
-15. Test achievement cosmetics and confirm selected unlocked headwear is actually visible on Sky Puff.
-16. Open Nursery & Vault on a narrow mobile screen. Verify all three egg types, three permanent Vault slot cards (including empty placeholders), every owned Puffling, Vault status and the sticky Back button are reachable by scrolling. Tap each empty slot and confirm owned standard/Common Pufflings appear first and are clearly labelled. Select one, confirm it enters the exact selected slot, then remove it again.
-17. Test Puffling Treasure milestones, rare powerups and endless events. Each collected treasure must give its coin reward, exactly 1 Mystery Shop diamond and exactly 1 Treasure Hunter progress.
-18. Open Achievements and verify progress persists after refresh.
-19. Open Highscore. Without an API backend it must show local beta scores instead of failing.
-20. Test Cosmetics, Upgrades and Daily Reward, then refresh and verify purchases/progress remain.
-21. Open Multiplayer and verify the beta/simulated-rival flow can be entered and exited without freezing.
-22. Open and close Puffdex, Nursery/Vault, Mystery Shop and Audio settings, then verify AI Diagnostics remains at 0 auto-repairs. Defeat a boss and verify Anti-Cheat remains at 0 flags after the post-boss landing. Confirm the bug-report button can open an email composer.
+1. Open `beta42.html` and confirm the Zycon Studios splash reaches the Puffling main menu without a frozen/black screen.
+2. On a fresh profile choose exactly one of the 3 starter Pufflings. Confirm Race My Puffling unlocks after selection and the chooser cannot grant a second free starter.
+3. Open Puffdex. Confirm all 100 Pufflings are visible in the catalog, starters are identifiable, and the other 97 show evolution progression. Check a level-10 and level-20 Puffling for Evolved/Ascended presentation.
+4. Confirm English is the default on a fresh profile; change language, refresh/reopen and verify persistence.
+5. Hard-refresh/reopen and confirm the compact main menu appears immediately without a legacy button grid flashing first.
+6. Start a normal run. Confirm first jump height, movement, platforms, coins, powerups and Rainbow Puff all behave normally.
+7. On desktop (viewport >=900px with mouse/fine pointer), confirm the gameplay canvas is centered and capped near 620px wide, platforms are not spread across the full monitor, mouse steering maps correctly, and the Puffling follower stays aligned with the player.
+8. On Android/iPhone/tablet, confirm gameplay still uses the full mobile viewport and touch steering/boost works.
+9. Pause/resume, retry after Game Over, and return to the main menu. Confirm no stuck overlays.
+10. Verify bosses at 1200 / 2000 / 3000 / 4500m plus endless tiers. Bosses must remain inside the arena and the post-boss return must resume safely.
+11. Test Boss Rush and confirm the intended reward and return flow.
+12. Open Nursery & Vault. Confirm all three egg tiers work, three fixed Vault slots are usable, and Vaulted Pufflings are protected from Fusion.
+13. Confirm **Starter Puff / Starter Spark / Starter Drop never hatch from Rare, Epic or Legendary eggs** and are not granted by boss rewards.
+14. Test Fusion, Mystery Shop, Puffling Treasure, achievements, cosmetics, upgrades and Daily Reward. Refresh and verify persistence.
+15. Test Puffling XP/evolution accumulation during a run, including small height increments.
+16. Open Race My Puffling. Confirm the old multiplayer HUD is not visible behind the Race HUD.
+17. During Race, confirm YOU/GHOST meters and both progress bars update continuously rather than freezing.
+18. Confirm the Race goal is 1500m, each Puffling has max 3 attacks, and the normal minimum attack cooldown is 4 seconds.
+19. Test Quick Match/local fallback without a configured WebSocket endpoint. It may use a test ghost, but it must enter/exit without freezing.
+20. After the production Race server is configured, test two real clients: same countdown, opponent ghost movement, attacks, finish result, reconnect within grace, and disconnect-forfeit after grace.
+21. Open System & Support and refresh diagnostics. A healthy local beta should have no hard `PFL-SMOKE-*`, `PFL-SAVE-*` or `PFL-RUNTIME-*` errors. `PFL-LAUNCH-101` and `PFL-LAUNCH-102` are expected until Race server/global leaderboard are configured.
+22. Confirm AI Diagnostics does not accumulate unexpected repairs in normal play and Anti-Cheat does not flag a normal boss transition/run.
+23. Confirm the bug-report button opens a report containing build, diagnostic codes, smoke status, Race server mode and last runtime error.
 
-## Startup connection recovery
-- Interrupt one module request during startup. The same module should retry, then all remaining modules should load in order before the menu becomes interactive.
-- Keep that request blocked. After three total attempts, a clear Try again button should appear; dependent modules must not run.
-- Restore the connection and select Try again. Confirm startup succeeds and the saved Puffling inventory, Vault slots, eggs and currency are unchanged.
+## Startup recovery
+- Interrupt one module request during startup. The same module should retry before later modules execute.
+- Keep the request blocked. After three attempts a clear retry screen must appear.
+- Restore the connection and retry. Saved inventory, Vault, eggs, currencies and progression must remain intact.
 
 ## Persistence checks
 - selected language
-- bank coins
-- best height and total height
-- upgrades
-- daily reward timestamp/streak
-- selected cosmetics
-- defeated boss unlocks
-- Boss Rush victories and main-game Boss Puff unlock
-- Boss Puff Creator configuration
-- achievement flags
-- events cleared
-- boss wins
-- Puffling Treasures collected and Mystery Shop diamond balance
-- Puffling inventory, active Puffling, Vault slots, eggs and Puffling XP/levels
+- bank coins, best/total height and daily streak
+- upgrades and cosmetics
+- achievements and boss unlocks
+- Boss Rush progress
+- Puffling inventory and active Puffling
+- starter choice
+- Vault slots and egg inventory
+- Puffling XP/levels/evolution
+- Mystery Shop diamonds and treasure progress
 
 ## Performance check
-Play a normal run for at least 2 minutes and one complete boss fight on mobile. Confirm that height continuously awards Puffling XP, including when height increases in small steps. There should be no progressive slowdown or severe input lag. Use `beta42.html`; other old beta test URLs should not be used for performance comparisons.
+Play at least 2 minutes plus one boss fight on a phone and desktop. Confirm no progressive slowdown, severe input lag, stuck Race/HUD loops or increasing AI auto-repair count.
 
-## Known beta limitations
-- Multiplayer rival networking is still simulated until a real backend/WebSocket service is connected.
-- Global leaderboard is optional. If no `API_BASE` is configured, the game uses a local leaderboard stored in the browser.
-- Progress is browser-local and is not yet synced to an account/cloud save.
-- Premium Creator payment/IAP is prepared but not production-enabled in this browser beta.
+## Launch blockers / expected launch codes
+- `PFL-LAUNCH-101`: Race WebSocket endpoint is not configured. Deploy `puffling-race-server` and set a production `wss://` URL before public online multiplayer launch.
+- `PFL-LAUNCH-102`: Global leaderboard backend is not configured. Local scores remain usable, but production global ranking needs a backend.
+
+Additional multiplayer hardening still required before a competitive public launch: deterministic shared course seed, secure reconnect/resume token, stronger movement validation/rate limits, and production monitoring/scaling.
 
 ## Bug report information
-Send beta bug reports to `zyconstudios@protonmail.com` or use **System & Support**. Include build version, device, operating system/browser, what happened, approximate height/boss/mode, whether refreshing fixed it, and a screenshot or screen recording when possible.
+Use **System & Support** and include the visible `PFL-*` code(s), build version, device/browser, what happened, approximate height/boss/mode, and a screenshot or recording when possible.
 
 The latest captured runtime error is available via `window.skyPuffBetaDiagnostics.lastError`.
