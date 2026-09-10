@@ -1,9 +1,11 @@
-/* Sky Puff — Race My Puffling HUD + result UI v1.0
+/* Puffling — Race My Puffling HUD + result UI v1.1
  * Compatibility filename retained for beta loader stability.
  */
 (function(){
-  let attackBtn=null,root=null,result=null,cooldownTimer=null;
+  let attackBtn=null,root=null,result=null,hudFrame=null,lastHudPaint=0;
   function css(el,styles){Object.assign(el.style,styles);return el;}
+  function raf(cb){return typeof requestAnimationFrame==='function'?requestAnimationFrame(cb):setTimeout(()=>cb(Date.now()),50);}
+  function caf(id){if(typeof cancelAnimationFrame==='function')cancelAnimationFrame(id);else clearTimeout(id);}
   function ensure(){
     if(root)return;
     root=document.createElement('div');root.id='raceMyPufflingHud';
@@ -22,17 +24,51 @@
     document.getElementById('raceMenuBtn').onclick=()=>{hideResult();if(typeof showMainMenu==='function')showMainMenu();};
     window.addEventListener('race:attack',e=>{flashAttack(e.detail?.ability);render();});
     window.addEventListener('race:effectStart',e=>effectNotice(e.detail));
+    window.addEventListener('race:ghost',()=>{if(root?.style.display!=='none')render();});
     window.addEventListener('race:reset',()=>hide());
   }
-  function show(){ensure();root.style.display='block';attackBtn.style.display='block';render();if(!cooldownTimer)cooldownTimer=setInterval(render,100);}
-  function hide(){ensure();root.style.display='none';attackBtn.style.display='none';if(cooldownTimer){clearInterval(cooldownTimer);cooldownTimer=null;}}
+  function liveHudHeights(s){
+    let you=Math.max(0,Number(s?.youHeight)||0),rival=Math.max(0,Number(s?.rivalHeight)||0),liveRival=false;
+    try{
+      if(typeof multiplayerMode!=='undefined'&&multiplayerMode&&typeof score!=='undefined'){
+        const n=Number(score);if(Number.isFinite(n))you=Math.max(0,n);
+      }
+    }catch(e){}
+    try{
+      if(typeof multiplayerMode!=='undefined'&&multiplayerMode&&typeof multiplayerOpponentScore!=='undefined'){
+        const n=Number(multiplayerOpponentScore);if(Number.isFinite(n)){rival=Math.max(0,n);liveRival=true;}
+      }
+    }catch(e){}
+    if(!liveRival){
+      try{
+        const n=Number(window.SkyPuffRaceGhost?.status?.().last?.height);
+        if(Number.isFinite(n))rival=Math.max(0,n);
+      }catch(e){}
+    }
+    return {you,rival,goal:Math.max(1,Number(s?.goal)||1500)};
+  }
+  function startHudLoop(){
+    if(hudFrame!==null)return;lastHudPaint=0;
+    const frame=ts=>{
+      hudFrame=null;
+      if(!root||root.style.display==='none')return;
+      const t=Number(ts)||Date.now();
+      if(!lastHudPaint||t-lastHudPaint>=50){lastHudPaint=t;render();}
+      hudFrame=raf(frame);
+    };
+    hudFrame=raf(frame);
+  }
+  function stopHudLoop(){if(hudFrame!==null){caf(hudFrame);hudFrame=null;}lastHudPaint=0;}
+  function show(){ensure();root.style.display='block';attackBtn.style.display='block';render();startHudLoop();}
+  function hide(){ensure();root.style.display='none';attackBtn.style.display='none';stopHudLoop();}
   function hideResult(){ensure();result.style.display='none';}
   function render(){
     ensure();const R=window.SkyPuffRace,s=R?.snapshot?.();if(!s)return;
+    const h=liveHudHeights(s),youH=h.you,rivalH=h.rival,goal=h.goal;
     const you=document.getElementById('raceYou'),rival=document.getElementById('raceRival'),yb=document.getElementById('raceYouBar'),rb=document.getElementById('raceRivalBar'),lead=document.getElementById('raceLeader');
-    if(you)you.textContent=Math.floor(s.youHeight)+'m';if(rival)rival.textContent=Math.floor(s.rivalHeight)+'m';
-    if(yb)yb.style.width=Math.min(100,s.youHeight/s.goal*100)+'%';if(rb)rb.style.width=Math.min(100,s.rivalHeight/s.goal*100)+'%';
-    if(lead)lead.textContent=s.youHeight>s.rivalHeight?'YOU LEAD':s.youHeight<s.rivalHeight?'GHOST LEADS':'EVEN';
+    if(you)you.textContent=Math.floor(youH)+'m';if(rival)rival.textContent=Math.floor(rivalH)+'m';
+    if(yb)yb.style.width=Math.max(0,Math.min(100,youH/goal*100))+'%';if(rb)rb.style.width=Math.max(0,Math.min(100,rivalH/goal*100))+'%';
+    if(lead)lead.textContent=youH>rivalH?'YOU LEAD':youH<rivalH?'GHOST LEADS':'EVEN';
     const a=s.ability||R.abilityFor?.(s.selectedPufflingId),left=s.attacksRemaining,elapsed=Date.now()-s.lastAttackAt,cd=Math.max(0,(R.ATTACK_COOLDOWN_MS||4000)-elapsed);
     if(left<=0){attackBtn.disabled=true;attackBtn.innerHTML=`${a?.icon||'⚡'}<br>EMPTY`;}
     else if(cd>0&&s.lastAttackAt){attackBtn.disabled=true;attackBtn.innerHTML=`${a?.icon||'⚡'} ${a?.name||'ATTACK'}<br>${(cd/1000).toFixed(1)}s`;}
@@ -48,7 +84,7 @@
     const secs=s.finishedAt&&s.startedAt?((s.finishedAt-s.startedAt)/1000).toFixed(1):'—';
     document.getElementById('raceResultBody').innerHTML=`Time: <b>${secs}s</b><br>You: <b>${Math.floor(s.youHeight)}m</b> · Ghost: <b>${Math.floor(s.rivalHeight)}m</b><br>Attacks used: <b>${s.attacksUsed}/${window.SkyPuffRace?.MAX_ATTACKS||3}</b> · Falls: <b>${s.falls}</b>`;
   }
-  window.SkyPuffRaceUI={ensure,show,hide,render,showResult,hideResult};
+  window.SkyPuffRaceUI={ensure,show,hide,render,showResult,hideResult,liveHudHeights};
   // Legacy symbol kept as no-op compatibility only.
   window.SkyPuffStealUI={show:()=>{}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensure);else ensure();
