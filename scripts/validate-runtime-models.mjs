@@ -15,9 +15,11 @@ function run(context,relativePath){
 
 {
  const localStorage=storage(),context={window:{},localStorage,console};context.window=context;
- run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');run(context,'js/steal_my_puff_core.js');
- const F=context.SkyPuffFusion;
- if(Object.keys(F.BASE).length+Object.keys(F.FUSIONS).length!==64)fail('Puffling catalog must contain 64 entries');
+ run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');run(context,'js/puffling_collection_36.js');run(context,'js/puffling_unique_traits.js');run(context,'js/steal_my_puff_core.js');
+ const F=context.SkyPuffFusion,total=Object.keys(F.BASE).length+Object.keys(F.FUSIONS).length;
+ if(total!==100)fail(`Puffling catalog must contain 100 entries, got ${total}`);
+ if(context.PufflingExpansion36?.count!==36||context.PufflingExpansion36?.legendaryIds?.length!==10)fail('36-Puffling expansion metadata is invalid');
+ if(context.SkyPuffUniqueTraits?.count!==100)fail('Unique trait system did not cover all 100 Pufflings');
  const starterIds=['starterpuff','starterspark','starterdrop'];
  for(const id of starterIds){const p=F.BASE[id];if(!p||p.rarity!=='common'||p.starterOnly!==true||p.value!==0.35||p.ability!=='starter')fail(`Starter Puffling ${id} is not configured as a weak Common starter`);}
  if(!starterIds.every(id=>F.load().discovered.includes(id)))fail('Starter Pufflings must stay visible in Puffdex before selection');
@@ -29,7 +31,7 @@ function run(context,relativePath){
  if(!F.fuse('ember','volt').ok||F.load().owned.ember!==1||!F.load().vault.includes('ember'))fail('Fusion did not preserve the protected Vault copy');
  localStorage.setItem('skyPuffActivePuffling','volt');state=F.load();state.owned.volt=0;F.save(state);
  if(localStorage.getItem('skyPuffActivePuffling'))fail('Invalid active Puffling was not cleared');
- ok('Puffling catalog, starter Puffdex visibility, starter tuning, Vault-safe Fusion and active selection');
+ ok('100-Puffling catalog, starter tuning, unique traits, Vault-safe Fusion and active selection');
 }
 
 {
@@ -46,15 +48,17 @@ function run(context,relativePath){
 {
  const localStorage=storage({skyPuffEggInventoryV1:JSON.stringify({rare:-3,epic:'4.8',legendary:'bad'})});
  const context={window:{},localStorage,console,document:{readyState:'loading',addEventListener:()=>{},getElementById:()=>null}};context.window=context;
- run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');
+ run(context,'js/puff_fusion_core.js');run(context,'js/puffling_collection_50.js');run(context,'js/puffling_collection_36.js');
  context.SkyPuffFusion.add('ember',1);context.SkyPuffFusion.add('prism',1);
  run(context,'js/puffling_nursery_vault.js');const nursery=context.SkyPuffNurseryVault,eggs=nursery.loadEggs();
  if(eggs.rare!==0||eggs.epic!==4||eggs.legendary!==0)fail('Egg inventory normalization failed');
+ const starters=new Set(['starterpuff','starterspark','starterdrop']);
+ for(const tier of ['rare','epic','legendary'])if(nursery.pool(tier).some(id=>starters.has(id)))fail(`Starter Puffling leaked into ${tier} egg pool`);
  if(!nursery.placeInVault('ember',2)||nursery.loadVaultSlots()[2]!=='ember')fail('Empty Vault slot did not accept selected Puffling');
  if(!nursery.placeInVault('prism',0)||nursery.loadVaultSlots()[0]!=='prism')fail('Vault picker did not preserve the selected slot');
  if(!nursery.removeVaultSlot(2)||nursery.loadVaultSlots()[2]!==null)fail('Occupied Vault slot could not be cleared');
  if(context.SkyPuffFusion.load().vault.join(',')!=='prism')fail('Interactive Vault slots did not sync protection state');
- ok('Egg normalization and interactive fixed Vault slots');
+ ok('Egg normalization, starter-only acquisition and interactive fixed Vault slots');
 }
 
 {
