@@ -82,8 +82,14 @@ function tryResume(ws, room, playerId){
   }
   return {room,p:existing,resumed:true};
 }
-function joinBoundRoom(ws, requestedRoom, playerId){
+function joinBoundRoom(ws, requestedRoom, playerId, resumeRequested=false){
   let room;
+  if(resumeRequested){
+    if(!requestedRoom || requestedRoom.toLowerCase()==='quickmatch') return {error:'resume_expired'};
+    room=rooms.get(cleanRoomId(requestedRoom));
+    if(!room) return {error:'resume_expired'};
+    return tryResume(ws,room,playerId) || {error:'resume_expired'};
+  }
   if(requestedRoom && requestedRoom.toLowerCase() !== 'quickmatch'){
     const id=cleanRoomId(requestedRoom);
     room=rooms.get(id);
@@ -124,24 +130,20 @@ function expireReconnect(roomId, playerId){
   const player=room.players.get(playerId); if(!player || player.connected) return;
   room.players.delete(playerId);
   if(quickWaiting===room && room.players.size===0) quickWaiting=null;
-  if(!room.winnerId && room.startedAt){
-    const survivor=[...room.players.values()].find(p=>p.connected);
-    if(survivor){
-      room.winnerId=survivor.playerId; room.finishedAt=now(); room.paused=false;
-      broadcast(room,{type:'race:result',room:room.id,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason:'opponent_disconnect'});
-    }
+  const survivor=[...room.players.values()].find(p=>p.connected);
+  if(!room.winnerId && room.startedAt && survivor){
+    room.winnerId=survivor.playerId; room.finishedAt=now(); room.paused=false;
+    broadcast(room,{type:'race:result',room:room.id,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason:'opponent_disconnect'});
   }else{
     broadcast(room,{type:'race:opponentLeft',room:room.id,playerId});
+    if(!room.startedAt && room.kind==='quick' && survivor) quickWaiting=room;
   }
   if(room.players.size===0) rooms.delete(room.id);
 }
 function markDisconnected(ws){
   const {room,player}=getBound(ws); if(!room || !player || player.ws!==ws || !player.connected) return;
   player.connected=false; player.ws=null; player.disconnectedAt=now(); player.reconnectDeadline=player.disconnectedAt+RECONNECT_GRACE_MS;
-  if(room.winnerId){
-    if(room.players.size===0) rooms.delete(room.id);
-    return;
-  }
+  if(room.winnerId) return;
   room.paused=!!room.startedAt;
   broadcast(room,{type:'race:opponentDisconnected',room:room.id,playerId:player.playerId,reconnectDeadline:player.reconnectDeadline,graceMs:RECONNECT_GRACE_MS});
   player.reconnectTimer=setTimeout(()=>expireReconnect(room.id,player.playerId),RECONNECT_GRACE_MS+50);
@@ -167,7 +169,7 @@ wss.on('connection', ws=>{
       if(ws.raceRoom) return;
       const playerId=String(m.playerId||'').slice(0,40);
       if(!playerId) return safeJson(ws,{type:'race:error',code:'invalid_player'});
-      const joined=joinBoundRoom(ws,m.room,playerId);
+      const joined=joinBoundRoom(ws,m.room,playerId,!!m.resume);
       if(joined.error) safeJson(ws,{type:'race:error',code:joined.error});
       return;
     }
