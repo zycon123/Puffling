@@ -1,98 +1,86 @@
 # Puffling
 
-Puffling `5.26-beta.89` – Zycon Studios browser beta.
+Puffling `5.26-beta.90` – Zycon Studios browser beta.
 
 **Stable beta entry:** `beta42.html`  
 **Beta support:** `zyconstudios@protonmail.com`
 
-## Beta status
-The current focus is stability, persistence, browser compatibility, boss flow, performance, diagnostics and tester feedback. `beta42.html` is the canonical test entry because it bypasses stale browser/GitHub Pages asset caches on every launch.
+## Current status
+The browser build is in launch-hardening. GitHub Actions validates the modular build, runtime models, Race HUD/desktop layout, all 100 Pufflings and unique traits, 97 evolvable Pufflings, launch invariants, and the Race server.
 
-## Project structure
-- `index.html` – game UI, startup splash and menus
-- `beta42.html` – cache-safe stable beta loader
-- `style.css` – visual styling
-- `audio_theme.js` – menu/game soundtrack engine
-- `game.js` – ordered module loader; propagates the current cache key to every game module
-- `js/beta_config.js` – beta version, support contact and optional online API configuration
-- `js/dom_refs.js` – cached DOM/UI references
-- `js/localization_core.js` + `js/language_default.js` – Norwegian, English, German, Spanish and French UI with English default for new players and saved language persistence
-- `js/audio_core.js` + `js/music_bridge.js` – music settings, soundtrack bridge and boss soundtrack definitions
-- `js/endless_boss_core.js` – endless boss stage, health and reward scaling
-- `js/boss_multiplayer.js` – Boss Rush, multiplayer prototype and boss soundtrack control
-- `js/anti_cheat.js` – client-side beta integrity checks
-- `js/leaderboard_submit.js` + `js/leaderboard_language_ui.js` – score submission, local fallback and leaderboard UI
-- `js/state_content.js` – save data, cosmetics/content and runtime state
-- `js/world_helpers.js` – platform generation
-- `js/run_menu_shop_upgrades.js` – run lifecycle, menus, rewards, cosmetics and upgrades
-- `js/input_missions_boss_spawn.js` – input, Rainbow Puff and boss spawning
-- `js/gameplay_update.js` – gameplay, collisions, pickups, boss combat and end-game handling
-- `js/boss_pattern_override.js` – current boss firing loop
-- `js/boss_movement_fix.js` – boss arena boundary protection
-- `js/boss_transition_fix.js` + `js/post_boss_guard.js` – safe post-boss landing, 3-second countdown and input lock
-- `js/boss_boost_tuning.js` – faster Rainbow Puff recharge in boss fights
-- `js/rainbow_puff_hint.js` – localized in-game boost hint
-- `js/start_guard.js` – safe startup recovery without lowering normal first-jump height
-- `js/achievements.js` + `js/achievements_menu.js` – persistent achievements
-- `js/endless_events.js` – Coin Storm, Low Gravity and Rainbow Frenzy events
-- `js/player_render_helpers.js` + `js/renderer_runtime.js` – player/entity rendering and main loop
-- `js/boss_puff_creator_v2.js` – Boss Puff Creator
-- `js/boss_puff_premium.js` – 100-item premium catalog prepared for later payment integration
-- `js/boss_puff_main_unlock.js` – Boss Rush completion tracking and main-game Boss Puff unlock
-- `js/boss_visual_override.js` – boss visual upgrade
-- `js/ai_diagnostics.js` – safe diagnostics/self-repair without forced duplicate animation loops
-- `js/beta_release_ui.js` + `js/diagnostics_support.js` – beta status, runtime errors and System & Support
-- `js/smoke_check.js` – post-bootstrap smoke check
-- `scripts/validate-build.mjs` – full static build validation
+`beta42.html` remains the canonical test entry because it reloads the current assets with `no-store` and a unique nonce.
 
-## Current beta features
-- Endless high-score climb and persistent local progression
-- Four main bosses plus endless boss tiers
-- Boss attack loop: 3 normal attacks, alternate 3-projectile pattern, 2 normal attacks, alternate pattern, repeat
-- Safe 3-second post-boss countdown before normal jumping resumes
-- Boss Rush for defeated bosses, **100 coins per win**
-- Boss Puff Creator; Boss Puff is Boss-Rush-only until all four Boss Rush bosses are defeated, then can be enabled in the main game
-- Premium Creator catalog prepared with 100 additional accessories/styles; payments are not enabled in this beta
-- Rainbow Puff: up to five rapid uses in normal play, escalating chain boost, then cooldown/reset
-- Faster Rainbow Puff recharge in boss fights
-- Extra-life pickups, milestone treasures, rare powerups and endless events
-- Skins, faces, hats, trails, boss rewards and achievement cosmetics
-- Seven persistent achievements
-- Upgrades and 250-coin daily reward
-- Pause/resume countdown and audio settings
-- English default for new players; saved Norwegian/English/German/Spanish/French language preference
-- Local leaderboard fallback, optional online leaderboard API
-- Multiplayer beta prototype with simulated rival
-- Diagnostics, anti-cheat and bug-report support
+## Core features
+- Endless vertical high-score gameplay with bosses, Boss Rush, rewards and progression
+- **100 Pufflings**, including 3 deliberately weak starter Pufflings
+- First-time player chooses exactly 1 starter Puffling
+- 97 non-starter Pufflings can evolve at level 10 and ascend at level 20
+- 100 distinct gameplay trait profiles
+- Puffdex, Nursery, fixed 3-slot Vault, Fusion and Mystery Shop
+- Starter Pufflings are excluded from egg and boss reward pools
+- Cosmetics, upgrades, achievements, daily rewards and local persistence
+- Mobile/tablet support plus a centered narrower desktop playfield
+- **Race My Puffling**: first to 1500m, live ghost, 3 attacks per player, 4-second attack cooldown, friend codes/Quick Match transport and reconnect flow
+- System & Support diagnostics, runtime error capture and anti-cheat diagnostics
 
-## Beta validation
-GitHub Actions validates every push and deployment. Validation checks:
-- every active module exists and has valid JavaScript syntax
-- every JavaScript file under `js/` has valid syntax
-- no duplicate active modules or legacy `part*.js` modules
-- required DOM ids and bootstrap order
-- cache-busting on critical assets
-- the stable `beta42.html` loader uses `no-store` and a unique asset nonce
-- obsolete experiment files do not reappear
-- critical boss/boost/creator regression-fix modules remain active
+## Validation
+Every pull request and push to `main` validates:
+- syntax for every JavaScript file under `js/` and all active entry files
+- ordered module loading and bounded startup retries
+- required DOM/UI and cache-safe stable loader
+- runtime model normalization, persistence and Vault/Fusion behavior
+- exactly 100 Pufflings and 100 unique trait profiles
+- exactly 97 evolvable Pufflings + 3 non-evolving starters
+- live Race HUD sync and desktop playfield behavior
+- launch-readiness invariants and current diagnostic codes
+- Race server syntax plus a two-client WebSocket integration flow
 
 Runtime checks expose `window.skyPuffSmokeCheck`, `window.skyPuffBetaDiagnostics`, `window.skyPuffAIDiagnostics`, `window.skyPuffAntiCheat` and `window.skyPuffDiagnosticsSupport`.
 
-## Known beta limitations
-- Multiplayer networking is simulated; a real WebSocket/backend service is not connected yet.
-- Progress is local to the browser; there is no account/cloud save yet.
-- Global leaderboard is optional and only activates when `API_BASE` is configured.
-- Client-side anti-cheat is a beta protection layer; production leaderboard security should validate runs server-side too.
-- Payments/IAP are not production-enabled for this browser beta.
+## Diagnostics codes
+System & Support separates actual failures from launch configuration warnings. Current code families include:
+- `PFL-SMOKE-*` – missing/failed runtime smoke checks
+- `PFL-SAVE-*` – local save/storage problems
+- `PFL-RUNTIME-*` – captured JavaScript/runtime errors
+- `PFL-AC-*` – anti-cheat flags or blocked submissions
+- `PFL-AI-*` – AI diagnostics/watchdog issues
+- `PFL-LAUNCH-101` – Race WebSocket server is not configured
+- `PFL-LAUNCH-102` – global leaderboard backend is not configured
 
-## Beta testing
-Use `beta42.html`, then follow `BETA_TESTING.md`. Important device coverage is at least one Android phone, one iPhone/iPad if available, and one desktop browser. Test a normal run, all four bosses, Boss Rush, Creator, pause/retry/menu transitions, language persistence, audio, save persistence and System & Support.
+## Race backend
+The authoritative Node/WebSocket server is under `server/` and a Render blueprint is provided in `render.yaml`.
 
-## Online API configuration
-By default `API_BASE` is empty and Highscore uses browser-local scores. A hosted beta can configure a backend at runtime with:
+It currently supports Quick Match, friend rooms, shared countdown, position relay, validated attack limits/cooldown, reconnect grace and authoritative 1500m results. CI starts the server and verifies a real two-client race flow.
 
-```js
-window.skyPuffConfig.setApiBase('https://your-api.example.com')
+### Remaining production hardening
+Before public multiplayer launch:
+- deploy the Race server and configure a production `wss://` endpoint
+- generate a server-authoritative course seed so both players receive the same deterministic course
+- replace player-ID-only reconnect with secure resume tokens/authentication
+- strengthen server-side movement plausibility/rate validation
+- add rate limiting, metrics and scaling strategy for higher concurrency
+
+## Other launch limitations
+- Progress is currently browser-local; there is no account/cloud save yet.
+- Global leaderboard falls back to local scores until `API_BASE` is configured.
+- Payment/IAP hooks are not production-enabled in this browser beta.
+- Store packaging/signing, privacy/legal metadata and final Android/iOS device certification are separate release steps.
+
+## Local Race server
+```bash
+cd server
+npm install
+npm run check
+npm start
 ```
 
-The URL is saved locally for subsequent sessions.
+Then point the client to it:
+```js
+localStorage.setItem('skyPuffRaceWsUrl', 'ws://localhost:10000');
+location.reload();
+```
+
+Use `wss://` in production.
+
+## Beta testing
+Use `beta42.html` and follow `BETA_TESTING.md`. At minimum test one Android phone, one iPhone/iPad if available, and one desktop browser, including normal play, bosses, Boss Rush, Puffling collection/progression, starter onboarding, Race, save persistence and System & Support.
