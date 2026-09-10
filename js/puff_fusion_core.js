@@ -1,6 +1,9 @@
-/* Puffling — Puff Fusion Core v0.2 */
+/* Puffling — Puff Fusion Core v0.3 */
 (function(){
   const BASE = {
+    starterpuff:{id:'starterpuff',name:'Starter Puff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
+    starterspark:{id:'starterspark',name:'Starter Spark',icon:'✨',rarity:'common',ability:'starter',value:.35,palette:['#fff6bc','#e7bd54'],mark:'✦',starterOnly:true},
+    starterdrop:{id:'starterdrop',name:'Starter Drop',icon:'💧',rarity:'common',ability:'starter',value:.35,palette:['#dff7ff','#67b8de'],mark:'◇',starterOnly:true},
     ember:{id:'ember',name:'Ember Puff',icon:'🔥',rarity:'common',ability:'blastDamage',value:1.10},
     volt:{id:'volt',name:'Volt Puff',icon:'⚡',rarity:'common',ability:'chainShot',value:1},
     frost:{id:'frost',name:'Frost Puff',icon:'❄️',rarity:'common',ability:'freeze',value:0.8},
