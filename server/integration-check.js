@@ -3,7 +3,7 @@ const {WebSocket}=require('ws');
 
 const PORT=12000+Math.floor(Math.random()*1000);
 const URL=`ws://127.0.0.1:${PORT}`;
-const ROOM='LAUNCH01';
+const ROOM='quickmatch';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const fail=msg=>{throw new Error(msg)};
 
@@ -50,11 +50,15 @@ async function waitForServer(child){
     await waitForServer(server);
     const a=peer('launch_a'),b=peer('launch_b');peers.push(a,b);
     await Promise.all([a.open(),b.open()]);
-    a.send({type:'race:hello',room:ROOM,playerId:a.playerId,protocol:2});
-    await a.wait('race:matched');
-    b.send({type:'race:hello',room:ROOM,playerId:b.playerId,protocol:2});
-    await b.wait('race:matched');
-    await a.wait('race:opponentJoined');
+    a.send({type:'race:hello',room:ROOM,playerId:a.playerId,protocol:2,rankRating:1030});
+    const matchA=await a.wait('race:matched');
+    b.send({type:'race:hello',room:ROOM,playerId:b.playerId,protocol:2,rankRating:1180});
+    const matchB=await b.wait('race:matched');
+    const joinedA=await a.wait('race:opponentJoined');
+    if(matchA.mode!=='quick'||matchB.mode!=='quick')fail('Quick Match did not create a ranked quick room');
+    if(joinedA.player?.rankRating!==1180)fail('Opponent MMR was not relayed to the waiting Quick Race player');
+    const bSawA=matchB.players?.find(p=>p.playerId===a.playerId);
+    if(bSawA?.rankRating!==1030)fail('Matched player list did not include opponent MMR');
 
     const startA=a.wait('race:start'),startB=b.wait('race:start');
     a.send({type:'race:ready',room:ROOM,playerId:a.playerId,pufflingId:'ember',evolutionStage:0});
@@ -78,7 +82,10 @@ async function waitForServer(child){
     a.send({type:'race:position',room:ROOM,playerId:a.playerId,height:1500,x:130,y:240,state:'jumping'});
     const [ra,rb]=await Promise.all([resultA,resultB]);
     if(ra.winnerId!==a.playerId||rb.winnerId!==a.playerId)fail('server did not authoritatively award the 1500m finisher');
-    console.log('✅ Race server two-client integration check passed');
+    if(ra.mode!=='quick'||!Array.isArray(ra.players)||ra.players.length!==2)fail('Ranked Quick Race result is missing authoritative player profiles');
+    const ranks=new Map(ra.players.map(p=>[p.playerId,p.rankRating]));
+    if(ranks.get(a.playerId)!==1030||ranks.get(b.playerId)!==1180)fail('Authoritative Race result did not preserve both MMR values');
+    console.log('✅ Race server two-client ranked Quick Race integration check passed');
   }finally{
     peers.forEach(p=>p.close());
     try{server.kill('SIGTERM')}catch{}
