@@ -1,4 +1,4 @@
-/* Sky Puff — Race My Puffling foundation v1.0
+/* Sky Puff — Race My Puffling foundation v1.1
  * Compatibility note: filename is retained so older beta loaders keep working.
  * The API is exposed as window.SkyPuffRace; SkyPuffSteal is intentionally retired.
  */
@@ -54,6 +54,17 @@
     if(strong&&state.activeEffects.some(x=>['shock','gravity','control'].includes(x.type)))return {ok:false,reason:'strong_effect_active'};
     state.activeEffects.push(e);emit('race:effectStart',e);return {ok:true,effect:e};
   }
+  function receiveAttack(abilityOrId,meta={},now=Date.now()){
+    let ability=null;
+    if(abilityOrId&&typeof abilityOrId==='object')ability=abilityOrId;
+    else ability=Object.values(ABILITIES).find(a=>a.id===abilityOrId)||ABILITIES[meta?.abilityType]||null;
+    if(!ability)return {ok:false,reason:'unknown_ability'};
+    const effect={...ability,type:ability.type||meta?.abilityType||Object.keys(ABILITIES).find(k=>ABILITIES[k].id===ability.id)||'control',sourcePlayer:meta?.playerId||'rival'};
+    const res=receiveEffect(effect,now);
+    if(res.ok&&state)state.attacksHit++;
+    emit('race:attackReceived',{ability:effect,result:res});
+    return res;
+  }
   function tickEffects(now=Date.now()){
     if(!state)return [];
     const ended=[];state.activeEffects=state.activeEffects.filter(e=>{if(now-e.startTime>=e.duration){ended.push(e);return false;}return true;});
@@ -65,6 +76,6 @@
   function reset(){state=null;emit('race:reset',null);}
   function emit(name,detail){try{window.dispatchEvent(new CustomEvent(name,{detail}));}catch(e){}}
 
-  window.SkyPuffRace={GOAL_METERS,MAX_ATTACKS,ATTACK_COOLDOWN_MS,STATUS_IMMUNITY_MS,CHECKPOINTS,TYPES,ABILITIES,allPufflings,abilityFor,abilityMap,start,snapshot,updateHeights,canAttack,attack,receiveEffect,tickEffects,recordFall,finish,reset,requiresServerAuthority:true};
+  window.SkyPuffRace={GOAL_METERS,MAX_ATTACKS,ATTACK_COOLDOWN_MS,STATUS_IMMUNITY_MS,CHECKPOINTS,TYPES,ABILITIES,allPufflings,abilityFor,abilityMap,start,snapshot,updateHeights,canAttack,attack,receiveEffect,receiveAttack,tickEffects,recordFall,finish,reset,requiresServerAuthority:true};
   try{delete window.SkyPuffSteal;}catch(e){window.SkyPuffSteal=undefined;}
 })();
