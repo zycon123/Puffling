@@ -1,4 +1,4 @@
-/* Puffling — Boss Puffling Rewards v0.3 */
+/* Puffling — Boss Puffling Rewards v0.4 */
 (function(){
   const DROP_CHANCE=0.35;
   const EPIC_WITHIN_DROP=0.04;
@@ -7,8 +7,8 @@
   function fusion(){return window.SkyPuffFusion}
   function gameplay(){return window.SkyPuffPufflingGameplay}
   function all(){const F=fusion();return F?[...Object.values(F.BASE||{}),...Object.values(F.FUSIONS||{})]:[]}
-  function byRarity(r){return all().filter(p=>p.rarity===r).map(p=>p.id)}
-  function commonPool(){return all().filter(p=>p.rarity==='common'||p.rarity==='rare').map(p=>p.id)}
+  function byRarity(r){return all().filter(p=>!p.starterOnly&&p.rarity===r).map(p=>p.id)}
+  function commonPool(){return all().filter(p=>!p.starterOnly&&(p.rarity==='common'||p.rarity==='rare')).map(p=>p.id)}
   function puffInfo(id){return gameplay()?.getPuff?.(id)||all().find(p=>p.id===id)||null}
   function randomFrom(list){return list.length?list[Math.floor(Math.random()*list.length)]:null}
   function rollPufflingId(){const rr=Math.random();if(rr<LEGENDARY_WITHIN_DROP)return randomFrom(byRarity('legendary'));if(rr<LEGENDARY_WITHIN_DROP+EPIC_WITHIN_DROP)return randomFrom(byRarity('epic'));return randomFrom(commonPool());}

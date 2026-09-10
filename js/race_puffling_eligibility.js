@@ -1,4 +1,4 @@
-/* Sky Puff — Race My Puffling eligibility gate v1.0
+/* Sky Puff — Race My Puffling eligibility gate v1.1
  * Race mode is unavailable until the player owns at least one Puffling.
  */
 (function(){
@@ -8,11 +8,11 @@
   if(!baseStart)return;
 
   const COPY={
-    no:{need:'Du må skaffe deg minst én Puffling før du kan spille Race My Puffling.',hint:'Finn eller klekk en Puffling først, så låses Race My Puffling opp automatisk.',cta:'GÅ TIL PUFFLINGS',locked:'🔒 RACE MY PUFFLING — SKAFF EN PUFFLING FØRST'},
-    en:{need:'You need to own at least one Puffling before you can play Race My Puffling.',hint:'Find or hatch a Puffling first and Race My Puffling will unlock automatically.',cta:'GO TO PUFFLINGS',locked:'🔒 RACE MY PUFFLING — GET A PUFFLING FIRST'},
-    de:{need:'Du brauchst mindestens einen Puffling, bevor du Race My Puffling spielen kannst.',hint:'Finde oder brüte zuerst einen Puffling aus. Danach wird Race My Puffling automatisch freigeschaltet.',cta:'ZU DEN PUFFLINGS',locked:'🔒 RACE MY PUFFLING — ZUERST EINEN PUFFLING HOLEN'},
-    es:{need:'Necesitas al menos un Puffling antes de jugar Race My Puffling.',hint:'Encuentra o incuba un Puffling y Race My Puffling se desbloqueará automáticamente.',cta:'IR A PUFFLINGS',locked:'🔒 RACE MY PUFFLING — CONSIGUE UN PUFFLING'},
-    fr:{need:'Vous devez posséder au moins un Puffling avant de jouer à Race My Puffling.',hint:'Trouvez ou faites éclore un Puffling et Race My Puffling se débloquera automatiquement.',cta:'VOIR LES PUFFLINGS',locked:'🔒 RACE MY PUFFLING — OBTENEZ UN PUFFLING'}
+    no:{need:'Du må skaffe deg minst én Puffling før du kan spille Race My Puffling.',hint:'Velg en gratis starter-Puffling først. Deretter låses Race My Puffling opp automatisk.',cta:'VELG STARTER-PUFFLING',locked:'🔒 RACE MY PUFFLING — VELG EN PUFFLING FØRST'},
+    en:{need:'You need to own at least one Puffling before you can play Race My Puffling.',hint:'Choose a free starter Puffling first. Race My Puffling will then unlock automatically.',cta:'CHOOSE STARTER PUFFLING',locked:'🔒 RACE MY PUFFLING — CHOOSE A PUFFLING FIRST'},
+    de:{need:'Du brauchst mindestens einen Puffling, bevor du Race My Puffling spielen kannst.',hint:'Wähle zuerst einen kostenlosen Starter-Puffling. Danach wird Race My Puffling automatisch freigeschaltet.',cta:'STARTER-PUFFLING WÄHLEN',locked:'🔒 RACE MY PUFFLING — ZUERST PUFFLING WÄHLEN'},
+    es:{need:'Necesitas al menos un Puffling antes de jugar Race My Puffling.',hint:'Elige primero un Puffling inicial gratis. Race My Puffling se desbloqueará automáticamente.',cta:'ELEGIR PUFFLING INICIAL',locked:'🔒 RACE MY PUFFLING — ELIGE UN PUFFLING'},
+    fr:{need:'Vous devez posséder au moins un Puffling avant de jouer à Race My Puffling.',hint:'Choisissez d’abord un Puffling de départ gratuit. Race My Puffling sera ensuite débloqué automatiquement.',cta:'CHOISIR UN PUFFLING DE DÉPART',locked:'🔒 RACE MY PUFFLING — CHOISISSEZ UN PUFFLING'}
   };
 
   function tr(){try{return COPY[typeof lang==='string'?lang:'no']||COPY.en;}catch(e){return COPY.no;}}
@@ -74,6 +74,7 @@
   function goToPufflings(){
     try{window.SkyPuffRaceTransport?.disconnect?.();}catch(e){}
     if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='none';
+    if(window.SkyPuffStarterChoice?.eligible?.()){window.SkyPuffStarterChoice.open();return;}
     const start=typeof startEl!=='undefined'?startEl:el('start');if(start)start.style.display='flex';
     if(window.SkyPuffMenuCleanup?.openHub){window.SkyPuffMenuCleanup.openHub('pufflings');return;}
     setTimeout(()=>el('pufflingsHubBtn')?.click(),0);
@@ -100,6 +101,7 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
   window.addEventListener('storage',ev=>{if(ev.key==='skyPuffPufflings')refresh();});
   window.addEventListener('race:pufflingAcquired',refresh);
+  window.addEventListener('puffling:starterChosen',refresh);
 
   window.SkyPuffRaceEligibility={eligible,ownedIds,refresh,requirePuffling,goToPufflings};
 })();
