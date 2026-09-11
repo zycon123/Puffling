@@ -23,6 +23,8 @@ jobs:
         run: node scripts/validate-runtime-models.mjs
       - name: Simulate full launch gameplay journey
         run: node scripts/validate-launch-simulation.mjs
+      - name: Validate reward economy
+        run: node scripts/validate-reward-economy.mjs
       - name: Soak-test all bosses and 300000m endless run
         run: node scripts/validate-full-game-endurance.mjs
       - name: Validate all-boss reward session sync
