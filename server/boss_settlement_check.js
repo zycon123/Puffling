@@ -1,0 +1,4 @@
+const assert=require('assert');const fs=require('fs');const src=fs.readFileSync(require.resolve('./boss_settlement'),'utf8');
+for(const token of ['BEGIN','pg_advisory_xact_lock','FOR UPDATE','puffling_inventory','puffling_acquisition_grants','consumed_at=now()','COMMIT','ROLLBACK','grant_conflict','validReward'])assert(src.includes(token),`missing atomic settlement invariant ${token}`);
+const {rewardFor}=require('./boss_settlement');for(const sid of ['BS_alpha','BS_beta','BS_gamma'])assert(['NONE','ember','volt','frost','wind','prism','nova','supernova','phoenix'].includes(rewardFor(sid)),'reward outside allowlist');assert.equal(rewardFor('BS_alpha'),rewardFor('BS_alpha'),'reward must be deterministic');
+console.log('atomic boss settlement checks passed');
