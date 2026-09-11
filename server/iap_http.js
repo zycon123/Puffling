@@ -1,7 +1,7 @@
 function json(res,status,payload,origin=''){
   const headers={'content-type':'application/json','cache-control':'no-store'};
   if(origin)headers['access-control-allow-origin']=origin;
-  res.writeHead(status,headers);res.end(JSON.stringify(payload));
+  res.writeHead(status,headers);res.end(JSON.stringify(payload));return true;
 }
 function allowedOrigin(req){
   const origin=String(req.headers.origin||'');
