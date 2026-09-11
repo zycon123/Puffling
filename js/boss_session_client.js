@@ -1,0 +1,13 @@
+/* Puffling beta.103 — server-validated Boss Session bridge */
+(function(){
+ let active=null,lastBoss=null,lastHp=null,queue=Promise.resolve();
+ function base(){return String(window.skyPuffConfig?.apiBase||window.SKY_PUFF_GAME_API_URL||'').replace(/\/$/,'')}
+ async function token(){try{let t=localStorage.getItem('pufflingAccountAuthToken')||'';if(t)return t;const x=await window.SkyPuffRaceTransport?.ensureGuestIdentity?.();return x?.token||localStorage.getItem('pufflingAccountAuthToken')||''}catch(e){return''}}
+ async function post(path,data){const t=await token(),u=base();if(!t||!u)throw new Error('boss_server_unavailable');const r=await fetch(u+path,{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+t,'accept':'application/json'},body:JSON.stringify(data||{})});let b={};try{b=await r.json()}catch(e){}if(!r.ok||!b?.ok)throw new Error(b?.error||'boss_server_rejected');return b}
+ function refOf(b){return `${String(b?.id||'').toLowerCase()}:${Math.max(1,Math.floor(Number(b?.tier)||1))}`}
+ async function start(b){if(!b||active||typeof bossRushMode!=='undefined'&&bossRushMode)return;const ref=refOf(b);try{const s=await post('/api/boss/session/start',{bossRef:ref});if(typeof boss==='undefined'||!boss||refOf(boss)!==ref)return;active={sessionId:s.sessionId,nonce:s.nonce,bossRef:ref};lastHp=Number(boss.hp);window.SkyPuffBossSessionClient.active=active}catch(e){active=null}}
+ function hit(){if(!active)return;const a={...active};queue=queue.then(()=>post('/api/boss/session/hit',{sessionId:a.sessionId,nonce:a.nonce})).then(x=>{if(active?.sessionId===a.sessionId)active.server=x}).catch(()=>{});}
+ async function finish(defeated){const a=active;active=null;lastHp=null;window.SkyPuffBossSessionClient.active=null;if(!a||!defeated)return;await queue;try{const st=await post('/api/boss/session/status',{sessionId:a.sessionId});if(!st.completedAt||st.bossHp>0)throw new Error('boss_proof_incomplete');await window.SkyPuffBossPufflingRewards?.rollBossReward?.({...defeated,sessionId:a.sessionId,bossRef:a.bossRef});}catch(e){if(typeof showToast==='function')showToast('Boss beseiret, men Puffling-belønningen kunne ikke verifiseres.')}}
+ function tick(){try{const b=typeof boss!=='undefined'?boss:null;if(b){if(!lastBoss||lastBoss.id!==b.id||lastBoss.tier!==b.tier){active=null;lastHp=Number(b.hp);start(b)}else if(active&&Number(b.hp)<Number(lastHp)){hit();lastHp=Number(b.hp)}lastBoss={id:b.id,name:b.name,at:b.at,tier:b.tier};}else if(lastBoss){const d=lastBoss;lastBoss=null;if(typeof bossDefeated!=='undefined'&&bossDefeated)finish(d);else{active=null;lastHp=null;}}}catch(e){}requestAnimationFrame(tick)}
+ window.SkyPuffBossSessionClient={active:null,start,hit,finish,post};requestAnimationFrame(tick);
+})();
