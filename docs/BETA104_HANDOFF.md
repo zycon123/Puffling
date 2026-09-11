@@ -1,3 +1,5 @@
-# beta.104 production wiring handoff
+# beta.104 CI handoff
 
-Wire `server/boss_settlement.js` using the same pool already owned by the trade inventory store. Pass the settlement service to acquisition HTTP. The HTTP route should authenticate, parse `{sessionId}`, call settlement once, and serialize its result. It should not separately read Boss Session proof, call `store.grant`, or call `consumeCompleted` after wiring.
+The production acquisition HTTP path now delegates boss settlement to `server/acquisition_store.js` via `settleBossSession`. The branch is ready for automated validation.
+
+Inspect both GitHub Actions workflows on the newest commit. Do not infer success from beta.103 runs. Any failure must be diagnosed from the failing job logs and fixed on this branch before review readiness.
