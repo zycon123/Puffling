@@ -1,4 +1,5 @@
 const http = require('http');
+const crypto = require('crypto');
 const { WebSocketServer, WebSocket } = require('ws');
 const createTradeService = require('./trade');
 
@@ -11,6 +12,7 @@ const COUNTDOWN_MS = 4000;
 const START_GRACE_MS = 120;
 const RECONNECT_GRACE_MS = 12000;
 const RESUME_COUNTDOWN_MS = 1500;
+const COURSE_VERSION = 1;
 const rooms = new Map();
 let quickWaiting = null;
 let nextRaceId = 1;
@@ -28,8 +30,10 @@ function cleanEvolution(value){ return Math.max(0,Math.min(2,Math.floor(Number(v
 function cleanNumber(value,min,max,fallback=0){ const n=Number(value); return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback; }
 function cleanRankRating(value){ return Math.max(600,Math.min(3000,Math.round(Number(value)||1000))); }
 function makeRaceId(){ return `race_${now().toString(36)}_${nextRaceId++}`; }
+function makeCourseSeed(id){ return `${id}_${crypto.randomBytes(6).toString('hex')}`; }
+function roomCourse(room){ return {courseSeed:room.courseSeed,courseVersion:COURSE_VERSION}; }
 function createRoom(id, kind='friend'){
-  const room = { id, kind, players:new Map(), createdAt:now(), startedAt:0, resumeAt:0, paused:false, finishedAt:0, winnerId:null };
+  const room = { id, kind, courseSeed:makeCourseSeed(id), players:new Map(), createdAt:now(), startedAt:0, resumeAt:0, paused:false, finishedAt:0, winnerId:null };
   rooms.set(id, room); return room;
 }
 function playerPublic(p){
@@ -49,10 +53,10 @@ function raceAcceptingInput(room, at=now()){
   return !room.resumeAt || at + START_GRACE_MS >= room.resumeAt;
 }
 function rejectInactive(ws, room){
-  if(room.paused) return safeJson(ws,{type:'race:paused',room:room.id,reason:'reconnect'});
+  if(room.paused) return safeJson(ws,{type:'race:paused',room:room.id,reason:'reconnect',...roomCourse(room)});
   const gate=Math.max(room.startedAt||0,room.resumeAt||0);
   const remaining=Math.max(0,gate-now());
-  safeJson(ws,{type:'race:notStarted',room:room.id,serverStartAt:gate,remaining});
+  safeJson(ws,{type:'race:notStarted',room:room.id,serverStartAt:gate,remaining,...roomCourse(room)});
 }
 function maybeStart(room){
   if(room.startedAt || room.players.size !== 2) return;
@@ -61,7 +65,7 @@ function maybeStart(room){
   room.resumeAt = 0;
   room.paused = false;
   const players = [...room.players.values()].map(playerPublic);
-  broadcast(room,{type:'race:start',room:room.id,serverStartAt:room.startedAt,countdownMs:COUNTDOWN_MS,goal:GOAL,mode:room.kind,players});
+  broadcast(room,{type:'race:start',room:room.id,serverStartAt:room.startedAt,countdownMs:COUNTDOWN_MS,goal:GOAL,mode:room.kind,players,...roomCourse(room)});
 }
 function bindPlayerSocket(ws, room, player){
   if(player.reconnectTimer){ clearTimeout(player.reconnectTimer); player.reconnectTimer=null; }
@@ -73,17 +77,17 @@ function scheduleResume(room){
   if(![...room.players.values()].every(p=>p.connected)) return;
   room.paused=false;
   room.resumeAt=now()+RESUME_COUNTDOWN_MS;
-  broadcast(room,{type:'race:resume',room:room.id,serverResumeAt:room.resumeAt,countdownMs:RESUME_COUNTDOWN_MS,mode:room.kind,players:[...room.players.values()].map(playerPublic)});
+  broadcast(room,{type:'race:resume',room:room.id,serverResumeAt:room.resumeAt,countdownMs:RESUME_COUNTDOWN_MS,mode:room.kind,players:[...room.players.values()].map(playerPublic),...roomCourse(room)});
 }
 function tryResume(ws, room, playerId){
   const existing=room.players.get(playerId);
   if(!existing || existing.connected) return null;
   if(!existing.reconnectDeadline || now()>existing.reconnectDeadline) return null;
   bindPlayerSocket(ws,room,existing);
-  safeJson(ws,{type:'race:resumed',room:room.id,mode:room.kind,serverStartAt:room.startedAt,resumeAt:room.resumeAt,paused:room.paused,winnerId:room.winnerId,player:playerPublic(existing),players:[...room.players.values()].map(playerPublic)});
+  safeJson(ws,{type:'race:resumed',room:room.id,mode:room.kind,serverStartAt:room.startedAt,resumeAt:room.resumeAt,paused:room.paused,winnerId:room.winnerId,player:playerPublic(existing),players:[...room.players.values()].map(playerPublic),...roomCourse(room)});
   broadcast(room,{type:'race:opponentReconnected',room:room.id,player:playerPublic(existing)},playerId);
   if(room.winnerId){
-    safeJson(ws,{type:'race:result',room:room.id,mode:room.kind,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason:'finished',players:[...room.players.values()].map(playerPublic)});
+    safeJson(ws,resultPayload(room,'finished'));
   }else if(room.startedAt){
     scheduleResume(room);
   }else{
@@ -122,7 +126,7 @@ function joinBoundRoom(ws, requestedRoom, playerId, resumeRequested=false, rankR
     disconnectedAt:0,reconnectDeadline:0,reconnectTimer:null
   };
   room.players.set(playerId,p); ws.raceRoom=room.id; ws.racePlayerId=playerId;
-  safeJson(ws,{type:'race:matched',room:room.id,mode:room.kind,players:[...room.players.values()].map(playerPublic)});
+  safeJson(ws,{type:'race:matched',room:room.id,mode:room.kind,players:[...room.players.values()].map(playerPublic),...roomCourse(room)});
   broadcast(room,{type:'race:opponentJoined',room:room.id,player:playerPublic(p)},playerId);
   return {room,p,resumed:false};
 }
@@ -131,7 +135,7 @@ function getBound(ws){
   const player=room.players.get(ws.racePlayerId); return {room,player};
 }
 function resultPayload(room, reason='finish'){
-  return {type:'race:result',room:room.id,mode:room.kind,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason,players:[...room.players.values()].map(playerPublic)};
+  return {type:'race:result',room:room.id,mode:room.kind,winnerId:room.winnerId,finishedAt:room.finishedAt,goal:GOAL,reason,players:[...room.players.values()].map(playerPublic),...roomCourse(room)};
 }
 function finishAuthoritative(room, player, reason='finish'){
   if(room.winnerId || player.finishedAt) return;
@@ -169,7 +173,7 @@ function markDisconnected(ws){
 const server=http.createServer((req,res)=>{
   if(req.url==='/health'){
     res.writeHead(200,{'content-type':'application/json'});
-    return res.end(JSON.stringify({ok:true,service:'puffling-multiplayer',rooms:rooms.size,tradeRooms:trade.stats().rooms,time:now(),reconnectGraceMs:RECONNECT_GRACE_MS}));
+    return res.end(JSON.stringify({ok:true,service:'puffling-multiplayer',rooms:rooms.size,tradeRooms:trade.stats().rooms,time:now(),reconnectGraceMs:RECONNECT_GRACE_MS,courseVersion:COURSE_VERSION}));
   }
   res.writeHead(200,{'content-type':'text/plain'}); res.end('Puffling multiplayer server');
 });

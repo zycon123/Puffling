@@ -23,6 +23,8 @@ jobs:
         run: node scripts/validate-runtime-models.mjs
       - name: Validate Race HUD and desktop playfield
         run: node scripts/validate-race-hud.mjs
+      - name: Validate deterministic Race course
+        run: node scripts/validate-race-course-seed.mjs
       - name: Validate Ranked Quick Race
         run: node scripts/validate-race-ranking.mjs
       - name: Validate Mystery Box vault

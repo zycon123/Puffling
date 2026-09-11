@@ -63,6 +63,8 @@ async function waitForServer(child){
     if(joinedA.player?.rankRating!==1180)fail('Opponent MMR was not relayed to the waiting Quick Race player');
     const bSawA=matchB.players?.find(p=>p.playerId===a.playerId);
     if(bSawA?.rankRating!==1030)fail('Matched player list did not include opponent MMR');
+    if(!matchA.courseSeed||matchA.courseSeed!==matchB.courseSeed)fail('Quick Race players did not receive the same courseSeed');
+    if(matchA.courseVersion!==1||matchB.courseVersion!==1)fail('Quick Race course version is missing or invalid');
 
     const startA=a.wait('race:start'),startB=b.wait('race:start');
     a.send({type:'race:ready',room:ROOM,playerId:a.playerId,pufflingId:'ember',evolutionStage:0});
@@ -70,10 +72,12 @@ async function waitForServer(child){
     const [sa,sb]=await Promise.all([startA,startB]);
     if(!sa.serverStartAt||sa.serverStartAt!==sb.serverStartAt)fail('players did not receive one synchronized serverStartAt');
     if(sa.goal!==1500||sb.goal!==1500)fail('server race goal is not 1500m');
+    if(sa.courseSeed!==matchA.courseSeed||sb.courseSeed!==matchA.courseSeed)fail('Race start changed the authoritative courseSeed');
 
     const notStarted=a.wait('race:notStarted');
     a.send({type:'race:position',room:ROOM,playerId:a.playerId,height:25,x:100,y:300});
-    await notStarted;
+    const gate=await notStarted;
+    if(gate.courseSeed!==matchA.courseSeed)fail('Pre-start gate did not preserve courseSeed');
 
     await sleep(Math.max(0,sa.serverStartAt-Date.now()+180));
     const relay=b.wait('race:position');
@@ -87,10 +91,11 @@ async function waitForServer(child){
     const [ra,rb]=await Promise.all([resultA,resultB]);
     if(ra.winnerId!==a.playerId||rb.winnerId!==a.playerId)fail('server did not authoritatively award the 1500m finisher');
     if(ra.mode!=='quick'||!Array.isArray(ra.players)||ra.players.length!==2)fail('Ranked Quick Race result is missing authoritative player profiles');
+    if(ra.courseSeed!==matchA.courseSeed||rb.courseSeed!==matchA.courseSeed)fail('Race result did not preserve courseSeed');
     const ranks=new Map(ra.players.map(p=>[p.playerId,p.rankRating]));
     if(ranks.get(a.playerId)!==1030||ranks.get(b.playerId)!==1180)fail('Authoritative Race result did not preserve both MMR values');
     a.close();b.close();
-    console.log('✅ Race server two-client ranked Quick Race integration check passed');
+    console.log('✅ Race server two-client ranked Quick Race + shared courseSeed integration check passed');
 
     const c=peer('trade_a'),d=peer('trade_b');peers.push(c,d);await Promise.all([c.open(),d.open()]);
     c.send({type:'trade:hello',room:'TRD123',playerId:c.playerId,protocol:1});
