@@ -1,0 +1,14 @@
+import fs from 'node:fs';import vm from 'node:vm';
+const source=fs.readFileSync('js/diamond_wallet_client.js','utf8');
+const mem=new Map();const calls=[];
+const localStorage={getItem:k=>mem.has(k)?mem.get(k):null,setItem:(k,v)=>mem.set(k,String(v))};
+const fetch=async(url,opts={})=>{calls.push({url,opts});if(url.endsWith('/wallet/session'))return {ok:true,json:async()=>({ok:true,walletId:'w_test',walletToken:'signed.token',paidDiamondBalance:75})};if(url.endsWith('/wallet/balance'))return {ok:true,json:async()=>({ok:true,walletId:'w_test',paidDiamondBalance:75})};if(url.endsWith('/wallet/spend'))return {ok:true,json:async()=>({ok:true,walletId:'w_test',spent:25,paidDiamondBalance:50})};throw new Error('unexpected '+url);};
+const window={localStorage,skyPuffConfig:{gameApiUrl:'https://api.test'},dispatchEvent(){}};window.window=window;
+const context={window,localStorage,console,fetch,setTimeout:()=>0,clearTimeout,crypto:{randomUUID:()=> '12345678-1234-1234-1234-123456789abc'},CustomEvent:class{constructor(type,opts){this.type=type;this.detail=opts?.detail}},document:{readyState:'loading',addEventListener(){}}};
+vm.createContext(context);vm.runInContext(source,context,{filename:'diamond_wallet_client.js'});
+const W=window.PufflingDiamondWallet;if(!W)throw new Error('wallet API missing');
+const s=await W.init(true);if(!s.ready||W.paidBalance()!==75||W.token()!=='signed.token')throw new Error('wallet session sync failed');
+const spend=await W.spend(25,'mystery_box');if(!spend.ok||W.paidBalance()!==50)throw new Error('wallet paid spend failed');
+const spendCall=calls.find(x=>x.url.endsWith('/wallet/spend'));if(spendCall?.opts?.headers?.authorization!=='Bearer signed.token')throw new Error('wallet spend missing bearer token');
+if(!mem.get('pufflingWalletClientKeyV1')||!mem.get('pufflingWalletIdV1'))throw new Error('wallet credentials were not persisted');
+console.log('✅ Browser signed Diamond wallet session, paid balance sync and spend validated');
