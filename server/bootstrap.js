@@ -9,6 +9,8 @@ const createAccountAuth=require('./account_auth');
 const createAccountHttp=require('./account_http');
 const createTradeInventoryStore=require('./trade_inventory_store');
 const createTradeInventoryHttp=require('./trade_inventory_http');
+const createAcquisitionStore=require('./acquisition_store');
+const createAcquisitionHttp=require('./acquisition_http');
 
 (async()=>{
   const iapStore=createIapStore();
@@ -20,13 +22,16 @@ const createTradeInventoryHttp=require('./trade_inventory_http');
   try{await leaderboardStore.init();console.log('[Leaderboard] Global score database ready');}catch(e){console.warn('[Leaderboard] Score database unavailable:',String(e?.message||e));}
   try{await rankedStore.init();console.log('[Ranked] Persistent rank database ready');}catch(e){console.warn('[Ranked] Rank database unavailable:',String(e?.message||e));}
   try{await tradeInventoryStore.init();console.log('[Trade] Authoritative inventory database ready');}catch(e){console.warn('[Trade] Inventory database unavailable:',String(e?.message||e));}
-  global.PufflingRankedStore=rankedStore;global.PufflingTradeInventoryStore=tradeInventoryStore;global.PufflingAccountAuth=accountAuth;
-  const handleAccount=createAccountHttp(accountAuth,rankedStore),handleTradeInventory=createTradeInventoryHttp(accountAuth,tradeInventoryStore);
+  const acquisitionStore=createAcquisitionStore({pool:tradeInventoryStore.pool});
+  try{await acquisitionStore.init();console.log('[Acquisition] Server reward grants ready');}catch(e){console.warn('[Acquisition] Reward grants unavailable:',String(e?.message||e));}
+  global.PufflingRankedStore=rankedStore;global.PufflingTradeInventoryStore=tradeInventoryStore;global.PufflingAccountAuth=accountAuth;global.PufflingAcquisitionStore=acquisitionStore;
+  const handleAccount=createAccountHttp(accountAuth,rankedStore),handleTradeInventory=createTradeInventoryHttp(accountAuth,tradeInventoryStore),handleAcquisition=createAcquisitionHttp(accountAuth,acquisitionStore);
   const handleIap=createIapHttp(iapStore),handleLeaderboard=createLeaderboardHttp(leaderboardStore),handleRanked=createRankedHttp(rankedStore);
   const originalCreateServer=http.createServer;
   http.createServer=function wrappedCreateServer(listener){return originalCreateServer.call(http,async(req,res)=>{
     try{if(await handleAccount(req,res))return;}catch(e){console.error('[Account] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
     try{if(await handleTradeInventory(req,res))return;}catch(e){console.error('[Trade] Inventory HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
+    try{if(await handleAcquisition(req,res))return;}catch(e){console.error('[Acquisition] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
     try{if(await handleRanked(req,res))return;}catch(e){console.error('[Ranked] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
     try{if(await handleLeaderboard(req,res))return;}catch(e){console.error('[Leaderboard] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
     try{if(await handleIap(req,res))return;}catch(e){console.error('[IAP] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
