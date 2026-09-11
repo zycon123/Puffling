@@ -36,7 +36,7 @@ function cleanText(value,max=64){ return String(value || '').slice(0,max) || nul
 function cleanEvolution(value){ return Math.max(0,Math.min(2,Math.floor(Number(value)||0))); }
 function cleanNumber(value,min,max,fallback=0){ const n=Number(value); return Number.isFinite(n)?Math.max(min,Math.min(max,n)):fallback; }
 function cleanRankRating(value){ return Math.max(600,Math.min(3000,Math.round(Number(value)||1000))); }
-function makeRaceId(){ return `race_${now().toString(36)}_${nextRaceId++}`; }
+function makeRaceId(){ return `RACE_${now().toString(36)}_${nextRaceId++}`.toUpperCase(); }
 function makeCourseSeed(id){ return `${id}_${crypto.randomBytes(6).toString('hex')}`; }
 function roomCourse(room){ return {courseSeed:room.courseSeed,courseVersion:COURSE_VERSION}; }
 function createRoom(id, kind='friend'){
