@@ -1,0 +1,1 @@
+beta.104 keeps Boss rewards server-owned and zero-cost, with atomic proof consumption and inventory settlement.
