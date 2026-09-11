@@ -9,7 +9,7 @@ module.exports=function createBossSessionHttp(auth,store){
   try{
    if(path==='/api/boss/session/start'&&req.method==='POST'){
     const data=await body(req),bossRef=String(data?.bossRef||'').slice(0,96);
-    if(!/^[A-Za-z0-9:_+.-]{1,96}$/.test(bossRef))return json(res,400,{ok:false,error:'invalid_boss'}),true;
+    if(!store.validBossRef(bossRef))return json(res,400,{ok:false,error:'invalid_boss'}),true;
     const session=await store.issue(verified.accountId,bossRef);return json(res,201,{ok:true,...session,serverIssued:true}),true;
    }
    if(path==='/api/boss/session/status'&&req.method==='POST'){
