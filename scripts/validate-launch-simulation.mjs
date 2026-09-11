@@ -59,7 +59,8 @@ const catalog=I.catalog();if(JSON.stringify(catalog.map(x=>[x.diamonds,x.targetE
 if(I.canPurchase())fail('Web simulation unexpectedly enabled real-money purchases');
 
 // Corrupted legacy/local save values must self-repair instead of poisoning gameplay with NaN/invalid cosmetics.
-const repairCtx={console,window:null,save:{bank:NaN,best:-8,total:Infinity,upBoost:-1,upHealth:2,upCoin:3,upMagnet:4,lastDaily:NaN,streak:-5,eventsCleared:0,bossWins:0,treasuresCollected:0,skin:'missing',face:'bad',hat:'bad',trail:'bad',playerName:'A<script>✨'},skins:{classic:{}},faceStyles:{smile:{}},hats:{none:{}},trailStyles:{auto:{}},persist(){this.persisted=(this.persisted||0)+1;}};repairCtx.window=repairCtx;vm.createContext(repairCtx);run(repairCtx,'js/save_integrity.js');
+const repairCtx={console,window:null,save:{bank:NaN,best:-8,total:Infinity,upBoost:-1,upHealth:2,upCoin:3,upMagnet:4,lastDaily:NaN,streak:-5,eventsCleared:0,bossWins:0,treasuresCollected:0,skin:'missing',face:'bad',hat:'bad',trail:'bad',playerName:'A<script>✨'},skins:{classic:{}},faceStyles:{smile:{}},hats:{none:{}},trailStyles:{auto:{}}};
+repairCtx.persist=()=>{repairCtx.persisted=(repairCtx.persisted||0)+1;};repairCtx.window=repairCtx;vm.createContext(repairCtx);run(repairCtx,'js/save_integrity.js');
 if(!repairCtx.PufflingSaveIntegrity?.ok||repairCtx.save.bank!==0||repairCtx.save.best!==0||repairCtx.save.total!==0)fail('Corrupted numeric save data was not repaired');
 if(repairCtx.save.skin!=='classic'||repairCtx.save.face!=='smile'||repairCtx.save.hat!=='none'||repairCtx.save.trail!=='auto')fail('Invalid cosmetic save IDs were not repaired');
 if(!repairCtx.PufflingSaveIntegrity.repaired.length||!repairCtx.persisted)fail('Save repair was not persisted/reported');
