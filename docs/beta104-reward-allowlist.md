@@ -1,0 +1,1 @@
+Canonical Boss rewards: NONE, ember, volt, frost, wind, prism, nova, supernova, phoenix.
