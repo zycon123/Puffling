@@ -6,12 +6,13 @@ for(const t of ['/api/acquisition/boss','authorization','serverAuthoritative'])b
 if(boss.includes('JSON.stringify({sessionId})')&&!boss.includes('pufflingId})'))ok('Client submits only verified boss session proof');else bad('Client still chooses boss reward');
 if(/const grant=await requestGrant\(sessionId\);[\s\S]*applyGranted\(grant\.pufflingId\)/.test(boss))ok('Boss reward applies only after server grant');else bad('Boss grant/apply ordering missing');
 if(boss.includes('F.add(id,1)')&&boss.includes('function applyGranted'))ok('Local collection update isolated behind granted apply');else bad('Granted apply missing');
-for(const t of ['auth.verify','boss_proof_required','serverAuthoritative:true','bossSessions.status','bossSessions.consumeCompleted'])http.includes(t)?ok('Boss API verified-session '+t):bad('Boss API missing verified-session '+t);
-if(http.includes('store.grant(')&&http.includes('proof.completedAt')&&http.includes('proof.bossHp>0')&&!http.includes('data?.pufflingId'))ok('Public boss endpoint grants only from completed server session proof');else bad('Public boss endpoint proof boundary incomplete');
-for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK','getGrant',"pufflingId!=='NONE'"])store.includes(t)?ok('Internal acquisition store '+t):bad('Acquisition store missing '+t);
+for(const t of ['auth.verify','boss_proof_required','serverAuthoritative:true','store.settleBossSession'])http.includes(t)?ok('Boss API authoritative '+t):bad('Boss API missing authoritative '+t);
+if(!http.includes('data?.pufflingId')&&!http.includes('data.pufflingId')&&!http.includes('store.grant(')&&!http.includes('bossSessions.consumeCompleted'))ok('Public boss endpoint delegates atomic proof settlement and cannot choose reward');else bad('Public boss endpoint proof boundary incomplete');
+for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK','getGrant',"pufflingId!=='NONE'",'settleBossSession','puffling_boss_sessions','completed_at','boss_hp','consumed_at','RETURNING consumed_at'])store.includes(t)?ok('Internal acquisition store '+t):bad('Acquisition store missing '+t);
+if(store.includes('UNIQUE(account_id,source,source_ref)')&&store.includes('puffling_acquisition_source_once'))ok('Acquisition receipt is unique per authoritative source');else bad('Acquisition source idempotency missing');
 for(const t of ['createAcquisitionStore','createAcquisitionHttp','handleAcquisition','bossSessionStore'])boot.includes(t)?ok('Bootstrap '+t):bad('Bootstrap missing '+t);
 for(const t of ['BOT_WAIT_MS=8000','difficulty:\'medium\'','BOT_MEDIUM','bot:true','rankServerAuthoritative:false'])transport.includes(t)?ok('Race bot '+t):bad('Race bot missing '+t);
 if(transport.includes('bot.attacksUsed<3')&&transport.includes('bot.attacksUsed++'))ok('Race bot capped at three attacks');else bad('Race bot attack cap missing');
 if(transport.includes("mode:'bot'")&&transport.includes('rank:null'))ok('Bot result is explicitly unranked');else bad('Bot unranked result missing');
 if(server.includes("room.kind!=='quick'"))ok('Server rank settlement remains Quick Race only');else bad('Rank guard missing');
-if(failed)process.exit(1);console.log('beta.102 regression validation passed under beta.103');
+if(failed)process.exit(1);console.log('beta.102 regression validation passed under beta.104 atomic settlement');
