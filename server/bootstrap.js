@@ -4,6 +4,7 @@ const createIapHttp=require('./iap_http');
 const createLeaderboardStore=require('./leaderboard_store');
 const createLeaderboardHttp=require('./leaderboard_http');
 const createRankedStore=require('./ranked_store');
+const createRankedHttp=require('./ranked_http');
 
 (async()=>{
   const iapStore=createIapStore();
@@ -18,9 +19,12 @@ const createRankedStore=require('./ranked_store');
   global.PufflingRankedStore=rankedStore;
   const handleIap=createIapHttp(iapStore);
   const handleLeaderboard=createLeaderboardHttp(leaderboardStore);
+  const handleRanked=createRankedHttp(rankedStore);
   const originalCreateServer=http.createServer;
   http.createServer=function wrappedCreateServer(listener){
     return originalCreateServer.call(http,async(req,res)=>{
+      try{if(await handleRanked(req,res))return;}
+      catch(e){console.error('[Ranked] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
       try{if(await handleLeaderboard(req,res))return;}
       catch(e){console.error('[Leaderboard] HTTP handler failure',e);if(!res.headersSent){res.writeHead(500,{'content-type':'application/json'});res.end(JSON.stringify({ok:false,error:'server_error'}));}return;}
       try{if(await handleIap(req,res))return;}
