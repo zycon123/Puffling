@@ -38,7 +38,7 @@ if(!process.exitCode)ok('System & Support exposes actionable error and launch co
 for(const token of ['name: puffling-race-server','rootDir: server','healthCheckPath: /health','autoDeploy: true']){
   if(!render.includes(token))fail(`Render blueprint missing: ${token}`);
 }
-if(!process.exitCode)ok('Render blueprint is ready for Race server deployment');
+if(!process.exitCode)ok('Render blueprint is ready for Race/Trade server deployment');
 
 if(!race.includes('const GOAL_METERS=1500')||!race.includes('const MAX_ATTACKS=3')||!race.includes('const ATTACK_COOLDOWN_MS=4000'))fail('Race launch constants changed unexpectedly');
 else ok('Race goal, attack count and cooldown are pinned');
@@ -49,6 +49,8 @@ for(const token of ['pufflingQuickRaceRankV1','server-required','duplicate-resul
 if(!raceServer.includes('rankRating')||!raceServer.includes('players:[...room.players.values()].map(playerPublic)'))fail('Race server does not relay authoritative MMR/player profiles');
 else ok('Ranked Quick Race is server-result-only with authoritative opponent MMR');
 
+if(!beta.includes("SKY_PUFF_RACE_WS_URL='wss://puffling-race-server.onrender.com'"))fail('Production Race/Trade WebSocket endpoint is not configured in beta');
+else ok('Production Race/Trade WebSocket endpoint is configured');
 if(!/SKY_PUFF_VERSION='5\.26-beta\.\d+'/.test(beta))fail('Beta version format is invalid');
 else ok('Build has an explicit beta release version');
 
