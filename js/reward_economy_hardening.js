@@ -1,4 +1,4 @@
-/* Puffling — reward/economy hardening v1 */
+/* Puffling — reward/economy hardening v1.1 */
 (function(){
  const DAY=86400000;
  const FIRST_RUSH_REWARD=250,REPLAY_RUSH_REWARD=25;
@@ -37,5 +37,9 @@
   if(wonId&&window.skyPuffBossRushProgress)window.skyPuffBossRushProgress.record(wonId);else if(wonId){try{const k='skyPuffBossRushWinsV1',w=JSON.parse(localStorage.getItem(k)||'{}');w[wonId]=true;localStorage.setItem(k,JSON.stringify(w))}catch(e){}}
   save.bank=(save.bank||0)+reward;persist();refreshMenu();bossRushMode=false;bossRushSelected=null;boss=null;bossSpawned=false;bossArena=false;bossArenaY=0;playerShots=[];bossShots=[];running=false;paused=false;stopBossMusic(false);if(bossWrap)bossWrap.style.display='none';if(bossWarningEl)bossWarningEl.style.display='none';if(bossRushMenuEl)bossRushMenuEl.style.display='none';showToast(`${modeText().bossWon} +${reward} 🪙`);setTimeout(()=>{showMainMenu();renderBossRush()},350);
  };
- window.PufflingRewardEconomy={claimDaily,rushReward,FIRST_RUSH_REWARD,REPLAY_RUSH_REWARD,lateCosmetics,dailyStreakProtected:true,endlessRewardCap:6000};
+
+ function bossPuffNote(){const l=typeof lang==='string'?lang:'en';return({no:'Boss Puff kan brukes i Boss Rush. Beseir alle 10 bossene i Boss Rush for å låse den opp i hovedspillet.',en:'Boss Puff can be used in Boss Rush. Defeat all 10 bosses in Boss Rush to unlock it in the main game.',de:'Boss Puff kann im Boss Rush benutzt werden. Besiege alle 10 Bosse, um ihn im Hauptspiel freizuschalten.',es:'Boss Puff puede usarse en Boss Rush. Derrota a los 10 jefes para desbloquearlo en el juego principal.',fr:'Boss Puff peut être utilisé en Boss Rush. Battez les 10 boss pour le débloquer dans le jeu principal.'})[l]||'Boss Puff can be used in Boss Rush. Defeat all 10 bosses in Boss Rush to unlock it in the main game.';}
+ function fixBossPuffCopy(){const root=document.getElementById('bossPuffCreator');if(!root)return;const note=root.querySelector('.card .small');if(note&&/4|four|vier|cuatro|quatre/.test(note.textContent||''))note.textContent=bossPuffNote();}
+ if(typeof MutationObserver!=='undefined'&&document.body)new MutationObserver(fixBossPuffCopy).observe(document.body,{childList:true,subtree:true,characterData:true});setTimeout(fixBossPuffCopy,100);
+ window.PufflingRewardEconomy={claimDaily,rushReward,FIRST_RUSH_REWARD,REPLAY_RUSH_REWARD,lateCosmetics,dailyStreakProtected:true,endlessRewardCap:6000,bossPuffRequires:10};
 })();
