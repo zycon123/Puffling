@@ -1,3 +1,3 @@
-# beta.104 end phase 1 work unit
+# beta.104 implementation sequence complete
 
-Draft PR next.
+Next: inspect CI on the latest branch head, fix any failures, then update the draft PR. No merge before explicit approval.
