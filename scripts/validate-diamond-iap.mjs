@@ -1,0 +1,17 @@
+import fs from 'node:fs';import vm from 'node:vm';
+const fail=m=>{console.error('❌ Diamond IAP validation:',m);process.exit(1)};
+const source=fs.readFileSync('js/diamond_iap_store.js','utf8');
+for(const token of ['puffling.diamonds.100','puffling.diamonds.300','puffling.diamonds.750','puffling.diamonds.1600','puffling.diamonds.3500','diamondBalance','verificationData','finishTransaction'])if(!source.includes(token))fail(`missing ${token}`);
+if(/\b(?:19|49|99|199|399)\s*(?:kr|NOK)\b/i.test(source))fail('localized real-money prices must not be hard-coded');
+const store=new Map();const localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v))};
+const window={localStorage,skyPuffConfig:{iapVerifyUrl:''},SkyPuffDiamonds:{get:()=>0,set:()=>{}},console};window.window=window;
+const context={window,localStorage,console,setTimeout,clearTimeout,fetch:async()=>{throw new Error('fetch should not run without purchase readiness')}};
+vm.createContext(context);vm.runInContext(source,context,{filename:'diamond_iap_store.js'});
+const api=window.PufflingDiamondStore;if(!api)fail('PufflingDiamondStore API missing');
+const catalog=api.catalog();if(catalog.length!==5)fail(`expected 5 products, got ${catalog.length}`);
+const amounts=catalog.map(x=>x.diamonds).join(',');if(amounts!=='100,300,750,1600,3500')fail(`unexpected diamond amounts ${amounts}`);
+if(api.canPurchase())fail('web/no-verifier environment incorrectly allows real-money purchase');
+const blocked=await api.purchase('puffling.diamonds.100');if(blocked?.reason!=='not_ready')fail('purchase did not fail closed when IAP is unavailable');
+if(!source.includes("['ios','android'].includes(platform())"))fail('IAP is not restricted to native iOS/Android builds');
+if(!source.includes('Number(data.diamondBalance)'))fail('verified authoritative diamond balance is not required');
+console.log('✅ Diamond IAP scaffold validation passed');
