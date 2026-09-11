@@ -1,0 +1,1 @@
+No new service is introduced by beta.104. It reuses the existing Puffling server and PostgreSQL connection.
