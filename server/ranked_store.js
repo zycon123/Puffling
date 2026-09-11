@@ -1,96 +1,16 @@
 const { Pool }=require('pg');
-
-function secureDatabaseUrl(value){
-  const url=String(value||'').trim();
-  if(!url||/localhost|127\.0\.0\.1/.test(url))return url;
-  return url.replace(/([?&])sslmode=require(?=(&|$))/i,'$1sslmode=verify-full');
-}
-function cleanAccountId(value){
-  const s=String(value||'').trim();
-  return /^[A-Za-z0-9:_-]{3,96}$/.test(s)?s:'';
-}
-function cleanRaceId(value){
-  const s=String(value||'').trim().toUpperCase();
-  return /^[A-Z0-9_-]{3,96}$/.test(s)?s:'';
-}
-function profile(row){
-  if(!row)return null;
-  return {
-    accountId:String(row.account_id),rating:Number(row.rating)||1000,wins:Number(row.wins)||0,losses:Number(row.losses)||0,
-    games:Number(row.games)||0,streak:Number(row.streak)||0,bestRating:Number(row.best_rating)||1000,
-    lastRaceId:String(row.last_race_id||''),updatedAt:row.updated_at?new Date(row.updated_at).toISOString():null
-  };
-}
+function secureDatabaseUrl(value){const url=String(value||'').trim();if(!url||/localhost|127\.0\.0\.1/.test(url))return url;return url.replace(/([?&])sslmode=require(?=(&|$))/i,'$1sslmode=verify-full');}
+function cleanAccountId(value){const s=String(value||'').trim();return /^[A-Za-z0-9:_-]{3,96}$/.test(s)?s:'';}
+function cleanRaceId(value){const s=String(value||'').trim().toUpperCase();return /^[A-Z0-9_-]{3,96}$/.test(s)?s:'';}
+function profile(row){if(!row)return null;return{accountId:String(row.account_id),rating:Number(row.rating)||1000,wins:Number(row.wins)||0,losses:Number(row.losses)||0,games:Number(row.games)||0,streak:Number(row.streak)||0,bestRating:Number(row.best_rating)||1000,lastRaceId:String(row.last_race_id||''),updatedAt:row.updated_at?new Date(row.updated_at).toISOString():null};}
+function result(row){return{accountId:String(row.account_id),won:!!row.won,delta:Number(row.delta)||0,beforeRating:Number(row.before_rating)||1000,afterRating:Number(row.after_rating)||1000,opponentRating:Number(row.opponent_rating)||1000};}
 function expectedScore(own,opp){return 1/(1+10**((opp-own)/400));}
-function deltaFor(own,opp,won,games){
-  const k=games<10?40:28,raw=Math.round(k*((won?1:0)-expectedScore(own,opp)));
-  const magnitude=Math.min(36,Math.max(8,Math.abs(raw)||8));
-  return won?magnitude:-magnitude;
-}
-
+function deltaFor(own,opp,won,games){const k=games<10?40:28,raw=Math.round(k*((won?1:0)-expectedScore(own,opp)));const magnitude=Math.min(36,Math.max(8,Math.abs(raw)||8));return won?magnitude:-magnitude;}
 module.exports=function createRankedStore(opts={}){
-  const databaseUrl=secureDatabaseUrl(opts.databaseUrl??process.env.DATABASE_URL??'');
-  const pool=opts.pool||(databaseUrl?new Pool({connectionString:databaseUrl,max:3}):null);
-  let ready=false;
-  async function init(){
-    if(!pool)return false;
-    await pool.query(`CREATE TABLE IF NOT EXISTS puffling_rank_profiles(
-      account_id varchar(96) PRIMARY KEY,
-      rating integer NOT NULL DEFAULT 1000 CHECK(rating>=600 AND rating<=3000),
-      wins integer NOT NULL DEFAULT 0 CHECK(wins>=0),
-      losses integer NOT NULL DEFAULT 0 CHECK(losses>=0),
-      games integer NOT NULL DEFAULT 0 CHECK(games>=0),
-      streak integer NOT NULL DEFAULT 0 CHECK(streak>=0),
-      best_rating integer NOT NULL DEFAULT 1000 CHECK(best_rating>=600 AND best_rating<=3000),
-      last_race_id varchar(96) NOT NULL DEFAULT '',
-      updated_at timestamptz NOT NULL DEFAULT now()
-    )`);
-    await pool.query(`CREATE TABLE IF NOT EXISTS puffling_rank_results(
-      race_id varchar(96) NOT NULL,
-      account_id varchar(96) NOT NULL REFERENCES puffling_rank_profiles(account_id) ON DELETE CASCADE,
-      won boolean NOT NULL,
-      delta integer NOT NULL,
-      before_rating integer NOT NULL,
-      after_rating integer NOT NULL,
-      opponent_rating integer NOT NULL,
-      created_at timestamptz NOT NULL DEFAULT now(),
-      PRIMARY KEY(race_id,account_id)
-    )`);
-    ready=true;return true;
-  }
-  async function get(accountId,client=null){
-    const id=cleanAccountId(accountId);if(!id)throw new Error('invalid_account');
-    if(!pool||!ready)throw new Error('ranked_unavailable');
-    const db=client||pool;
-    await db.query('INSERT INTO puffling_rank_profiles(account_id) VALUES($1) ON CONFLICT(account_id) DO NOTHING',[id]);
-    const q=await db.query('SELECT * FROM puffling_rank_profiles WHERE account_id=$1',[id]);
-    return profile(q.rows[0]);
-  }
-  async function applyRace(input={}){
-    if(!pool||!ready)throw new Error('ranked_unavailable');
-    const raceId=cleanRaceId(input.raceId),winnerId=cleanAccountId(input.winnerId),loserId=cleanAccountId(input.loserId);
-    if(!raceId||!winnerId||!loserId||winnerId===loserId)throw new Error('invalid_ranked_result');
-    const client=await pool.connect();
-    try{
-      await client.query('BEGIN');
-      const existing=await client.query('SELECT * FROM puffling_rank_results WHERE race_id=$1 ORDER BY account_id',[raceId]);
-      if(existing.rows.length===2){
-        const profiles={};for(const row of existing.rows)profiles[row.account_id]=await get(row.account_id,client);
-        await client.query('COMMIT');return {applied:false,duplicate:true,raceId,profiles,results:existing.rows};
-      }
-      await get(winnerId,client);await get(loserId,client);
-      const locked=await client.query('SELECT * FROM puffling_rank_profiles WHERE account_id=ANY($1::varchar[]) ORDER BY account_id FOR UPDATE',[[winnerId,loserId]]);
-      const byId=Object.fromEntries(locked.rows.map(r=>[r.account_id,r]));
-      const w=profile(byId[winnerId]),l=profile(byId[loserId]);
-      const wd=deltaFor(w.rating,l.rating,true,w.games),ld=deltaFor(l.rating,w.rating,false,l.games);
-      const wr=Math.max(600,Math.min(3000,w.rating+wd)),lr=Math.max(600,Math.min(3000,l.rating+ld));
-      await client.query(`UPDATE puffling_rank_profiles SET rating=$2,wins=wins+1,games=games+1,streak=streak+1,best_rating=GREATEST(best_rating,$2),last_race_id=$3,updated_at=now() WHERE account_id=$1`,[winnerId,wr,raceId]);
-      await client.query(`UPDATE puffling_rank_profiles SET rating=$2,losses=losses+1,games=games+1,streak=0,last_race_id=$3,updated_at=now() WHERE account_id=$1`,[loserId,lr,raceId]);
-      await client.query(`INSERT INTO puffling_rank_results(race_id,account_id,won,delta,before_rating,after_rating,opponent_rating) VALUES($1,$2,true,$3,$4,$5,$6),($1,$7,false,$8,$9,$10,$11)`,[raceId,winnerId,wd,w.rating,wr,l.rating,loserId,ld,l.rating,lr,w.rating]);
-      const profiles={};profiles[winnerId]=await get(winnerId,client);profiles[loserId]=await get(loserId,client);
-      await client.query('COMMIT');return {applied:true,duplicate:false,raceId,profiles,results:[{accountId:winnerId,won:true,delta:wd,beforeRating:w.rating,afterRating:wr,opponentRating:l.rating},{accountId:loserId,won:false,delta:ld,beforeRating:l.rating,afterRating:lr,opponentRating:w.rating}]};
-    }catch(e){try{await client.query('ROLLBACK');}catch{}throw e;}finally{client.release();}
-  }
-  async function close(){if(!opts.pool)await pool?.end();}
-  return {init,get,applyRace,status:()=>({ready,database:!!pool}),close,cleanAccountId,cleanRaceId,deltaFor,version:1};
+ const databaseUrl=secureDatabaseUrl(opts.databaseUrl??process.env.DATABASE_URL??'');const pool=opts.pool||(databaseUrl?new Pool({connectionString:databaseUrl,max:3}):null);let ready=false;
+ async function init(){if(!pool)return false;await pool.query(`CREATE TABLE IF NOT EXISTS puffling_rank_profiles(account_id varchar(96) PRIMARY KEY,rating integer NOT NULL DEFAULT 1000 CHECK(rating>=600 AND rating<=3000),wins integer NOT NULL DEFAULT 0 CHECK(wins>=0),losses integer NOT NULL DEFAULT 0 CHECK(losses>=0),games integer NOT NULL DEFAULT 0 CHECK(games>=0),streak integer NOT NULL DEFAULT 0 CHECK(streak>=0),best_rating integer NOT NULL DEFAULT 1000 CHECK(best_rating>=600 AND best_rating<=3000),last_race_id varchar(96) NOT NULL DEFAULT '',updated_at timestamptz NOT NULL DEFAULT now())`);await pool.query(`CREATE TABLE IF NOT EXISTS puffling_rank_results(race_id varchar(96) NOT NULL,account_id varchar(96) NOT NULL REFERENCES puffling_rank_profiles(account_id) ON DELETE CASCADE,won boolean NOT NULL,delta integer NOT NULL,before_rating integer NOT NULL,after_rating integer NOT NULL,opponent_rating integer NOT NULL,created_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(race_id,account_id))`);ready=true;return true;}
+ async function get(accountId,client=null){const id=cleanAccountId(accountId);if(!id)throw new Error('invalid_account');if(!pool||!ready)throw new Error('ranked_unavailable');const db=client||pool;await db.query('INSERT INTO puffling_rank_profiles(account_id) VALUES($1) ON CONFLICT(account_id) DO NOTHING',[id]);const q=await db.query('SELECT * FROM puffling_rank_profiles WHERE account_id=$1',[id]);return profile(q.rows[0]);}
+ async function existingRace(client,raceId,winnerId,loserId){const q=await client.query('SELECT * FROM puffling_rank_results WHERE race_id=$1 ORDER BY account_id',[raceId]);if(!q.rows.length)return null;if(q.rows.length!==2)throw new Error('ranked_result_integrity');const ids=new Set(q.rows.map(r=>String(r.account_id)));if(!ids.has(winnerId)||!ids.has(loserId))throw new Error('ranked_result_conflict');const win=q.rows.find(r=>r.account_id===winnerId),loss=q.rows.find(r=>r.account_id===loserId);if(!win?.won||loss?.won)throw new Error('ranked_result_conflict');const profiles={};for(const row of q.rows)profiles[row.account_id]=await get(row.account_id,client);return{applied:false,duplicate:true,raceId,profiles,results:q.rows.map(result)};}
+ async function applyRace(input={}){if(!pool||!ready)throw new Error('ranked_unavailable');const raceId=cleanRaceId(input.raceId),winnerId=cleanAccountId(input.winnerId),loserId=cleanAccountId(input.loserId);if(!raceId||!winnerId||!loserId||winnerId===loserId)throw new Error('invalid_ranked_result');const client=await pool.connect();try{await client.query('BEGIN');await client.query('SELECT pg_advisory_xact_lock(hashtext($1))',[raceId]);const duplicate=await existingRace(client,raceId,winnerId,loserId);if(duplicate){await client.query('COMMIT');return duplicate;}await get(winnerId,client);await get(loserId,client);const locked=await client.query('SELECT * FROM puffling_rank_profiles WHERE account_id=ANY($1::varchar[]) ORDER BY account_id FOR UPDATE',[[winnerId,loserId]]);const byId=Object.fromEntries(locked.rows.map(r=>[r.account_id,r])),w=profile(byId[winnerId]),l=profile(byId[loserId]);if(!w||!l)throw new Error('ranked_profile_missing');const wd=deltaFor(w.rating,l.rating,true,w.games),ld=deltaFor(l.rating,w.rating,false,l.games),wr=Math.max(600,Math.min(3000,w.rating+wd)),lr=Math.max(600,Math.min(3000,l.rating+ld));await client.query(`UPDATE puffling_rank_profiles SET rating=$2,wins=wins+1,games=games+1,streak=streak+1,best_rating=GREATEST(best_rating,$2),last_race_id=$3,updated_at=now() WHERE account_id=$1`,[winnerId,wr,raceId]);await client.query(`UPDATE puffling_rank_profiles SET rating=$2,losses=losses+1,games=games+1,streak=0,last_race_id=$3,updated_at=now() WHERE account_id=$1`,[loserId,lr,raceId]);await client.query(`INSERT INTO puffling_rank_results(race_id,account_id,won,delta,before_rating,after_rating,opponent_rating) VALUES($1,$2,true,$3,$4,$5,$6),($1,$7,false,$8,$9,$10,$11)`,[raceId,winnerId,wd,w.rating,wr,l.rating,loserId,ld,l.rating,lr,w.rating]);const profiles={};profiles[winnerId]=await get(winnerId,client);profiles[loserId]=await get(loserId,client);await client.query('COMMIT');return{applied:true,duplicate:false,raceId,profiles,results:[{accountId:winnerId,won:true,delta:wd,beforeRating:w.rating,afterRating:wr,opponentRating:l.rating},{accountId:loserId,won:false,delta:ld,beforeRating:l.rating,afterRating:lr,opponentRating:w.rating}]};}catch(e){try{await client.query('ROLLBACK');}catch{}throw e;}finally{client.release();}}
+ async function close(){if(!opts.pool)await pool?.end();}return{init,get,applyRace,status:()=>({ready,database:!!pool}),close,cleanAccountId,cleanRaceId,deltaFor,version:2};
 };
