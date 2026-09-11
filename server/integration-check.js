@@ -32,7 +32,11 @@ function peer(playerId){
     close:()=>{try{ws.close()}catch{}}
   };
 }
-
+async function waitUntil(p,type,pred,timeout=5000){
+  const end=Date.now()+timeout;
+  while(Date.now()<end){const m=await p.wait(type,Math.max(50,end-Date.now()));if(pred(m))return m;}
+  throw new Error(`timeout waiting for matching ${type} (${p.playerId})`);
+}
 async function waitForServer(child){
   let output='';
   return new Promise((resolve,reject)=>{
@@ -85,9 +89,29 @@ async function waitForServer(child){
     if(ra.mode!=='quick'||!Array.isArray(ra.players)||ra.players.length!==2)fail('Ranked Quick Race result is missing authoritative player profiles');
     const ranks=new Map(ra.players.map(p=>[p.playerId,p.rankRating]));
     if(ranks.get(a.playerId)!==1030||ranks.get(b.playerId)!==1180)fail('Authoritative Race result did not preserve both MMR values');
+    a.close();b.close();
     console.log('✅ Race server two-client ranked Quick Race integration check passed');
+
+    const c=peer('trade_a'),d=peer('trade_b');peers.push(c,d);await Promise.all([c.open(),d.open()]);
+    c.send({type:'trade:hello',room:'TRD123',playerId:c.playerId,protocol:1});
+    await c.wait('trade:matched');
+    d.send({type:'trade:hello',room:'TRD123',playerId:d.playerId,protocol:1});
+    await d.wait('trade:matched');await c.wait('trade:opponentJoined');
+    c.send({type:'trade:offer',pufflingId:'ember',availableCount:2});
+    d.send({type:'trade:offer',pufflingId:'volt',availableCount:1});
+    const bothOffers=s=>Array.isArray(s.players)&&s.players.length===2&&s.players.every(p=>p.offer?.pufflingId);
+    await Promise.all([waitUntil(c,'trade:state',bothOffers),waitUntil(d,'trade:state',bothOffers)]);
+    c.send({type:'trade:accept'});d.send({type:'trade:accept'});
+    const [pc,pd]=await Promise.all([c.wait('trade:prepare'),d.wait('trade:prepare')]);
+    if(!pc.txId||pc.txId!==pd.txId||pc.transfers?.length!==2)fail('Trade prepare did not create one shared transaction');
+    const ids=new Set(pc.transfers.map(t=>t.pufflingId));if(!ids.has('ember')||!ids.has('volt'))fail('Trade prepare lost one of the offered Pufflings');
+    c.send({type:'trade:prepared',txId:pc.txId,ok:true});d.send({type:'trade:prepared',txId:pd.txId,ok:true});
+    const [cc,cd]=await Promise.all([c.wait('trade:commit'),d.wait('trade:commit')]);
+    if(cc.txId!==pc.txId||cd.txId!==pc.txId)fail('Both players did not receive the same committed trade');
+    if(cc.transfers?.length!==2)fail('Committed trade is missing transfers');
+    console.log('✅ Puffling two-player trade integration check passed');
   }finally{
     peers.forEach(p=>p.close());
     try{server.kill('SIGTERM')}catch{}
   }
-})().catch(err=>{console.error('❌ Race server integration check failed:',err.message||err);process.exitCode=1;});
+})().catch(err=>{console.error('❌ Multiplayer integration check failed:',err.message||err);process.exitCode=1;});

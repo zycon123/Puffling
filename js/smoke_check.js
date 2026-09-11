@@ -8,14 +8,16 @@
   for(const id of requiredDom){if(!document.getElementById(id))missing.push('dom:#'+id);}
   const criticalHandlers=['playBtn','retryBtn','pauseBtn','shopBtn','closeShop','upgradeBtn','closeUpgrades','dailyBtn','multiplayerBtn','closeMultiplayer','quickMatchBtn','createRoomBtn','joinRoomBtn','bossRushBtn','closeBossRush','diagnosticsBtn','closeDiagnostics','leaderboardBtn','closeLeaderboard','audioSettingsBtn','closeAudioSettings','stealMyPufflingBtn'];
   for(const id of criticalHandlers){const el=document.getElementById(id);if(el&&typeof el.onclick!=='function')missing.push('handler:#'+id);}
-  const requiredApis=['skyPuffAchievements','skyPuffAchievementsMenu','skyPuffBetaDiagnostics','skyPuffAIDiagnostics','skyPuffAntiCheat','skyPuffDiagnosticsSupport','skyPuffPlatform','SkyPuffFusion','SkyPuffFusionUI','SkyPuffPufflingGameplay','SkyPuffPufflingProgress','SkyPuffPufflingEvolution','SkyPuffPerformance','SkyPuffPerformanceUI','SkyPuffBossPufflingRewards','SkyPuffRace','SkyPuffRaceUI','SkyPuffRaceTransport','SkyPuffRaceNetwork','SkyPuffRaceProgress','SkyPuffQuickRank','SkyPuffNurseryVault','SkyPuffDiamonds','SkyPuffMysteryShop','SkyPuffUniqueTraits','PufflingBossRush','PufflingBossPersistence','PufflingRaceMode','PufflingBrand','PufflingExtraCollection','PufflingExpansion36'];
+  const requiredApis=['skyPuffAchievements','skyPuffAchievementsMenu','skyPuffBetaDiagnostics','skyPuffAIDiagnostics','skyPuffAntiCheat','skyPuffDiagnosticsSupport','skyPuffPlatform','SkyPuffFusion','SkyPuffFusionUI','SkyPuffPufflingGameplay','SkyPuffPufflingProgress','SkyPuffPufflingEvolution','SkyPuffPerformance','SkyPuffPerformanceUI','SkyPuffBossPufflingRewards','SkyPuffRace','SkyPuffRaceUI','SkyPuffRaceTransport','SkyPuffRaceNetwork','SkyPuffRaceProgress','SkyPuffQuickRank','SkyPuffNurseryVault','SkyPuffDiamonds','SkyPuffMysteryShop','SkyPuffUniqueTraits','PufflingBossRush','PufflingBossPersistence','PufflingRaceMode','PufflingTrade','PufflingBrand','PufflingExtraCollection','PufflingExpansion36'];
   for(const name of requiredApis){if(!window[name])missing.push('api:'+name);}
   const antiReady=!!(window.skyPuffAntiCheat&&window.skyPuffAntiCheat.status&&Number.isFinite(window.skyPuffAntiCheat.status.runStartedAt));if(!antiReady)missing.push('anti-cheat:run-state');
   try{
     const F=window.SkyPuffFusion,s=F?.load?.();
-    if(!s||typeof s.owned!=='object'||!Array.isArray(s.discovered)||!Array.isArray(s.vault))missing.push('puffling:invalid-save');
+    if(!s||typeof s.owned!=='object'||!Array.isArray(s.discovered)||!Array.isArray(s.vault)||!Array.isArray(s.tradeReceipts))missing.push('puffling:invalid-save');
     else if(s.vault.length>3)missing.push('vault:too-many-slots');
     else if(new Set(s.vault).size!==s.vault.length)missing.push('vault:duplicate-slots');
+    if(typeof F?.tradeTransfer!=='function'||typeof F?.availableCount!=='function')missing.push('trade:inventory-api-missing');
+    if(typeof window.SkyPuffPufflingProgress?.reset!=='function')missing.push('trade:xp-reset-missing');
     const total=Object.keys(F?.BASE||{}).length+Object.keys(F?.FUSIONS||{}).length;
     if(total!==100)missing.push('puffling:expected-100-total:'+total);
     if(window.PufflingExtraCollection?.count!==50)missing.push('puffling:extra-50-count');
@@ -46,5 +48,5 @@
   try{const late=window.SkyPuffLateBosses;if(!Array.isArray(late)||late.length!==6)missing.push('late-bosses:expected-6');}catch(e){missing.push('late-bosses:check-failed');}
   try{const fixed=window.PufflingBossRush?.allStages?.()||[];if(fixed.length<10)missing.push('boss-rush:expected-at-least-10-fixed-bosses');}catch(e){missing.push('boss-rush:check-failed');}
   try{if(document.title!=='Puffling')missing.push('brand:title');const h=document.querySelector('#start h1');if(h&&h.textContent.trim()!=='Puffling')missing.push('brand:main-heading');}catch(e){missing.push('brand:check-failed');}
-  const result={ok:missing.length===0,missing,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'unknown',pufflingCount:(Object.keys(window.SkyPuffFusion?.BASE||{}).length+Object.keys(window.SkyPuffFusion?.FUSIONS||{}).length),extraPufflings:window.PufflingExtraCollection?.count||0,expansion36:window.PufflingExpansion36?.count||0,quickRaceRating:window.SkyPuffQuickRank?.profile?.().rating||0,checkedAt:new Date().toISOString()};window.skyPuffSmokeCheck=result;if(result.ok)console.info('Puffling smoke check: OK',result);else console.error('Puffling smoke check failed:',missing);
+  const result={ok:missing.length===0,missing,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'unknown',pufflingCount:(Object.keys(window.SkyPuffFusion?.BASE||{}).length+Object.keys(window.SkyPuffFusion?.FUSIONS||{}).length),extraPufflings:window.PufflingExtraCollection?.count||0,expansion36:window.PufflingExpansion36?.count||0,quickRaceRating:window.SkyPuffQuickRank?.profile?.().rating||0,tradeReady:!!window.PufflingTrade,checkedAt:new Date().toISOString()};window.skyPuffSmokeCheck=result;if(result.ok)console.info('Puffling smoke check: OK',result);else console.error('Puffling smoke check failed:',missing);
 })();
