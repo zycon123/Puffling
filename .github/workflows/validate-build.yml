@@ -29,6 +29,8 @@ jobs:
         run: node scripts/validate-race-ranking.mjs
       - name: Validate Mystery Box vault
         run: node scripts/validate-mystery-box-vault.mjs
+      - name: Validate Diamond wallet client
+        run: node scripts/validate-diamond-wallet.mjs
       - name: Validate Diamond IAP scaffold
         run: node scripts/validate-diamond-iap.mjs
       - name: Validate Puffling duplicates and trading
