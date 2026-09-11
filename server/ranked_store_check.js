@@ -1,16 +1,12 @@
 const assert=require('assert');
 const createRankedStore=require('./ranked_store');
-const store=createRankedStore({databaseUrl:''});
-
-const evenWin=store.deltaFor(1000,1000,true,0);
-const evenLoss=store.deltaFor(1000,1000,false,0);
-assert(evenWin>0,'winner delta must be positive');
-assert(evenLoss<0,'loser delta must be negative');
-assert(Math.abs(evenWin)>=8&&Math.abs(evenWin)<=36,'winner delta bounds');
-assert(Math.abs(evenLoss)>=8&&Math.abs(evenLoss)<=36,'loser delta bounds');
-assert(store.deltaFor(1600,1000,true,20)>0,'favorite win remains positive');
-assert(store.deltaFor(1000,1600,false,20)<0,'underdog loss remains negative');
-assert.strictEqual(store.cleanAccountId(''),'', 'empty account rejected');
-assert.strictEqual(store.cleanAccountId('bad account!'),'', 'unsafe account rejected');
-assert.strictEqual(store.cleanRaceId('race_123'),'RACE_123');
-console.log('ranked_store_check: ok');
+const mathStore=createRankedStore({databaseUrl:''});
+const evenWin=mathStore.deltaFor(1000,1000,true,0),evenLoss=mathStore.deltaFor(1000,1000,false,0);
+assert(evenWin>0);assert(evenLoss<0);assert(Math.abs(evenWin)>=8&&Math.abs(evenWin)<=36);assert(Math.abs(evenLoss)>=8&&Math.abs(evenLoss)<=36);assert(mathStore.deltaFor(1600,1000,true,20)>0);assert(mathStore.deltaFor(1000,1600,false,20)<0);assert.strictEqual(mathStore.cleanAccountId(''),'');assert.strictEqual(mathStore.cleanAccountId('bad account!'),'');assert.strictEqual(mathStore.cleanRaceId('race_123'),'RACE_123');
+function fakePool(){
+ const profiles=new Map(),results=new Map(),locks=new Map();
+ const ensure=id=>{if(!profiles.has(id))profiles.set(id,{account_id:id,rating:1000,wins:0,losses:0,games:0,streak:0,best_rating:1000,last_race_id:'',updated_at:new Date()});return profiles.get(id);};
+ function client(){let unlock=null;return{async query(sql,args=[]){sql=String(sql);if(sql==='BEGIN'||sql==='COMMIT'||sql==='ROLLBACK')return{rows:[]};if(sql.includes('pg_advisory_xact_lock')){const key=args[0];const prev=locks.get(key)||Promise.resolve();let release;const mine=new Promise(r=>release=r);locks.set(key,prev.then(()=>mine));await prev;unlock=()=>{release();if(locks.get(key)===mine)locks.delete(key);};return{rows:[]};}if(sql.startsWith('SELECT * FROM puffling_rank_results'))return{rows:[...(results.get(args[0])||[])]};if(sql.startsWith('INSERT INTO puffling_rank_profiles')){ensure(args[0]);return{rows:[]};}if(sql.startsWith('SELECT * FROM puffling_rank_profiles WHERE account_id=$1'))return{rows:[{...ensure(args[0])}]};if(sql.includes('account_id=ANY'))return{rows:args[0].map(id=>({...ensure(id)})).sort((a,b)=>a.account_id.localeCompare(b.account_id))};if(sql.startsWith('UPDATE puffling_rank_profiles SET rating=$2,wins')){const p=ensure(args[0]);p.rating=args[1];p.wins++;p.games++;p.streak++;p.best_rating=Math.max(p.best_rating,args[1]);p.last_race_id=args[2];p.updated_at=new Date();return{rows:[]};}if(sql.startsWith('UPDATE puffling_rank_profiles SET rating=$2,losses')){const p=ensure(args[0]);p.rating=args[1];p.losses++;p.games++;p.streak=0;p.last_race_id=args[2];p.updated_at=new Date();return{rows:[]};}if(sql.startsWith('INSERT INTO puffling_rank_results')){results.set(args[0],[{race_id:args[0],account_id:args[1],won:true,delta:args[2],before_rating:args[3],after_rating:args[4],opponent_rating:args[5]},{race_id:args[0],account_id:args[6],won:false,delta:args[7],before_rating:args[8],after_rating:args[9],opponent_rating:args[10]}]);return{rows:[]};}throw new Error('Unhandled fake SQL: '+sql);},release(){unlock?.();unlock=null;}};}
+ return{async query(){return{rows:[]}},async connect(){return client();},async end(){},profiles,results};
+}
+(async()=>{const pool=fakePool(),store=createRankedStore({pool});await store.init();const input={raceId:'race_concurrent_1',winnerId:'acct_winner',loserId:'acct_loser'};const [a,b]=await Promise.all([store.applyRace(input),store.applyRace(input)]);assert.strictEqual([a,b].filter(x=>x.applied).length,1,'exactly one concurrent settlement applies');assert.strictEqual([a,b].filter(x=>x.duplicate).length,1,'second concurrent settlement is duplicate');assert.strictEqual(pool.profiles.get('acct_winner').games,1,'winner counted once');assert.strictEqual(pool.profiles.get('acct_loser').games,1,'loser counted once');const duplicate=[a,b].find(x=>x.duplicate);assert(duplicate.results.every(r=>'accountId'in r&&'beforeRating'in r),'duplicate result normalized');await assert.rejects(()=>store.applyRace({raceId:'race_concurrent_1',winnerId:'acct_loser',loserId:'acct_winner'}),/ranked_result_conflict/,'same race cannot be reversed');console.log('ranked_store_check: math + concurrent idempotency ok');})().catch(e=>{console.error(e);process.exitCode=1;});
