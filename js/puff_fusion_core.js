@@ -1,4 +1,4 @@
-/* Puffling — Puff Fusion Core v0.4 */
+/* Puffling — Puff Fusion Core v0.5 */
 (function(){
   const BASE = {
     starterpuff:{id:'starterpuff',name:'Starter Puff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
@@ -27,13 +27,31 @@
     for(const id of STARTER_IDS)if(!discovered.includes(id))discovered.push(id);
     for(const id of Object.keys(owned))if(!discovered.includes(id))discovered.push(id);
     const vault=[...new Set((Array.isArray(s.vault)?s.vault:[]).filter(id=>owned[id]>0))].slice(0,3);
-    return {owned,vault,discovered};
+    const tradeReceipts=[...new Set((Array.isArray(s.tradeReceipts)?s.tradeReceipts:[]).filter(id=>typeof id==='string'&&id.length<=80))].slice(-50);
+    return {owned,vault,discovered,tradeReceipts};
   }
   function load(){try{return normalize(JSON.parse(localStorage.getItem('skyPuffPufflings')||'null'));}catch(e){return normalize(null);}}
   function save(s){const n=normalize(s);localStorage.setItem('skyPuffPufflings',JSON.stringify(n));try{const active=localStorage.getItem('skyPuffActivePuffling');if(active&&!(n.owned[active]>0))localStorage.removeItem('skyPuffActivePuffling');}catch(e){}return n;}
   function add(id,count=1){const s=load(),inc=Math.max(0,Math.floor(+count||0));if(!id||inc<=0)return s;s.owned[id]=(s.owned[id]||0)+inc;if(!s.discovered.includes(id))s.discovered.push(id);return save(s);}
-  function availableCount(s,id){return Math.max(0,(s.owned[id]||0)-(s.vault.includes(id)?1:0));}
-  function canFuse(a,b){const s=load(),recipe=FUSIONS[key(a,b)];if(!recipe)return false;return a===b?availableCount(s,a)>=2:availableCount(s,a)>0&&availableCount(s,b)>0;}
-  function fuse(a,b){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load();if(a===b?availableCount(s,a)<2:availableCount(s,a)<=0||availableCount(s,b)<=0)return {ok:false,reason:'protected_or_missing'};s.owned[a]--;s.owned[b]--;s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state};}
-  window.SkyPuffFusion={BASE,FUSIONS,STARTER_IDS,key,load,save,add,canFuse,fuse,normalize,availableCount:(id)=>availableCount(load(),id)};
+  function availableCountFrom(s,id){return Math.max(0,(s.owned[id]||0)-(s.vault.includes(id)?1:0));}
+  function availableCount(id){return availableCountFrom(load(),id);}
+  function remove(id,count=1){const s=load(),dec=Math.max(0,Math.floor(+count||0));if(!id||dec<=0)return {ok:false,reason:'invalid'};if(availableCountFrom(s,id)<dec)return {ok:false,reason:'protected_or_missing',state:s};s.owned[id]=(s.owned[id]||0)-dec;if(s.owned[id]<=0)delete s.owned[id];const state=save(s);return {ok:true,state,remaining:state.owned[id]||0};}
+  function canFuse(a,b){const s=load(),recipe=FUSIONS[key(a,b)];if(!recipe)return false;return a===b?availableCountFrom(s,a)>=2:availableCountFrom(s,a)>0&&availableCountFrom(s,b)>0;}
+  function fuse(a,b){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load();if(a===b?availableCountFrom(s,a)<2:availableCountFrom(s,a)<=0||availableCountFrom(s,b)<=0)return {ok:false,reason:'protected_or_missing'};s.owned[a]--;s.owned[b]--;s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state};}
+  function tradeTransfer(outgoing,incoming,txId){
+    outgoing=String(outgoing||'');incoming=String(incoming||'');txId=String(txId||'').slice(0,80);
+    const s=load();
+    if(!outgoing||!incoming||!txId)return {ok:false,reason:'invalid_trade',state:s};
+    if(STARTER_IDS.includes(outgoing)||STARTER_IDS.includes(incoming))return {ok:false,reason:'starter_locked',state:s};
+    if(s.tradeReceipts.includes(txId))return {ok:true,duplicate:true,state:s,outgoingRemaining:s.owned[outgoing]||0,incomingWasNew:false};
+    if(availableCountFrom(s,outgoing)<1)return {ok:false,reason:'protected_or_missing',state:s};
+    const incomingWasNew=(s.owned[incoming]||0)===0;
+    s.owned[outgoing]=(s.owned[outgoing]||0)-1;if(s.owned[outgoing]<=0)delete s.owned[outgoing];
+    s.owned[incoming]=(s.owned[incoming]||0)+1;
+    if(!s.discovered.includes(incoming))s.discovered.push(incoming);
+    s.tradeReceipts=[...(s.tradeReceipts||[]),txId].slice(-50);
+    const state=save(s);
+    return {ok:true,duplicate:false,state,outgoingRemaining:state.owned[outgoing]||0,incomingWasNew};
+  }
+  window.SkyPuffFusion={BASE,FUSIONS,STARTER_IDS,key,load,save,add,remove,canFuse,fuse,normalize,availableCount,tradeTransfer};
 })();
