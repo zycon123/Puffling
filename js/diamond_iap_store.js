@@ -1,4 +1,4 @@
-/* Puffling — Diamond Store / native IAP scaffold v1.0
+/* Puffling — Diamond Store / native IAP scaffold v1.1
  * Real-money purchases are intentionally disabled in the web beta.
  * A native App Store / Google Play bridge AND server verification endpoint
  * must both be available before a purchase can grant diamonds.
@@ -6,11 +6,10 @@
 (function(){
   const RECEIPT_KEY='pufflingIapReceiptsV1';
   const CATALOG=[
-    {id:'puffling.diamonds.100',diamonds:100,label:'100 Diamonds',tag:'Starter'},
-    {id:'puffling.diamonds.300',diamonds:300,label:'300 Diamonds',tag:'Popular'},
-    {id:'puffling.diamonds.750',diamonds:750,label:'750 Diamonds',tag:'Bonus'},
-    {id:'puffling.diamonds.1600',diamonds:1600,label:'1 600 Diamonds',tag:'Great value'},
-    {id:'puffling.diamonds.3500',diamonds:3500,label:'3 500 Diamonds',tag:'Best value'}
+    {id:'puffling.diamonds.25',diamonds:25,label:'25 Diamonds',tag:'1 Mystery Box',targetEur:1},
+    {id:'puffling.diamonds.75',diamonds:75,label:'75 Diamonds',tag:'3 Mystery Boxer',targetEur:3},
+    {id:'puffling.diamonds.250',diamonds:250,label:'250 Diamonds',tag:'10 Mystery Boxer',targetEur:9},
+    {id:'puffling.diamonds.600',diamonds:600,label:'600 Diamonds',tag:'Best value',targetEur:16}
   ];
   let productMeta=new Map();
   let busy=false;
@@ -32,6 +31,7 @@
   function rememberReceipt(tx){const id=String(tx||'');if(!id)return;const arr=receipts();if(!arr.includes(id)){arr.push(id);try{localStorage.setItem(RECEIPT_KEY,JSON.stringify(arr.slice(-200)));}catch(e){}}}
   function hasReceipt(tx){return receipts().includes(String(tx||''));}
   function catalog(){return CATALOG.map(p=>({...p,...(productMeta.get(p.id)||{})}));}
+  function targetPriceLabel(product){return `€${Number(product.targetEur).toFixed(0)}`;}
   function setMessage(text,type='info'){
     const el=typeof document!=='undefined'?document.getElementById('diamondStoreStatus'):null;if(!el)return;
     el.textContent=text||'';el.dataset.type=type;
@@ -42,7 +42,7 @@
     const s=status();list.innerHTML='';
     catalog().forEach(p=>{
       const btn=document.createElement('button');btn.className='diamondIapPack';btn.disabled=!s.canPurchase||busy;
-      const price=p.displayPrice||p.priceLabel||(s.platform==='web'?'Kun i app':'Pris lastes fra butikk');
+      const price=p.displayPrice||p.priceLabel||(s.platform==='web'?`${targetPriceLabel(p)} målpris`:`${targetPriceLabel(p)} • pris lastes fra butikk`);
       btn.innerHTML=`<span class="diamondIapAmount">💎 ${p.diamonds.toLocaleString('nb-NO')}</span><span class="diamondIapTag">${p.tag||''}</span><span class="diamondIapPrice">${price}</span>`;
       btn.onclick=()=>purchase(p.id);list.appendChild(btn);
     });
@@ -116,7 +116,7 @@
     const style=document.createElement('style');style.id='diamondIapCss';style.textContent=`#diamondStoreProducts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.diamondIapPack{display:flex!important;flex-direction:column;align-items:center;gap:3px;padding:12px 8px!important;min-height:82px}.diamondIapAmount{font-size:17px;font-weight:1000}.diamondIapTag{font-size:10px;opacity:.65;font-weight:900}.diamondIapPrice{font-size:12px;font-weight:1000;margin-top:3px}#diamondStoreStatus[data-type="error"]{color:#9c2635}#diamondStoreStatus[data-type="success"]{color:#187343}@media(max-width:420px){#diamondStoreProducts{grid-template-columns:1fr}}`;
     document.head.appendChild(style);
     const el=document.createElement('div');el.id='diamondStoreMenu';el.className='overlay';el.style.display='none';
-    el.innerHTML=`<div class="card" style="max-width:520px;max-height:92dvh;overflow-y:auto"><h1 style="font-size:32px">Diamond Store 💎</h1><div style="font-size:22px;font-weight:1000">Saldo: 💎 <span id="diamondStoreBalance">0</span></div><div id="diamondStoreAvailability" class="small" style="margin:8px 0"></div><div id="diamondStoreProducts"></div><div id="diamondStoreStatus" class="small" style="min-height:18px;margin:8px 0"></div><div class="small" style="text-align:left;background:rgba(255,255,255,.6);padding:11px;border-radius:14px;line-height:1.5">Diamanter er forbruksvaluta og utløper ikke. Pris og valuta hentes fra App Store eller Google Play. Kjøpet verifiseres før saldoen oppdateres.</div><button id="closeDiamondStore" class="secondary" style="margin-top:12px">TILBAKE</button></div>`;
+    el.innerHTML=`<div class="card" style="max-width:520px;max-height:92dvh;overflow-y:auto"><h1 style="font-size:32px">Diamond Store 💎</h1><div style="font-size:22px;font-weight:1000">Saldo: 💎 <span id="diamondStoreBalance">0</span></div><div id="diamondStoreAvailability" class="small" style="margin:8px 0"></div><div id="diamondStoreProducts"></div><div id="diamondStoreStatus" class="small" style="min-height:18px;margin:8px 0"></div><div class="small" style="text-align:left;background:rgba(255,255,255,.6);padding:11px;border-radius:14px;line-height:1.5">Målpriser: 25 💎 = €1 • 75 💎 = €3 • 250 💎 = €9 • 600 💎 = €16. Endelig pris/valuta vises av App Store eller Google Play. Kjøpet verifiseres før saldoen oppdateres.</div><button id="closeDiamondStore" class="secondary" style="margin-top:12px">TILBAKE</button></div>`;
     document.body.appendChild(el);
     document.getElementById('closeDiamondStore').onclick=()=>{el.style.display='none';const ms=document.getElementById('mysteryShopMenu');if(ms)ms.style.display='flex';else document.getElementById('start').style.display='flex';};
     const addEntry=()=>{
