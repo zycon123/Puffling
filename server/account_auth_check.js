@@ -1,0 +1,11 @@
+const assert=require('assert');
+const createAccountAuth=require('./account_auth');
+const auth=createAccountAuth({secret:'0123456789abcdef0123456789abcdef',ttlSeconds:3600});
+assert.strictEqual(auth.enabled(),true);
+const token=auth.issue('player_123');
+const verified=auth.verify(token);
+assert.strictEqual(verified.ok,true);
+assert.strictEqual(verified.accountId,'player_123');
+assert.strictEqual(auth.verify(token+'x').ok,false);
+assert.strictEqual(createAccountAuth({secret:''}).enabled(),false);
+console.log('account_auth_check: ok');
