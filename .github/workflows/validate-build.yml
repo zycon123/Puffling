@@ -21,6 +21,8 @@ jobs:
         run: node scripts/validate-build.mjs
       - name: Validate runtime models
         run: node scripts/validate-runtime-models.mjs
+      - name: Simulate full launch gameplay journey
+        run: node scripts/validate-launch-simulation.mjs
       - name: Validate Race HUD and desktop playfield
         run: node scripts/validate-race-hud.mjs
       - name: Validate deterministic Race course

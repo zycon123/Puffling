@@ -14,12 +14,17 @@ function cleanReason(v){return String(v||'').replace(/[^A-Za-z0-9._:-]/g,'').sli
 function b64url(buf){return Buffer.from(buf).toString('base64url');}
 function timingSafe(a,b){try{const A=Buffer.from(String(a||'')),B=Buffer.from(String(b||''));return A.length===B.length&&crypto.timingSafeEqual(A,B);}catch{return false;}}
 function hashClientKey(key){return crypto.createHash('sha256').update(String(key||'')).digest('hex');}
+function secureDatabaseUrl(value){
+  const url=String(value||'').trim();
+  if(!url||/localhost|127\.0\.0\.1/.test(url))return url;
+  return url.replace(/([?&])sslmode=require(?=(&|$))/i,'$1sslmode=verify-full');
+}
 
 module.exports=function createIapStore(opts={}){
-  const databaseUrl=String(opts.databaseUrl??process.env.DATABASE_URL??'').trim();
+  const databaseUrl=secureDatabaseUrl(opts.databaseUrl??process.env.DATABASE_URL??'');
   const walletSecret=String(opts.walletSecret??process.env.PUFFLING_WALLET_SECRET??'').trim();
   const providerMode=String(opts.providerMode??process.env.PUFFLING_IAP_PROVIDER_MODE??'disabled').trim().toLowerCase();
-  const pool=opts.pool||((databaseUrl)?new Pool({connectionString:databaseUrl,ssl:databaseUrl.includes('localhost')?false:{rejectUnauthorized:false},max:4}):null);
+  const pool=opts.pool||((databaseUrl)?new Pool({connectionString:databaseUrl,max:4}):null);
   let ready=false;
 
   function sign(walletId){

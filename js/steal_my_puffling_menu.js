@@ -63,7 +63,7 @@
  }
  async function shareCode(){
   if(!hostCode)return;const t=tr();
-  const text=`Sky Puff — Race My Puffling\n${t.placeholder}: ${hostCode}`;
+  const text=`Puffling — Race My Puffling\n${t.placeholder}: ${hostCode}`;
   if(navigator.share){try{await navigator.share({title:'Race My Puffling',text,url:location.href});return;}catch(e){if(e&&e.name==='AbortError')return;}}
   await copyCode();
  }
