@@ -1,4 +1,4 @@
-/* Puffling — Puff Fusion Core v0.5 */
+/* Puffling — Puff Fusion Core v0.6 */
 (function(){
   const BASE = {
     starterpuff:{id:'starterpuff',name:'Starter Puff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
@@ -36,8 +36,8 @@
   function availableCountFrom(s,id){return Math.max(0,(s.owned[id]||0)-(s.vault.includes(id)?1:0));}
   function availableCount(id){return availableCountFrom(load(),id);}
   function remove(id,count=1){const s=load(),dec=Math.max(0,Math.floor(+count||0));if(!id||dec<=0)return {ok:false,reason:'invalid'};if(availableCountFrom(s,id)<dec)return {ok:false,reason:'protected_or_missing',state:s};s.owned[id]=(s.owned[id]||0)-dec;if(s.owned[id]<=0)delete s.owned[id];const state=save(s);return {ok:true,state,remaining:state.owned[id]||0};}
-  function canFuse(a,b){const s=load(),recipe=FUSIONS[key(a,b)];if(!recipe)return false;return a===b?availableCountFrom(s,a)>=2:availableCountFrom(s,a)>0&&availableCountFrom(s,b)>0;}
-  function fuse(a,b){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load();if(a===b?availableCountFrom(s,a)<2:availableCountFrom(s,a)<=0||availableCountFrom(s,b)<=0)return {ok:false,reason:'protected_or_missing'};s.owned[a]--;s.owned[b]--;s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state};}
+  function canFuse(a,b,opts={}){const s=load(),recipe=FUSIONS[key(a,b)];if(!recipe)return false;if(opts.crystal){return a===b?availableCountFrom(s,a)>=1:availableCountFrom(s,a)>0&&availableCountFrom(s,b)>0;}return a===b?availableCountFrom(s,a)>=2:availableCountFrom(s,a)>0&&availableCountFrom(s,b)>0;}
+  function fuse(a,b,opts={}){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load(),crystal=!!opts.crystal;if(!canFuse(a,b,{crystal}))return {ok:false,reason:'protected_or_missing'};if(crystal){s.owned[a]--;if(s.owned[a]<=0)delete s.owned[a];}else{s.owned[a]--;s.owned[b]--;if(s.owned[a]<=0)delete s.owned[a];if(s.owned[b]<=0)delete s.owned[b];}s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state,crystalUsed:crystal,preservedParent:crystal?b:null};}
   function tradeTransfer(outgoing,incoming,txId){
     outgoing=String(outgoing||'');incoming=String(incoming||'');txId=String(txId||'').slice(0,80);
     const s=load();
@@ -53,5 +53,5 @@
     const state=save(s);
     return {ok:true,duplicate:false,state,outgoingRemaining:state.owned[outgoing]||0,incomingWasNew};
   }
-  window.SkyPuffFusion={BASE,FUSIONS,STARTER_IDS,key,load,save,add,remove,canFuse,fuse,normalize,availableCount,tradeTransfer};
+  window.SkyPuffFusion={BASE,FUSIONS,STARTER_IDS,key,load,save,add,remove,canFuse,fuse,normalize,availableCount,tradeTransfer,crystalFusion:true};
 })();
