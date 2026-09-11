@@ -3,10 +3,10 @@
   "version": "0.4.0",
   "private": true,
   "description": "Authoritative WebSocket server for Puffling Race, trades and Diamond wallet",
-  "main": "index.js",
+  "main": "bootstrap.js",
   "scripts": {
-    "start": "node index.js",
-    "check": "node --check index.js && node --check trade.js && node --check iap_store.js && node --check integration-check.js && node integration-check.js && node iap-check.js"
+    "start": "node bootstrap.js",
+    "check": "node --check bootstrap.js && node --check index.js && node --check trade.js && node --check iap_store.js && node --check iap_http.js && node --check integration-check.js && node integration-check.js && node iap-check.js"
   },
   "engines": {
     "node": ">=22"
