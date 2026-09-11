@@ -1,4 +1,4 @@
-var SKY_PUFF_VERSION='5.27-beta.105';
+var SKY_PUFF_VERSION='5.27-beta.106';
 var SKY_PUFF_BETA=true;
 var SKY_PUFF_SUPPORT_EMAIL='zyconstudios@protonmail.com';
 var SKY_PUFF_RACE_WS_URL='wss://puffling-race-server.onrender.com';

@@ -1,5 +1,11 @@
 # Sky Puff Beta Changelog
 
+## 5.27-beta.106
+- Keep the Zycon Studios splash visible until every ordered gameplay and menu module has finished loading.
+- Enable the main menu and emit the public ready signal together, eliminating the visible-but-inert first-tap window.
+- Hide Cosmetics and Upgrades in the initial HTML so they cannot intercept input before startup initialization.
+- Add regression coverage for end-of-loader readiness and first-paint overlay visibility.
+
 ## 5.26-beta.89
 - Retry a failed module request up to two times before stopping startup.
 - Keep the main menu inactive until the entire ordered module list has loaded.

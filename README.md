@@ -1,6 +1,6 @@
 # Puffling
 
-Puffling `5.27-beta.105` – Zycon Studios browser beta.
+Puffling `5.27-beta.106` – Zycon Studios browser beta.
 
 **Stable beta entry:** `beta42.html`  
 **Beta support:** `zyconstudios@protonmail.com`

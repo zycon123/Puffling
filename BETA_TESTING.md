@@ -1,13 +1,13 @@
 # Puffling Beta Testing
 
-Build: `5.27-beta.105`
+Build: `5.27-beta.106`
 
 Stable test entry: `beta42.html`
 
 Support: `zyconstudios@protonmail.com`
 
 ## Critical test flow
-1. Open `beta42.html` and confirm the Zycon Studios splash reaches the Puffling main menu without a frozen/black screen.
+1. Open `beta42.html` and confirm the Zycon Studios splash stays visible until startup is complete, then every visible main-menu button responds on its first tap without a warm-up tap.
 2. On a fresh profile choose exactly one of the 3 starter Pufflings. Confirm Race My Puffling unlocks after selection and the chooser cannot grant a second free starter.
 3. Open Puffdex. Confirm all 100 Pufflings are visible in the catalog, starters are identifiable, and the other 97 show evolution progression. Check a level-10 and level-20 Puffling for Evolved/Ascended presentation.
 4. Confirm English is the default on a fresh profile; change language, refresh/reopen and verify persistence.

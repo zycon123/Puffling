@@ -42,7 +42,9 @@ if(audioPos<0||gamePos<0||audioPos>gamePos)fail('audio_theme.js must load before
 
 const requiredIds=['game','start','playBtn','pauseBtn','gameOver','shop','upgrades','bossBarWrap','bossBar','bossRushMenu','multiplayerMenu','leaderboardMenu','audioSettings','bgMusic','toast'];
 for(const id of requiredIds)if(!index.includes(`id="${id}"`)&&!index.includes(`id='${id}'`))fail(`Missing required DOM id: ${id}`);
-if(!/id=["']gameOver["'][^>]*style=["'][^"']*display\s*:\s*none/i.test(index))fail('gameOver overlay must be hidden in initial HTML');else ok('Game-over overlay starts hidden');
+for(const id of ['gameOver','shop','upgrades'])if(!new RegExp(`id=["']${id}["'][^>]*style=["'][^"']*display\\s*:\\s*none`,'i').test(index))fail(`${id} overlay must be hidden in initial HTML`);else ok(`${id} overlay starts hidden`);
+if(!/function\s+finishLoading\s*\(\)[\s\S]*__skyPuffModulesReady\s*=\s*true[\s\S]*sky-puff-ready/.test(game))fail('Public ready signal must be emitted by the completed module loader');else ok('Main menu readiness waits for every module');
+if(/dispatchEvent\s*\(\s*new\s+Event\s*\(\s*['"]sky-puff-ready/.test(fs.readFileSync(path.join(root,'js/renderer_runtime.js'),'utf8')))fail('Renderer must not expose the menu before later modules finish loading');else ok('Renderer core cannot release the startup splash early');
 if(!/style\.css\?v=/i.test(index)||!/game\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
 
 if(!/cache\s*:\s*['"]no-store['"]/i.test(stable))fail('Stable loader must fetch index.html with no-store');
