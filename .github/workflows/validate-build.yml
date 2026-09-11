@@ -25,6 +25,8 @@ jobs:
         run: node scripts/validate-launch-simulation.mjs
       - name: Soak-test all bosses and 300000m endless run
         run: node scripts/validate-full-game-endurance.mjs
+      - name: Validate all-boss reward session sync
+        run: node scripts/validate-boss-session-sync.mjs
       - name: Validate Race HUD and desktop playfield
         run: node scripts/validate-race-hud.mjs
       - name: Validate deterministic Race course
