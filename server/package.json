@@ -6,7 +6,7 @@
   "main": "bootstrap.js",
   "scripts": {
     "start": "node bootstrap.js",
-    "check": "node --check bootstrap.js && node --check index.js && node --check trade.js && node --check account_auth.js && node --check account_http.js && node --check account_auth_check.js && node --check iap_store.js && node --check iap_http.js && node --check leaderboard_store.js && node --check leaderboard_http.js && node --check ranked_store.js && node --check ranked_http.js && node --check ranked_store_check.js && node --check integration-check.js && node --check leaderboard-check.js && node account_auth_check.js && node ranked_store_check.js && node integration-check.js && node iap-check.js && node leaderboard-check.js"
+    "check": "node --check bootstrap.js && node --check index.js && node --check trade.js && node --check trade_inventory_store.js && node --check account_auth.js && node --check account_http.js && node --check account_auth_check.js && node --check iap_store.js && node --check iap_http.js && node --check leaderboard_store.js && node --check leaderboard_http.js && node --check ranked_store.js && node --check ranked_http.js && node --check ranked_store_check.js && node --check integration-check.js && node --check leaderboard-check.js && node account_auth_check.js && node ranked_store_check.js && node integration-check.js && node iap-check.js && node leaderboard-check.js"
   },
   "engines": {"node": ">=22"},
   "dependencies": {"pg": "^8.13.1","ws": "^8.18.0"}
