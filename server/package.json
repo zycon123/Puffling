@@ -6,7 +6,7 @@
   "main": "bootstrap.js",
   "scripts": {
     "start": "node bootstrap.js",
-    "check": "node --check bootstrap.js && node --check index.js && node --check trade.js && node --check iap_store.js && node --check iap_http.js && node --check leaderboard_store.js && node --check leaderboard_http.js && node --check ranked_store.js && node --check integration-check.js && node --check leaderboard-check.js && node integration-check.js && node iap-check.js && node leaderboard-check.js"
+    "check": "node --check bootstrap.js && node --check index.js && node --check trade.js && node --check iap_store.js && node --check iap_http.js && node --check leaderboard_store.js && node --check leaderboard_http.js && node --check ranked_store.js && node --check ranked_store_check.js && node --check integration-check.js && node --check leaderboard-check.js && node ranked_store_check.js && node integration-check.js && node iap-check.js && node leaderboard-check.js"
   },
   "engines": {
     "node": ">=22"
