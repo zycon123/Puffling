@@ -50,9 +50,9 @@ for(const token of ['pufflingQuickRaceRankV1','server-required','duplicate-resul
 if(!raceServer.includes('rankRating')||!raceServer.includes('players:[...room.players.values()].map(playerPublic)'))fail('Race server does not relay authoritative MMR/player profiles');
 else ok('Ranked Quick Race is server-result-only with authoritative opponent MMR');
 
-for(const token of ['puffling.diamonds.100','puffling.diamonds.3500','verificationData','diamondBalance',"['ios','android'].includes(platform())"]){if(!iap.includes(token))fail(`Diamond IAP scaffold missing invariant: ${token}`);}
+for(const token of ['puffling.diamonds.25','puffling.diamonds.75','puffling.diamonds.250','puffling.diamonds.600','targetEur:1','targetEur:3','targetEur:9','targetEur:16','verificationData','diamondBalance',"['ios','android'].includes(platform())"]){if(!iap.includes(token))fail(`Diamond IAP scaffold missing invariant: ${token}`);}
 if(!iap.includes('loadProducts')||!iap.includes('finishTransaction'))fail('Diamond IAP native bridge contract is incomplete');
-else ok('Diamond IAP scaffold requires native billing and authoritative verification');
+else ok('Diamond IAP scaffold requires native billing, requested EUR targets and authoritative verification');
 
 if(!beta.includes("SKY_PUFF_RACE_WS_URL='wss://puffling-race-server.onrender.com'"))fail('Production Race/Trade WebSocket endpoint is not configured in beta');
 else ok('Production Race/Trade WebSocket endpoint is configured');
