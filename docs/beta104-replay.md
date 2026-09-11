@@ -1,0 +1,1 @@
+Boss Session settlement is idempotent for an existing matching grant and rejects conflicting grant identities.
