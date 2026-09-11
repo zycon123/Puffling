@@ -1,8 +1,3 @@
-databases:
-  - name: puffling-game-db
-    plan: free
-    region: frankfurt
-
 services:
   - type: web
     name: puffling-race-server
@@ -14,8 +9,6 @@ services:
     autoDeploy: true
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: puffling-game-db
-          property: connectionString
+        sync: false
       - key: PUFFLING_IAP_PROVIDER_MODE
         value: disabled
