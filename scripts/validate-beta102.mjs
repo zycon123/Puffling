@@ -3,10 +3,12 @@ let failed=0;const ok=m=>console.log('✓',m),bad=m=>{console.error('✗',m);fai
 const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const boss=read('js/puffling_boss_rewards.js'),http=read('server/acquisition_http.js'),store=read('server/acquisition_store.js'),server=read('server/index.js'),boot=read('server/bootstrap.js'),transport=read('js/race_multiplayer_transport.js');
 for(const t of ['/api/acquisition/boss','authorization','serverAuthoritative'])boss.includes(t)?ok('Boss client '+t):bad('Boss client missing '+t);
-const granted=/const grant=await requestGrant\(key,id\);applyGranted\(grant\.pufflingId\|\|id\)/.test(boss);granted?ok('Boss reward applies only after awaited server grant'):bad('Boss grant/apply ordering missing');
+if(boss.includes('body:JSON.stringify({bossRef:key})')&&!boss.includes('JSON.stringify({bossRef:key,pufflingId'))ok('Client cannot choose boss reward Puffling');else bad('Client still chooses boss reward');
+if(/const grant=await requestGrant\(key\);[\s\S]*applyGranted\(grant\.pufflingId\)/.test(boss))ok('Boss reward applies only after server grant');else bad('Boss grant/apply ordering missing');
 if(boss.includes('F.add(id,1)')&&boss.includes('function applyGranted'))ok('Local collection update isolated behind granted apply');else bad('Granted apply missing');
-for(const t of ['auth.verify','bossGrantId','serverAuthoritative'])http.includes(t)?ok('Acquisition API '+t):bad('Acquisition API missing '+t);
-for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK'])store.includes(t)?ok('Acquisition store '+t):bad('Acquisition store missing '+t);
+for(const t of ['auth.verify','bossGrantId','serverAuthoritative','crypto.randomInt','REWARDS','getGrant'])http.includes(t)?ok('Acquisition API '+t):bad('Acquisition API missing '+t);
+if(!http.includes('data?.pufflingId'))ok('Acquisition API ignores client Puffling selection');else bad('Acquisition API accepts client Puffling selection');
+for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK','getGrant',"pufflingId!=='NONE'"])store.includes(t)?ok('Acquisition store '+t):bad('Acquisition store missing '+t);
 for(const t of ['createAcquisitionStore','createAcquisitionHttp','handleAcquisition'])boot.includes(t)?ok('Bootstrap '+t):bad('Bootstrap missing '+t);
 for(const t of ['BOT_WAIT_MS=8000','difficulty:\'medium\'','BOT_MEDIUM','bot:true','rankServerAuthoritative:false'])transport.includes(t)?ok('Race bot '+t):bad('Race bot missing '+t);
 if(transport.includes('bot.attacksUsed<3')&&transport.includes('bot.attacksUsed++'))ok('Race bot capped at three attacks');else bad('Race bot attack cap missing');
