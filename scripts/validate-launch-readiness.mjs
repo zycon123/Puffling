@@ -13,15 +13,16 @@ const render=read('render.yaml');
 const race=read('js/steal_my_puff_core.js');
 const progress=read('js/race_progress_sync.js');
 const ranked=read('js/race_ranked.js');
+const iap=read('js/diamond_iap_store.js');
 const raceServer=read('server/index.js');
 const beta=read('js/beta_config.js');
 
 if(smoke.includes("'SkyPuffSteal'")||smoke.includes('steal:box-weight'))fail('Smoke Check still depends on retired Steal My Puffling API');
 else ok('Smoke Check no longer depends on retired Steal API');
-for(const token of ['SkyPuffRace','SkyPuffRaceProgress','SkyPuffQuickRank','expected-100-total','PufflingExpansion36','SkyPuffUniqueTraits']){
+for(const token of ['SkyPuffRace','SkyPuffRaceProgress','SkyPuffQuickRank','PufflingDiamondStore','expected-100-total','PufflingExpansion36','SkyPuffUniqueTraits']){
   if(!smoke.includes(token))fail(`Smoke Check missing current launch invariant: ${token}`);
 }
-if(!process.exitCode)ok('Smoke Check covers current Race, rank and 100-Puffling systems');
+if(!process.exitCode)ok('Smoke Check covers current Race, rank, IAP and 100-Puffling systems');
 
 if(!nursery.includes('allPuffs().filter(p=>!p.starterOnly)'))fail('Starter Pufflings can leak into Nursery egg pools');
 else ok('Starter Pufflings are exclusive to starter selection');
@@ -30,7 +31,7 @@ else ok('Vault copy matches current Fusion protection behavior');
 
 if(!runtime.includes('Puffling catalog must contain 100 entries'))fail('Runtime regression suite still expects the old catalog size');
 else ok('Runtime regression suite validates the 100-Puffling catalog');
-for(const code of ['PFL-SMOKE-001','PFL-SAVE-001','PFL-RUNTIME-001','PFL-AC-001','PFL-AI-001','PFL-LAUNCH-101','PFL-LAUNCH-102']){
+for(const code of ['PFL-SMOKE-001','PFL-SAVE-001','PFL-RUNTIME-001','PFL-AC-001','PFL-AI-001','PFL-LAUNCH-101','PFL-LAUNCH-102','PFL-LAUNCH-103']){
   if(!diagnostics.includes(code))fail(`Diagnostics missing code ${code}`);
 }
 if(!process.exitCode)ok('System & Support exposes actionable error and launch codes');
@@ -49,8 +50,14 @@ for(const token of ['pufflingQuickRaceRankV1','server-required','duplicate-resul
 if(!raceServer.includes('rankRating')||!raceServer.includes('players:[...room.players.values()].map(playerPublic)'))fail('Race server does not relay authoritative MMR/player profiles');
 else ok('Ranked Quick Race is server-result-only with authoritative opponent MMR');
 
+for(const token of ['puffling.diamonds.100','puffling.diamonds.3500','verificationData','diamondBalance',"['ios','android'].includes(platform())"]){if(!iap.includes(token))fail(`Diamond IAP scaffold missing invariant: ${token}`);}
+if(!iap.includes('loadProducts')||!iap.includes('finishTransaction'))fail('Diamond IAP native bridge contract is incomplete');
+else ok('Diamond IAP scaffold requires native billing and authoritative verification');
+
 if(!beta.includes("SKY_PUFF_RACE_WS_URL='wss://puffling-race-server.onrender.com'"))fail('Production Race/Trade WebSocket endpoint is not configured in beta');
 else ok('Production Race/Trade WebSocket endpoint is configured');
+if(!beta.includes("SKY_PUFF_IAP_VERIFY_URL=''"))fail('Beta should keep paid IAP disabled until the production verifier is deployed');
+else ok('Real-money IAP remains fail-closed until verifier deployment');
 if(!/SKY_PUFF_VERSION='5\.26-beta\.\d+'/.test(beta))fail('Beta version format is invalid');
 else ok('Build has an explicit beta release version');
 
