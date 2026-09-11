@@ -70,3 +70,7 @@ function context(seed={}){
 const gameplay=source('js/puffling_gameplay.js');
 if(/awardRunPuffling|skyPuffPufflingRunRewardV1|score\s*>=\s*600/.test(gameplay)||!gameplay.includes('runHeightReward:false'))fail('Pre-boss automatic Puffling grant is active');
 ok('First run cannot award extra Pufflings before a verified boss reward');
+
+const index=source('index.html'),diagnostics=source('js/diagnostics_support.js');
+if(!index.includes('id="resetBetaDataBtn"')||!diagnostics.includes('clearPufflingStorage')||!diagnostics.includes("storage.getItem('skyPuffLang')")||!diagnostics.includes('/^(skyPuff|puffling)/i'))fail('Safe beta reset control is missing or can clear unrelated origin data');
+ok('System & Support offers a scoped clean-profile reset while preserving language');
