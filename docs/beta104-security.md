@@ -1,0 +1,1 @@
+Boss reward security boundary: clients submit only a Boss Session identifier; reward selection and settlement remain server-side. Settlement locks the Boss Session and grant identity in PostgreSQL and commits inventory, receipt, and proof consumption together.
