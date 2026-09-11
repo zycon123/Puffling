@@ -25,7 +25,7 @@ const rooms = new Map();
 let quickWaiting = null;
 let nextRaceId = 1;
 const trade = createTradeService();
-const accountAuth = createAccountAuth();
+const accountAuth = global.PufflingAccountAuth || createAccountAuth();
 const rankedStore = global.PufflingRankedStore || null;
 
 function now(){ return Date.now(); }
@@ -38,7 +38,7 @@ function makeRaceId(){return `RACE_${now().toString(36)}_${nextRaceId++}`.toUppe
 function makeCourseSeed(id){return `${id}_${crypto.randomBytes(6).toString('hex')}`;}
 function roomCourse(room){return {courseSeed:room.courseSeed,courseVersion:COURSE_VERSION};}
 function createRoom(id,kind='friend'){const room={id,kind,courseSeed:makeCourseSeed(id),players:new Map(),createdAt:now(),startedAt:0,resumeAt:0,paused:false,finishedAt:0,winnerId:null,rankResult:null,rankPromise:null};rooms.set(id,room);return room;}
-function playerPublic(p){return {playerId:p.playerId,pufflingId:p.pufflingId||null,skin:p.skin||null,evolutionStage:p.evolutionStage||0,rankRating:p.rankRating||1000,rankAuthenticated:!!p.accountId,ready:!!p.ready,connected:!!p.connected,height:p.height||0,x:p.x||0,y:p.y??null,worldY:p.worldY??null,attacksUsed:p.attacksUsed||0};}
+function playerPublic(p){return {playerId:p.playerId,accountId:p.accountId||null,pufflingId:p.pufflingId||null,skin:p.skin||null,evolutionStage:p.evolutionStage||0,rankRating:p.rankRating||1000,rankAuthenticated:!!p.accountId,ready:!!p.ready,connected:!!p.connected,height:p.height||0,x:p.x||0,y:p.y??null,worldY:p.worldY??null,attacksUsed:p.attacksUsed||0};}
 function broadcast(room,msg,exceptId=null){for(const p of room.players.values())if(p.playerId!==exceptId&&p.connected)safeJson(p.ws,msg);}
 function raceHasStarted(room,at=now()){return !!room.startedAt&&at+START_GRACE_MS>=room.startedAt;}
 function raceAcceptingInput(room,at=now()){if(!raceHasStarted(room,at)||room.paused)return false;return !room.resumeAt||at+START_GRACE_MS>=room.resumeAt;}
