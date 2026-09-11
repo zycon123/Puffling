@@ -24,9 +24,11 @@ module.exports=function createIapStore(opts={}){
   const databaseUrl=secureDatabaseUrl(opts.databaseUrl??process.env.DATABASE_URL??'');
   const walletSecret=String(opts.walletSecret??process.env.PUFFLING_WALLET_SECRET??'').trim();
   const providerMode=String(opts.providerMode??process.env.PUFFLING_IAP_PROVIDER_MODE??'disabled').trim().toLowerCase();
+  const providerVerifier=typeof opts.providerVerifier==='function'?opts.providerVerifier:null;
   const pool=opts.pool||((databaseUrl)?new Pool({connectionString:databaseUrl,max:4}):null);
   let ready=false;
 
+  function providerReady(){return providerMode==='apple_google'&&!!providerVerifier;}
   function sign(walletId){
     if(!walletSecret)throw new Error('wallet_secret_missing');
     const body=b64url(JSON.stringify({v:1,w:walletId}));
@@ -107,9 +109,15 @@ module.exports=function createIapStore(opts={}){
     const expected=PRODUCT_DIAMONDS[productId];if(!expected)throw new Error('unknown_product');
     if(!['ios','android'].includes(platform))throw new Error('invalid_platform');
     if(!transactionId||!verificationData)throw new Error('invalid_purchase_payload');
-    // Production remains fail-closed until direct Apple/Google verification is implemented with store credentials.
     if(providerMode!=='apple_google')throw new Error('provider_not_configured');
-    throw new Error('provider_verifier_not_implemented');
+    if(!providerVerifier)throw new Error('provider_verifier_not_implemented');
+    const out=await providerVerifier({platform,productId,transactionId,verificationData,expectedDiamonds:expected});
+    if(!out||out.valid!==true)throw new Error('invalid_store_receipt');
+    if(String(out.platform||platform).toLowerCase()!==platform)throw new Error('provider_platform_mismatch');
+    if(String(out.productId||'')!==productId)throw new Error('provider_product_mismatch');
+    if(cleanTransaction(out.transactionId)!==transactionId)throw new Error('provider_transaction_mismatch');
+    if(out.revoked===true||out.refunded===true)throw new Error('purchase_revoked');
+    return {provider:String(out.provider||platform),platform,productId,transactionId,verifiedAt:new Date().toISOString(),environment:String(out.environment||''),originalTransactionId:cleanTransaction(out.originalTransactionId||''),purchaseTime:out.purchaseTime||null,rawRef:String(out.rawRef||'').slice(0,180)};
   }
   async function grantVerified(token,payload){
     if(!pool)throw new Error('database_unavailable');
@@ -127,12 +135,12 @@ module.exports=function createIapStore(opts={}){
       if(!exists.rowCount)throw new Error('wallet_not_found');
       const dup=await client.query('SELECT wallet_id,product_id,diamonds FROM puffling_iap_transactions WHERE transaction_id=$1 FOR UPDATE',[transactionId]);
       if(dup.rowCount){
-        if(dup.rows[0].wallet_id!==walletId||dup.rows[0].product_id!==productId)throw new Error('transaction_conflict');
+        if(dup.rows[0].wallet_id!==walletId||dup.rows[0].product_id!==productId||Number(dup.rows[0].diamonds)!==diamonds)throw new Error('transaction_conflict');
         const bal=await client.query('SELECT paid_diamonds FROM puffling_wallets WHERE wallet_id=$1',[walletId]);
         await client.query('COMMIT');
         return {ok:true,duplicate:true,walletId,productId,transactionId,diamonds,paidDiamondBalance:Number(bal.rows[0]?.paid_diamonds||0)};
       }
-      await client.query('INSERT INTO puffling_iap_transactions(transaction_id,wallet_id,platform,product_id,diamonds,provider_payload) VALUES($1,$2,$3,$4,$5,$6)',[transactionId,walletId,platform,productId,diamonds,verified||null]);
+      await client.query('INSERT INTO puffling_iap_transactions(transaction_id,wallet_id,platform,product_id,diamonds,provider_payload) VALUES($1,$2,$3,$4,$5,$6)',[transactionId,walletId,platform,productId,diamonds,verified]);
       const bal=await client.query('UPDATE puffling_wallets SET paid_diamonds=paid_diamonds+$2,updated_at=now() WHERE wallet_id=$1 RETURNING paid_diamonds',[walletId,diamonds]);
       await client.query('INSERT INTO puffling_wallet_ledger(wallet_id,delta,reason,ref_id) VALUES($1,$2,$3,$4)',[walletId,diamonds,'iap_purchase',transactionId]);
       await client.query('COMMIT');
@@ -140,5 +148,5 @@ module.exports=function createIapStore(opts={}){
     }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
   }
   async function close(){if(!opts.pool)await pool?.end();}
-  return {PRODUCT_DIAMONDS,init,issueWallet,balance,spend,grantVerified,verifyToken,status:()=>({database:!!pool,walletSecret:!!walletSecret,providerMode,ready}),close};
+  return {PRODUCT_DIAMONDS,init,issueWallet,balance,spend,grantVerified,verifyToken,verifyProviderPurchase,status:()=>({database:!!pool,walletSecret:!!walletSecret,providerMode,providerReady:providerReady(),providerVerifierReady:!!providerVerifier,ready}),close};
 };

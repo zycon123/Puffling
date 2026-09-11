@@ -1,6 +1,6 @@
 # Puffling
 
-Puffling `5.26-beta.90` – Zycon Studios browser beta.
+Puffling `5.27-beta.104` – Zycon Studios browser beta.
 
 **Stable beta entry:** `beta42.html`  
 **Beta support:** `zyconstudios@protonmail.com`
@@ -14,6 +14,8 @@ The browser build is in launch-hardening. GitHub Actions validates the modular b
 - Endless vertical high-score gameplay with bosses, Boss Rush, rewards and progression
 - **100 Pufflings**, including 3 deliberately weak starter Pufflings
 - First-time player chooses exactly 1 starter Puffling
+- Normal play cannot start before that starter choice is complete
+- No automatic Puffling rewards are granted before the first boss
 - 97 non-starter Pufflings can evolve at level 10 and ascend at level 20
 - 100 distinct gameplay trait profiles
 - Puffdex, Nursery, fixed 3-slot Vault, Fusion and Mystery Shop
@@ -53,12 +55,7 @@ The authoritative Node/WebSocket server is under `server/` and a Render blueprin
 It currently supports Quick Match, friend rooms, shared countdown, position relay, validated attack limits/cooldown, reconnect grace and authoritative 1500m results. CI starts the server and verifies a real two-client race flow.
 
 ### Remaining production hardening
-Before public multiplayer launch:
-- deploy the Race server and configure a production `wss://` endpoint
-- generate a server-authoritative course seed so both players receive the same deterministic course
-- replace player-ID-only reconnect with secure resume tokens/authentication
-- strengthen server-side movement plausibility/rate validation
-- add rate limiting, metrics and scaling strategy for higher concurrency
+The Race server and production `wss://` endpoint are configured. Race now uses signed identities, server-generated deterministic course seeds, account-bound reconnect, movement validation, server-owned abilities and authoritative 1500m results. Rate limiting, metrics and a scaling strategy are still required before a large public launch.
 
 ## Other launch limitations
 - Progress is currently browser-local; there is no account/cloud save yet.

@@ -1,12 +1,15 @@
-import fs from'node:fs';let f=0;const r=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'),ok=m=>console.log('✓',m),bad=m=>{console.error('✗',m);f++};const s=r('server/boss_session_store.js'),h=r('server/boss_session_http.js'),b=r('server/bootstrap.js'),a=r('server/acquisition_http.js'),c=r('js/boss_session_client.js'),rw=r('js/puffling_boss_rewards.js');
+import fs from'node:fs';let f=0;const r=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8'),ok=m=>console.log('✓',m),bad=m=>{console.error('✗',m);f++};const s=r('server/boss_session_store.js'),h=r('server/boss_session_http.js'),b=r('server/bootstrap.js'),a=r('server/acquisition_http.js'),as=r('server/acquisition_store.js'),c=r('js/boss_session_client.js'),rw=r('js/puffling_boss_rewards.js');
 for(const x of ['crypto.randomBytes','expires_at','FOR UPDATE','consumed_at','recordHit','consumeCompleted','validBossRef','minFightMs','minHitMs','boss_hp','hit_count','nonce'])s.includes(x)?ok('session '+x):bad('missing '+x);
 for(const x of ['storm','candy','ice','galaxy','parseBossRef','maxHp'])s.includes(x)?ok('canonical boss '+x):bad('missing '+x);
 if(s.includes('elapsed>=minFightMs')&&s.includes('hit_rate_limited'))ok('server combat enforces duration and hit rate');else bad('server combat anti-cheat guards missing');
 for(const x of ['/api/boss/session/start','/api/boss/session/status','/api/boss/session/hit','auth.verify','serverIssued:true','store.validBossRef','store.recordHit'])h.includes(x)?ok('api '+x):bad('missing '+x);
 if(!h.includes('consumeCompleted'))ok('public boss session API cannot consume rewards');else bad('boss session API exposes reward consumption');
-for(const x of ['bossSessions.status','proof.completedAt','proof.bossHp>0','bossSessions.consumeCompleted','serverAuthoritative:true','rewardFor(sessionId)','store.grant'])a.includes(x)?ok('acquisition '+x):bad('missing '+x);
+for(const x of ['auth.verify','serverAuthoritative:true','rewardFor(sessionId,proof.bossRef)','dropChanceFor(proof.bossRef)','store.settleBossSession'])a.includes(x)?ok('acquisition HTTP '+x):bad('missing '+x);
+if(a.includes('bossSessions.status(verified.accountId,sessionId)'))ok('difficulty-scaled reward reads authoritative Boss Session ref');else bad('boss reward difficulty is not sourced from authoritative Boss Session');
+for(const x of ['settleBossSession','puffling_boss_sessions','completed_at','boss_hp','consumed_at','RETURNING consumed_at','puffling_acquisition_grants','puffling_acquisition_source_once'])as.includes(x)?ok('atomic acquisition '+x):bad('missing '+x);
+if(!a.includes('bossSessions.consumeCompleted')&&!a.includes('store.grant('))ok('HTTP cannot split grant from proof consumption');else bad('HTTP still performs non-atomic reward settlement');
 if(!a.includes('data?.pufflingId')&&!a.includes('data.pufflingId'))ok('client cannot select boss reward');else bad('client-selected boss reward detected');
 for(const x of ['start','hit','status','sessionId','nonce'])c.includes(x)?ok('client session '+x):bad('missing client '+x);
 if(rw.includes('sessionId')&&rw.includes('requestGrant')&&!rw.includes('bossRef:key'))ok('boss reward claims session proof');else bad('boss reward client still claims legacy bossRef');
 for(const x of ['createBossSessionHttp','handleBossSession','PufflingBossSessionStore','createAcquisitionHttp(accountAuth,acquisitionStore,bossSessionStore)'])b.includes(x)?ok('bootstrap '+x):bad('missing '+x);
-if(f)process.exit(1);console.log('beta.103 authoritative boss validation passed');
+if(f)process.exit(1);console.log('beta.103 authoritative boss regression passed under beta.104 difficulty-scaled atomic acquisition');

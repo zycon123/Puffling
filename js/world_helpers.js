@@ -17,11 +17,8 @@ function addPlatform(y,courseSpec=null){
  if(Math.random()<.6)coinItems.push({x:x+w/2,y:y-30,r:10,taken:false,spin:Math.random()*6});
  if(Math.random()<.12)powerups.push({x:x+w/2,y:y-43,type:['shield','magnet','mega'][Math.floor(Math.random()*3)],taken:false});
  if(Math.random()<.035){const rare=['coinRush','superShield','overcharge'][Math.floor(Math.random()*3)];powerups.push({x:x+w/2,y:y-58,type:rare,taken:false,rare:true});}
- // Slightly fewer enemies, with enough vertical separation to keep a fair route through the level.
- if(Math.random()<.085){
-  const enemyY=y-90,minGap=145;
-  const tooClose=enemies.some(e=>Math.abs(e.y-enemyY)<minGap);
-  if(!tooClose)enemies.push({x:Math.random()*(W-60)+30,y:enemyY,vx:(Math.random()<.5?-1:1)*(.9+Math.random()*.9),phase:Math.random()*6.28,r:18});
- }
+ if(Math.random()<.085){const enemyY=y-90,minGap=145;const tooClose=enemies.some(e=>Math.abs(e.y-enemyY)<minGap);if(!tooClose)enemies.push({x:Math.random()*(W-60)+30,y:enemyY,vx:(Math.random()<.5?-1:1)*(.9+Math.random()*.9),phase:Math.random()*6.28,r:18});}
 }
-function setMission(){missionIndex=Math.floor(Math.random()*missions.length);const m=missions[missionIndex];missionEl.textContent=tr('mission')+': '+missionText(m);missionDone=false;}
+// Legacy missions were removed from the product UI. Keep reset() safe without silently
+// awarding hidden mission coins or selecting an unreachable mission.
+function setMission(){missionDone=true;if(typeof missionEl!=='undefined'&&missionEl){missionEl.textContent='';missionEl.style.display='none';}}
