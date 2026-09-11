@@ -7,6 +7,7 @@ function timingSafeEqual(a,b){const aa=Buffer.from(String(a)),bb=Buffer.from(Str
 module.exports=function createAccountAuth(opts={}){
   const secret=String(opts.secret??process.env.PUFFLING_AUTH_SECRET??'').trim();
   const issuer=String(opts.issuer||'puffling-race');
+  const audience=String(opts.audience||'puffling-game');
   const ttlSeconds=Math.max(300,Math.min(86400,Number(opts.ttlSeconds||3600)));
   function enabled(){return secret.length>=32;}
   function sign(payload){return crypto.createHmac('sha256',secret).update(payload).digest('base64url');}
@@ -14,7 +15,8 @@ module.exports=function createAccountAuth(opts={}){
     if(!enabled())throw new Error('auth_unavailable');
     const sub=cleanAccountId(accountId);if(!sub)throw new Error('invalid_account');
     const now=Math.floor(Date.now()/1000);
-    const body=b64url(JSON.stringify({sub,iss:issuer,iat:now,exp:now+ttlSeconds,sid:crypto.randomBytes(12).toString('base64url'),...extra}));
+    const claims={...extra,sub,iss:issuer,aud:audience,iat:now,exp:now+ttlSeconds,sid:crypto.randomBytes(12).toString('base64url')};
+    const body=b64url(JSON.stringify(claims));
     return `${body}.${sign(body)}`;
   }
   function verify(token){
@@ -23,9 +25,10 @@ module.exports=function createAccountAuth(opts={}){
     if(!timingSafeEqual(sign(parts[0]),parts[1]))return {ok:false,error:'invalid_signature'};
     let claims;try{claims=JSON.parse(Buffer.from(parts[0],'base64url').toString('utf8'));}catch{return {ok:false,error:'invalid_token'};}
     const now=Math.floor(Date.now()/1000),accountId=cleanAccountId(claims.sub);
-    if(!accountId||claims.iss!==issuer)return {ok:false,error:'invalid_claims'};
-    if(!Number.isFinite(Number(claims.exp))||Number(claims.exp)<now)return {ok:false,error:'expired_token'};
+    if(!accountId||claims.iss!==issuer||claims.aud!==audience)return {ok:false,error:'invalid_claims'};
+    if(!Number.isFinite(Number(claims.iat))||Number(claims.iat)>now+60)return {ok:false,error:'invalid_claims'};
+    if(!Number.isFinite(Number(claims.exp))||Number(claims.exp)<=now)return {ok:false,error:'expired_token'};
     return {ok:true,accountId,claims};
   }
-  return {enabled,issue,verify,cleanAccountId,issuer,ttlSeconds};
+  return {enabled,issue,verify,cleanAccountId,issuer,audience,ttlSeconds};
 };
