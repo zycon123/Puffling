@@ -28,11 +28,12 @@ for(const rel of modules){if(!fs.existsSync(path.join(root,rel)))fail(`Loader re
 checkSyntax('game.js');
 checkSyntax('audio_theme.js');
 checkSyntax('scripts/validate-runtime-models.mjs');
+checkSyntax('scripts/validate-onboarding.mjs');
 
 const jsDir=path.join(root,'js');
 const allJs=fs.readdirSync(jsDir).filter(f=>f.endsWith('.js')).map(f=>`js/${f}`).sort();
 for(const rel of allJs){if(!modules.includes(rel))checkSyntax(rel)}
-ok(`Syntax checked ${allJs.length+3} JavaScript entry files`);
+ok(`Syntax checked ${allJs.length+4} JavaScript entry files`);
 
 function hasScript(src){const escaped=src.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp(`<script[^>]+src=["']${escaped}(?:\\?[^"']*)?["'][^>]*>`,'i').test(index)}
 for(const rel of ['audio_theme.js','game.js']){if(!hasScript(rel))fail(`index.html does not load ${rel}`);else ok(`index.html loads ${rel}`)}
