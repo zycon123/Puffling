@@ -1,4 +1,4 @@
-function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));}
+function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));return true;}
 module.exports=function createRankedHttp(store){
   return async function handleRanked(req,res){
     const url=new URL(req.url,'http://localhost');

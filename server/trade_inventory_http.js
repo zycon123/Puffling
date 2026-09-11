@@ -1,4 +1,4 @@
-function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));}
+function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));return true;}
 function bearer(req){const h=String(req.headers?.authorization||'');const m=h.match(/^Bearer\s+(.+)$/i);return m?m[1].trim():'';}
 async function body(req,max=128*1024){let text='';for await(const chunk of req){text+=chunk;if(text.length>max)throw new Error('body_too_large');}if(!text)return{};try{return JSON.parse(text);}catch{throw new Error('invalid_json');}}
 module.exports=function createTradeInventoryHttp(auth,store){return async function handle(req,res){const url=new URL(req.url,'http://localhost');if(!url.pathname.startsWith('/api/trade/inventory'))return false;if(!store?.status?.().ready)return json(res,503,{ok:false,error:'trade_inventory_unavailable'});const verified=auth.verify(bearer(req));if(!verified.ok)return json(res,401,{ok:false,error:verified.error||'invalid_token'});const accountId=verified.accountId;

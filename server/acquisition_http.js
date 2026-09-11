@@ -1,6 +1,6 @@
 const crypto=require('crypto');
 module.exports=function createAcquisitionHttp(auth,store,bossSessions){
- function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));}
+ function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));return true;}
  function bearer(req){const h=String(req.headers?.authorization||'');return h.startsWith('Bearer ')?h.slice(7):'';}
  async function body(req){let raw='',size=0;for await(const c of req){size+=c.length;if(size>32768)throw new Error('body_too_large');raw+=c.toString();}return raw?JSON.parse(raw):{};}
  const BASE_DROP=Object.freeze({storm:2500,candy:3000,ice:3500,galaxy:4000,solar:4500,void:5000,thunder:5500,crystal:6000,inferno:6500,cosmic:7500});
