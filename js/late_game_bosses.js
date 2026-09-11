@@ -1,4 +1,4 @@
-/* Sky Puff — six unique late-game bosses after 10,000m v0.1 */
+/* Sky Puff — six unique late-game bosses after 10,000m v0.2 */
 (function(){
  const LATE=[
   {id:'solar',at:10500,name:'Solar Seraph',emoji:'☀️',hp:430,reward:1900,r:43},
@@ -12,7 +12,7 @@
  // Add as normal one-time boss stages. Existing nextBossStage() will pick these before endless repeats.
  if(typeof bossStages!=='undefined'){
   for(const b of LATE)if(!bossStages.some(x=>x.id===b.id))bossStages.push({...b});
-  bossStages.sort((a,b)=>a.at-b.at);
+  bossStages.sort((a,b)=>(a.at||0)-(b.at||0));
  }
  // Ensure reset tracks them as unbeaten each run.
  const oldReset=window.reset;
@@ -20,4 +20,10 @@
  // Give each boss a lightweight identity via radius; attack patterns are overridden separately.
  const oldSpawn=window.spawnBoss;
  if(typeof oldSpawn==='function')window.spawnBoss=function(stage){oldSpawn(stage);const cfg=LATE.find(x=>x.id===stage.id);if(cfg&&boss)boss.r=cfg.r;};
+ // The synth engine has four canonical themes. Map every late boss to a safe theme so
+ // startBossMusic never falls silent or enters an undefined pattern.
+ const oldMusic=window.startBossMusic;
+ const musicMap={solar:'candy',void:'ice',thunder:'storm',crystal:'ice',inferno:'storm',cosmic:'galaxy'};
+ if(typeof oldMusic==='function')window.startBossMusic=function(id){return oldMusic(musicMap[id]||id);};
+ window.SkyPuffLateBossMusicMap=Object.freeze({...musicMap});
 })();
