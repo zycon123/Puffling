@@ -1,5 +1,6 @@
 const http = require('http');
 const { WebSocketServer, WebSocket } = require('ws');
+const createTradeService = require('./trade');
 
 const PORT = Number(process.env.PORT || 10000);
 const GOAL = 1500;
@@ -13,6 +14,7 @@ const RESUME_COUNTDOWN_MS = 1500;
 const rooms = new Map();
 let quickWaiting = null;
 let nextRaceId = 1;
+const trade = createTradeService();
 
 function now(){ return Date.now(); }
 function safeJson(ws, msg){
@@ -167,9 +169,9 @@ function markDisconnected(ws){
 const server=http.createServer((req,res)=>{
   if(req.url==='/health'){
     res.writeHead(200,{'content-type':'application/json'});
-    return res.end(JSON.stringify({ok:true,service:'sky-puff-race',rooms:rooms.size,time:now(),reconnectGraceMs:RECONNECT_GRACE_MS}));
+    return res.end(JSON.stringify({ok:true,service:'puffling-multiplayer',rooms:rooms.size,tradeRooms:trade.stats().rooms,time:now(),reconnectGraceMs:RECONNECT_GRACE_MS}));
   }
-  res.writeHead(200,{'content-type':'text/plain'}); res.end('Sky Puff Race server');
+  res.writeHead(200,{'content-type':'text/plain'}); res.end('Puffling multiplayer server');
 });
 
 const wss=new WebSocketServer({server,maxPayload:16*1024});
@@ -178,6 +180,10 @@ wss.on('connection', ws=>{
   ws.on('message', raw=>{
     let m; try{m=JSON.parse(raw.toString())}catch{return;}
     if(!m || typeof m.type!=='string') return;
+
+    if(m.type.startsWith('trade:')){
+      trade.handle(ws,m); return;
+    }
 
     if(m.type==='race:hello'){
       if(ws.raceRoom) return;
@@ -238,8 +244,8 @@ wss.on('connection', ws=>{
       finishAuthoritative(room,player); return;
     }
   });
-  ws.on('close',()=>markDisconnected(ws));
-  ws.on('error',()=>markDisconnected(ws));
+  ws.on('close',()=>{markDisconnected(ws);trade.disconnect(ws);});
+  ws.on('error',()=>{markDisconnected(ws);trade.disconnect(ws);});
 });
 
 const heartbeat=setInterval(()=>{
@@ -249,7 +255,8 @@ const heartbeat=setInterval(()=>{
   }
   const cutoff=now()-15*60*1000;
   for(const [id,room] of rooms) if(room.players.size===0 || (room.finishedAt&&room.finishedAt<cutoff)) rooms.delete(id);
+  trade.cleanup(now());
 },30000);
 heartbeat.unref();
 
-server.listen(PORT,'0.0.0.0',()=>console.log(`Sky Puff Race server listening on ${PORT}`));
+server.listen(PORT,'0.0.0.0',()=>console.log(`Puffling multiplayer server listening on ${PORT}`));
