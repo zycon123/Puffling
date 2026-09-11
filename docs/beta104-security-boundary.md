@@ -1,0 +1,1 @@
+Clients submit only Boss Session proof. The server selects the reward and atomically settles inventory, receipt, and proof consumption using the existing PostgreSQL connection.
