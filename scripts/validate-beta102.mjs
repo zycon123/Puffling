@@ -6,9 +6,9 @@ for(const t of ['/api/acquisition/boss','authorization','serverAuthoritative'])b
 if(boss.includes('body:JSON.stringify({bossRef:key})')&&!boss.includes('JSON.stringify({bossRef:key,pufflingId'))ok('Client cannot choose boss reward Puffling');else bad('Client still chooses boss reward');
 if(/const grant=await requestGrant\(key\);[\s\S]*applyGranted\(grant\.pufflingId\)/.test(boss))ok('Boss reward applies only after server grant');else bad('Boss grant/apply ordering missing');
 if(boss.includes('F.add(id,1)')&&boss.includes('function applyGranted'))ok('Local collection update isolated behind granted apply');else bad('Granted apply missing');
-for(const t of ['auth.verify','bossGrantId','serverAuthoritative','crypto.randomInt','REWARDS','getGrant'])http.includes(t)?ok('Acquisition API '+t):bad('Acquisition API missing '+t);
-if(!http.includes('data?.pufflingId'))ok('Acquisition API ignores client Puffling selection');else bad('Acquisition API accepts client Puffling selection');
-for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK','getGrant',"pufflingId!=='NONE'"])store.includes(t)?ok('Acquisition store '+t):bad('Acquisition store missing '+t);
+for(const t of ['auth.verify','boss_proof_required','serverAuthoritative:false'])http.includes(t)?ok('Boss API fail-closed '+t):bad('Boss API missing fail-closed '+t);
+if(!http.includes('store.grant(')&&!http.includes('data?.pufflingId'))ok('Public boss endpoint cannot mint inventory without proof');else bad('Public boss endpoint can still grant unverified inventory');
+for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK','getGrant',"pufflingId!=='NONE'"])store.includes(t)?ok('Internal acquisition store '+t):bad('Acquisition store missing '+t);
 for(const t of ['createAcquisitionStore','createAcquisitionHttp','handleAcquisition'])boot.includes(t)?ok('Bootstrap '+t):bad('Bootstrap missing '+t);
 for(const t of ['BOT_WAIT_MS=8000','difficulty:\'medium\'','BOT_MEDIUM','bot:true','rankServerAuthoritative:false'])transport.includes(t)?ok('Race bot '+t):bad('Race bot missing '+t);
 if(transport.includes('bot.attacksUsed<3')&&transport.includes('bot.attacksUsed++'))ok('Race bot capped at three attacks');else bad('Race bot attack cap missing');
