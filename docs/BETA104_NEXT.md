@@ -1,3 +1,5 @@
-# beta.104 next step
+# beta.104 next gate
 
-Next implementation step: initialize `boss_settlement` from `bootstrap.js` with the existing shared PostgreSQL pool and acquisition store, then make `/api/acquisition/boss` call `settle(accountId, sessionId)` directly. Remove the old grant-then-consume sequence only after the new service is wired. Extend CI to reject any production HTTP path that performs those mutations separately.
+The production acquisition HTTP path already delegates to the atomic settlement method. The next gate is GitHub Actions on the final branch head.
+
+If either validation fails, fix the branch before PR readiness. If both are green, review the source-uniqueness migration safety and then mark the pull request ready for explicit merge approval.
