@@ -1,5 +1,6 @@
-/* Sky Puff — Race My Puffling eligibility gate v1.1
+/* Sky Puff — Race My Puffling eligibility gate v1.2
  * Race mode is unavailable until the player owns at least one Puffling.
+ * Online Race syncs authoritative inventory before joining.
  */
 (function(){
   const baseOpen=typeof window.openMultiplayer==='function'?window.openMultiplayer:null;
@@ -8,11 +9,11 @@
   if(!baseStart)return;
 
   const COPY={
-    no:{need:'Du må skaffe deg minst én Puffling før du kan spille Race My Puffling.',hint:'Velg en gratis starter-Puffling først. Deretter låses Race My Puffling opp automatisk.',cta:'VELG STARTER-PUFFLING',locked:'🔒 RACE MY PUFFLING — VELG EN PUFFLING FØRST'},
-    en:{need:'You need to own at least one Puffling before you can play Race My Puffling.',hint:'Choose a free starter Puffling first. Race My Puffling will then unlock automatically.',cta:'CHOOSE STARTER PUFFLING',locked:'🔒 RACE MY PUFFLING — CHOOSE A PUFFLING FIRST'},
-    de:{need:'Du brauchst mindestens einen Puffling, bevor du Race My Puffling spielen kannst.',hint:'Wähle zuerst einen kostenlosen Starter-Puffling. Danach wird Race My Puffling automatisch freigeschaltet.',cta:'STARTER-PUFFLING WÄHLEN',locked:'🔒 RACE MY PUFFLING — ZUERST PUFFLING WÄHLEN'},
-    es:{need:'Necesitas al menos un Puffling antes de jugar Race My Puffling.',hint:'Elige primero un Puffling inicial gratis. Race My Puffling se desbloqueará automáticamente.',cta:'ELEGIR PUFFLING INICIAL',locked:'🔒 RACE MY PUFFLING — ELIGE UN PUFFLING'},
-    fr:{need:'Vous devez posséder au moins un Puffling avant de jouer à Race My Puffling.',hint:'Choisissez d’abord un Puffling de départ gratuit. Race My Puffling sera ensuite débloqué automatiquement.',cta:'CHOISIR UN PUFFLING DE DÉPART',locked:'🔒 RACE MY PUFFLING — CHOISISSEZ UN PUFFLING'}
+    no:{need:'Du må skaffe deg minst én Puffling før du kan spille Race My Puffling.',hint:'Velg en gratis starter-Puffling først. Deretter låses Race My Puffling opp automatisk.',cta:'VELG STARTER-PUFFLING',locked:'🔒 RACE MY PUFFLING — VELG EN PUFFLING FØRST',syncFail:'Kunne ikke bekrefte Puffling-samlingen med serveren. Race ble stoppet for å beskytte inventory.'},
+    en:{need:'You need to own at least one Puffling before you can play Race My Puffling.',hint:'Choose a free starter Puffling first. Race My Puffling will then unlock automatically.',cta:'CHOOSE STARTER PUFFLING',locked:'🔒 RACE MY PUFFLING — CHOOSE A PUFFLING FIRST',syncFail:'Could not verify your Puffling collection with the server. Race was stopped to protect inventory.'},
+    de:{need:'Du brauchst mindestens einen Puffling, bevor du Race My Puffling spielen kannst.',hint:'Wähle zuerst einen kostenlosen Starter-Puffling. Danach wird Race My Puffling automatisch freigeschaltet.',cta:'STARTER-PUFFLING WÄHLEN',locked:'🔒 RACE MY PUFFLING — ZUERST PUFFLING WÄHLEN',syncFail:'Die Puffling-Sammlung konnte nicht mit dem Server bestätigt werden. Das Rennen wurde zum Schutz des Inventars gestoppt.'},
+    es:{need:'Necesitas al menos un Puffling antes de jugar Race My Puffling.',hint:'Elige primero un Puffling inicial gratis. Race My Puffling se desbloqueará automáticamente.',cta:'ELEGIR PUFFLING INICIAL',locked:'🔒 RACE MY PUFFLING — ELIGE UN PUFFLING',syncFail:'No se pudo verificar tu colección de Pufflings con el servidor. La carrera se detuvo para proteger el inventario.'},
+    fr:{need:'Vous devez posséder au moins un Puffling avant de jouer à Race My Puffling.',hint:'Choisissez d’abord un Puffling de départ gratuit. Race My Puffling sera ensuite débloqué automatiquement.',cta:'CHOISIR UN PUFFLING DE DÉPART',locked:'🔒 RACE MY PUFFLING — CHOISISSEZ UN PUFFLING',syncFail:'Impossible de vérifier votre collection de Pufflings avec le serveur. La course a été arrêtée pour protéger l’inventaire.'}
   };
 
   function tr(){try{return COPY[typeof lang==='string'?lang:'no']||COPY.en;}catch(e){return COPY.no;}}
@@ -71,6 +72,22 @@
     return false;
   }
   function requirePuffling(){return eligible()?true:deny();}
+  async function syncServerInventory(){
+    const sync=window.PufflingTradeInventorySync?.ensure;
+    if(typeof sync!=='function')return true;
+    try{await sync();return true;}catch(e){
+      const t=tr();
+      try{window.SkyPuffRaceTransport?.disconnect?.();}catch(_){}
+      if(typeof multiplayerMode!=='undefined')multiplayerMode=false;
+      if(typeof multiplayerState!=='undefined')multiplayerState='inventory_sync_failed';
+      if(typeof running!=='undefined')running=false;
+      if(typeof multiplayerHudEl!=='undefined'&&multiplayerHudEl)multiplayerHudEl.style.display='none';
+      if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='flex';
+      if(typeof multiplayerStatusEl!=='undefined'&&multiplayerStatusEl)multiplayerStatusEl.textContent=t.syncFail;
+      if(typeof showToast==='function')showToast('⚠️ '+t.syncFail);
+      return false;
+    }
+  }
   function goToPufflings(){
     try{window.SkyPuffRaceTransport?.disconnect?.();}catch(e){}
     if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='none';
@@ -85,7 +102,7 @@
     const result=baseOpen?.apply(this,arguments);refresh();return result;
   };
   if(baseQuick)window.quickMatch=function(){if(!requirePuffling())return;return baseQuick.apply(this,arguments);};
-  window.startMultiplayerRace=function(){if(!requirePuffling())return;return baseStart.apply(this,arguments);};
+  window.startMultiplayerRace=async function(){if(!requirePuffling())return false;if(!await syncServerInventory())return false;return baseStart.apply(this,arguments);};
 
   function bindButtons(){
     const mp=typeof multiplayerBtnEl!=='undefined'?multiplayerBtnEl:el('multiplayerBtn');if(mp)mp.onclick=()=>window.openMultiplayer();
@@ -103,5 +120,5 @@
   window.addEventListener('race:pufflingAcquired',refresh);
   window.addEventListener('puffling:starterChosen',refresh);
 
-  window.SkyPuffRaceEligibility={eligible,ownedIds,refresh,requirePuffling,goToPufflings};
+  window.SkyPuffRaceEligibility={eligible,ownedIds,refresh,requirePuffling,syncServerInventory,goToPufflings};
 })();
