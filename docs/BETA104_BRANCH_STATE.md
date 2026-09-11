@@ -2,6 +2,6 @@
 
 Branch: `beta104-acquisition-hardening`
 Base release: beta.103 main merge `d65d9260`
-Current state: phase 1 security implementation complete; phase 2 production wiring pending.
-Merge state: not approved, not merge-ready.
+Current state: acquisition hardening implementation complete; final CI and migration-safety review pending.
+Merge state: not approved, not merge-ready until gates pass.
 Cost state: no new paid infrastructure introduced.
