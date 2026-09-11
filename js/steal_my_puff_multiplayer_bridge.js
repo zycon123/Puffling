@@ -1,4 +1,4 @@
-/* Sky Puff — Multiplayer -> Race My Puffling bridge v1.5
+/* Puffling — Multiplayer -> Race My Puffling bridge v1.6
  * Compatibility filename retained for the current beta loader.
  */
 (function(){
@@ -74,7 +74,18 @@
     render();reconnectDisplayTimer=setInterval(render,100);
     if(multiplayerStatusEl)multiplayerStatusEl.textContent=ownConnection?'Tilkoblingen falt ut — prøver å koble til igjen…':'Motstanderen mistet forbindelsen — racet er midlertidig satt på pause.';
   }
-  function startLocalFallback(){reconnecting=false;awaitingServerStart=false;multiplayerState='racing';running=true;paused=false;lastTime=performance.now();hideCountdown();requestAnimationFrame(loop);}
+  function failOnlineStart(reason='connection_failed'){
+    hideCountdown();awaitingServerStart=false;reconnecting=false;onlineMode=false;onlineOpponent=null;serverResult=null;
+    multiplayerMode=false;multiplayerState='connection_failed';running=false;paused=false;
+    if(multiplayerInterval){clearInterval(multiplayerInterval);multiplayerInterval=null;}
+    if(multiplayerHudEl)multiplayerHudEl.style.display='none';
+    try{window.SkyPuffRaceTransport?.disconnect?.();}catch(e){}
+    if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='flex';
+    const msg=reason==='race_auth_failed'||reason==='race_auth_required'||reason==='rank_auth_required'?'Kunne ikke bekrefte spillerkontoen. Prøv igjen.':'Kunne ikke koble til Race-serveren. Prøv igjen når forbindelsen er tilbake.';
+    if(typeof multiplayerStatusEl!=='undefined'&&multiplayerStatusEl)multiplayerStatusEl.textContent=msg;
+    if(typeof showToast==='function')showToast('⚠️ '+msg);
+    window.dispatchEvent?.(new CustomEvent('race:connectionFailed',{detail:{reason}}));
+  }
   function opponentSnapshot(p,state='idle'){
     return {x:Number(p?.x)||0,y:p?.y==null?null:Number(p.y),worldY:p?.worldY==null?null:Number(p.worldY),height:Math.max(0,Number(p?.height)||0),state,pufflingId:p?.pufflingId||null,skin:p?.skin||null,evolutionStage:Math.max(0,Math.min(2,Number(p?.evolutionStage)||0)),t:Number(p?.t)||Date.now()};
   }
@@ -93,12 +104,13 @@
   function bindTransport(){
     if(transportBound)return;transportBound=true;const T=window.SkyPuffRaceTransport;if(!T)return;
     T.on('state',m=>{
-      if(m?.state==='online'){onlineMode=true;return;}
+      if(m?.state==='online'||m?.state==='bot'){onlineMode=true;reconnecting=false;return;}
       if(m?.state==='reconnecting'){onlineMode=false;if(multiplayerMode)showReconnectWait(m.reconnectDeadline,true);return;}
-      if(m?.state==='reconnect_failed'){onlineMode=false;if(multiplayerMode)loseByDisconnect();}
+      if(m?.state==='reconnect_failed'){onlineMode=false;if(multiplayerMode)loseByDisconnect();return;}
+      if(['connect_failed','server_rejected','race_auth_failed'].includes(m?.state)&&multiplayerMode)failOnlineStart(m?.code||m?.state);
     });
     T.on('race:matched',m=>{if(m?.room)multiplayerRoom=m.room;reconnecting=false;if(typeof showToast==='function')showToast(m?.mode==='quick'?'🔎 Motstander funnet!':'👥 Race room ready');if(multiplayerStatusEl)multiplayerStatusEl.textContent='Begge spillere må være klare før nedtellingen starter.';});
-    T.on('race:start',m=>scheduleServerCountdown(m?.serverStartAt));
+    T.on('race:start',m=>{onlineMode=true;scheduleServerCountdown(m?.serverStartAt);});
     T.on('race:notStarted',m=>{if(m?.serverStartAt)scheduleServerCountdown(m.serverStartAt);});
     T.on('race:paused',()=>{if(multiplayerMode&&!reconnecting)showReconnectWait(opponentReconnectDeadline||Date.now()+11000,false);});
     T.on('race:resumed',m=>{if(m?.room)multiplayerRoom=m.room;applyOpponentFromPlayers(m?.players);reconnecting=true;onlineMode=true;if(multiplayerStatusEl)multiplayerStatusEl.textContent='Tilkoblet igjen — synkroniserer racet…';if(m?.winnerId){serverResult={...m,finishedAt:Date.now()};finishMultiplayerRace();}});
@@ -111,17 +123,18 @@
     });
     T.on('race:attack',m=>{if(!m||m.playerId===T.snapshot().playerId)return;window.SkyPuffRace?.receiveAttack?.(m.ability||m.abilityId,m);window.dispatchEvent(new CustomEvent('race:incomingAttack',{detail:m}));});
     T.on('race:attackRejected',m=>{if(typeof showToast==='function')showToast(m?.reason==='cooldown'?'⏳ Attack on cooldown':'⚠️ Attack rejected');});
-    T.on('race:error',m=>{if(reconnecting&&(m?.code==='resume_expired'||m?.code==='room_full'))loseByDisconnect();});
+    T.on('race:error',m=>{if(reconnecting&&(m?.code==='resume_expired'||m?.code==='room_full'))loseByDisconnect();else if(multiplayerMode&&['race_auth_required','rank_auth_required','unsupported_protocol','race_inventory_unavailable','puffling_not_owned'].includes(m?.code))failOnlineStart(m.code);});
     T.on('race:result',m=>{if(!m?.winnerId)return;serverResult=m;if(multiplayerMode)finishMultiplayerRace();});
     T.on('race:opponentLeft',()=>{if(multiplayerMode&&typeof showToast==='function')showToast('Motstanderen forlot racet.');});
   }
   function connectTransport(type){
-    bindTransport();const T=window.SkyPuffRaceTransport;if(!T){startLocalFallback();return;}
+    bindTransport();const T=window.SkyPuffRaceTransport;if(!T){failOnlineStart('transport_missing');return;}
     T.connect({room:roomFor(type),playerId:currentPlayerId()}).then(info=>{
-      onlineMode=info?.mode==='online';if(!onlineMode){startLocalFallback();return;}
+      onlineMode=info?.mode==='online';
+      if(!onlineMode){failOnlineStart(info?.error||info?.mode||'connection_failed');return;}
       awaitingServerStart=true;multiplayerState='waiting_start';running=false;T.sendReady({...visualProfile(),mode:type});
       if(typeof showToast==='function')showToast('🌐 Live Race connection ready');if(multiplayerStatusEl)multiplayerStatusEl.textContent='Venter på motstander…';setCountdownText('…');
-    });
+    }).catch(e=>failOnlineStart(String(e?.message||e||'connection_failed')));
   }
 
   startMultiplayerRace=function(type){
@@ -141,17 +154,7 @@
     const pstate=typeof player!=='undefined'&&player?(player.vy<0?'jumping':player.vy>0?'falling':'idle'):'jumping';
     T?.sendPosition?.({x:px,y:py,worldY,height:you,state:pstate,...visualProfile()});
 
-    if(onlineMode&&onlineOpponent){
-      multiplayerOpponentScore=Math.max(0,Number(onlineOpponent.height)||0);
-    }else if(!onlineMode&&!reconnecting){
-      // Intentionally forgiving test ghost: roughly 65% slower than the previous fallback rival.
-      const difficulty=.48+Math.random()*.12;
-      let ghostGain=(5+Math.random()*9)*difficulty;
-      const now=Date.now();R.tickEffects?.(now);
-      const recentLocalAttack=s.lastAttackAt&&now-s.lastAttackAt<550;
-      if(recentLocalAttack){const a=s.ability||{};ghostGain*=Math.max(.45,1-(a.strength||.2));}
-      multiplayerOpponentScore=Math.max(multiplayerOpponentScore,multiplayerOpponentScore+ghostGain);
-    }
+    if(onlineOpponent)multiplayerOpponentScore=Math.max(0,Number(onlineOpponent.height)||0);
 
     const rival=Math.floor(multiplayerOpponentScore);
     if(mpYouEl)mpYouEl.textContent=you+'m';if(mpRivalEl)mpRivalEl.textContent=rival+'m';if(mpTimerEl)mpTimerEl.textContent='🏁1500m';
@@ -172,8 +175,7 @@
   window.addEventListener('race:attack',function(ev){
     if(!multiplayerMode||multiplayerState!=='racing'||awaitingServerStart||reconnecting)return;
     const a=ev.detail?.ability;if(!a)return;const T=window.SkyPuffRaceTransport;
-    if(onlineMode){T?.sendAttack?.({ability:a,abilityId:a.id||a.abilityType||a.name});return;}
-    const penalty=Math.max(4,Math.round(24*(a.strength||.25)));multiplayerOpponentScore=Math.max(0,multiplayerOpponentScore-penalty);
+    if(onlineMode)T?.sendAttack?.({ability:a,abilityId:a.id||a.abilityType||a.name});
   });
 
   window.SkyPuffRaceNetwork={
