@@ -11,6 +11,7 @@ const createTradeInventoryStore=require('./trade_inventory_store');
 const createTradeInventoryHttp=require('./trade_inventory_http');
 const createAcquisitionStore=require('./acquisition_store');
 const createAcquisitionHttp=require('./acquisition_http');
+const createBossSessionStore=require('./boss_session_store');
 
 (async()=>{
   const iapStore=createIapStore();
@@ -24,7 +25,9 @@ const createAcquisitionHttp=require('./acquisition_http');
   try{await tradeInventoryStore.init();console.log('[Trade] Authoritative inventory database ready');}catch(e){console.warn('[Trade] Inventory database unavailable:',String(e?.message||e));}
   const acquisitionStore=createAcquisitionStore({pool:tradeInventoryStore.pool});
   try{await acquisitionStore.init();console.log('[Acquisition] Server reward grants ready');}catch(e){console.warn('[Acquisition] Reward grants unavailable:',String(e?.message||e));}
-  global.PufflingRankedStore=rankedStore;global.PufflingTradeInventoryStore=tradeInventoryStore;global.PufflingAccountAuth=accountAuth;global.PufflingAcquisitionStore=acquisitionStore;
+  const bossSessionStore=createBossSessionStore({pool:tradeInventoryStore.pool});
+  try{await bossSessionStore.init();console.log('[Boss] Authoritative session database ready');}catch(e){console.warn('[Boss] Session database unavailable:',String(e?.message||e));}
+  global.PufflingRankedStore=rankedStore;global.PufflingTradeInventoryStore=tradeInventoryStore;global.PufflingAccountAuth=accountAuth;global.PufflingAcquisitionStore=acquisitionStore;global.PufflingBossSessionStore=bossSessionStore;
   const handleAccount=createAccountHttp(accountAuth,rankedStore),handleTradeInventory=createTradeInventoryHttp(accountAuth,tradeInventoryStore),handleAcquisition=createAcquisitionHttp(accountAuth,acquisitionStore);
   const handleIap=createIapHttp(iapStore),handleLeaderboard=createLeaderboardHttp(leaderboardStore),handleRanked=createRankedHttp(rankedStore);
   const originalCreateServer=http.createServer;
