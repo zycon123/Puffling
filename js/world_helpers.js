@@ -1,8 +1,10 @@
 let lastBossTriggerAt=0;
 let nextLifePickupAt=500;
 function addPlatform(y,courseSpec=null){
+ const course=window.SkyPuffRaceCourse;
+ if(!courseSpec&&course?.isActive?.())courseSpec=course.nextPlatform(W);
  if(courseSpec){
-  const p=courseSpec,x=p.x,w=p.w;
+  const p=courseSpec,x=p.x,w=p.w;y=p.y;
   platforms.push({x,y,w,h:16,phase:p.phase||0,move:!!p.move,breakable:!!p.breakable,used:false,courseIndex:p.courseIndex,baseX:x});
   if(p.coin)coinItems.push({x:x+w/2,y:y-30,r:10,taken:false,spin:p.coinSpin||0});
   if(p.powerup)powerups.push({x:x+w/2,y:y-43,type:p.powerup,taken:false});
