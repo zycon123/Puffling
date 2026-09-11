@@ -1,12 +1,12 @@
 {
   "name": "puffling-race-server",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Authoritative WebSocket room server for Race My Puffling",
+  "description": "Authoritative WebSocket server for Puffling Race and player trades",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "check": "node --check index.js && node --check integration-check.js && node integration-check.js"
+    "check": "node --check index.js && node --check trade.js && node --check integration-check.js && node integration-check.js"
   },
   "engines": {
     "node": ">=22"
