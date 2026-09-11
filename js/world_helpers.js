@@ -1,6 +1,15 @@
 let lastBossTriggerAt=0;
 let nextLifePickupAt=500;
-function addPlatform(y){
+function addPlatform(y,courseSpec=null){
+ if(courseSpec){
+  const p=courseSpec,x=p.x,w=p.w;
+  platforms.push({x,y,w,h:16,phase:p.phase||0,move:!!p.move,breakable:!!p.breakable,used:false,courseIndex:p.courseIndex,baseX:x});
+  if(p.coin)coinItems.push({x:x+w/2,y:y-30,r:10,taken:false,spin:p.coinSpin||0});
+  if(p.powerup)powerups.push({x:x+w/2,y:y-43,type:p.powerup,taken:false});
+  if(p.rarePowerup)powerups.push({x:x+w/2,y:y-58,type:p.rarePowerup,taken:false,rare:true});
+  if(p.enemy)enemies.push({x:p.enemyX,y:y-90,vx:p.enemyDirection*p.enemySpeed,phase:p.enemyPhase,r:18,courseIndex:p.courseIndex});
+  return;
+ }
  const w=70+Math.random()*55,x=12+Math.random()*(W-w-24);
  platforms.push({x,y,w,h:16,phase:Math.random()*6.28,move:Math.random()<.24,breakable:Math.random()<.11,used:false});
  if(Math.random()<.6)coinItems.push({x:x+w/2,y:y-30,r:10,taken:false,spin:Math.random()*6});
