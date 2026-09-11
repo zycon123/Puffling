@@ -3,14 +3,19 @@ const createIapStore=require('./iap_store');
 const createIapHttp=require('./iap_http');
 const createLeaderboardStore=require('./leaderboard_store');
 const createLeaderboardHttp=require('./leaderboard_http');
+const createRankedStore=require('./ranked_store');
 
 (async()=>{
   const iapStore=createIapStore();
   const leaderboardStore=createLeaderboardStore();
+  const rankedStore=createRankedStore();
   try{await iapStore.init();console.log('[IAP] Diamond wallet database ready');}
   catch(e){console.warn('[IAP] Diamond wallet database unavailable:',String(e?.message||e));}
   try{await leaderboardStore.init();console.log('[Leaderboard] Global score database ready');}
   catch(e){console.warn('[Leaderboard] Score database unavailable:',String(e?.message||e));}
+  try{await rankedStore.init();console.log('[Ranked] Persistent rank database ready');}
+  catch(e){console.warn('[Ranked] Rank database unavailable:',String(e?.message||e));}
+  global.PufflingRankedStore=rankedStore;
   const handleIap=createIapHttp(iapStore);
   const handleLeaderboard=createLeaderboardHttp(leaderboardStore);
   const originalCreateServer=http.createServer;
@@ -23,7 +28,7 @@ const createLeaderboardHttp=require('./leaderboard_http');
       return listener(req,res);
     });
   };
-  const closeStores=()=>Promise.allSettled([iapStore.close(),leaderboardStore.close()]);
+  const closeStores=()=>Promise.allSettled([iapStore.close(),leaderboardStore.close(),rankedStore.close()]);
   process.on('SIGTERM',()=>closeStores());
   process.on('SIGINT',()=>closeStores());
   require('./index');
