@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+let failed=0;const ok=m=>console.log('✓',m),bad=m=>{console.error('✗',m);failed++};
+const read=p=>fs.readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const boss=read('js/puffling_boss_rewards.js'),http=read('server/acquisition_http.js'),store=read('server/acquisition_store.js'),server=read('server/index.js'),boot=read('server/bootstrap.js');
+for(const t of ['/api/acquisition/boss','authorization','serverAuthoritative'])boss.includes(t)?ok('Boss client '+t):bad('Boss client missing '+t);
+if(/requestGrant[\s\S]*applyGranted/.test(boss)&&boss.indexOf('requestGrant')<boss.indexOf('applyGranted'))ok('Boss reward waits for grant path');else bad('Boss grant ordering missing');
+if(boss.includes("F.add(id,1)")&&boss.includes('applyGranted'))ok('Local collection update isolated behind granted apply');else bad('Granted apply missing');
+for(const t of ['auth.verify','bossGrantId','serverAuthoritative'])http.includes(t)?ok('Acquisition API '+t):bad('Acquisition API missing '+t);
+for(const t of ['BEGIN','pg_advisory_xact_lock','puffling_acquisition_grants','ROLLBACK'])store.includes(t)?ok('Acquisition store '+t):bad('Acquisition store missing '+t);
+for(const t of ['createAcquisitionStore','createAcquisitionHttp','handleAcquisition'])boot.includes(t)?ok('Bootstrap '+t):bad('Bootstrap missing '+t);
+for(const t of ['QUICK_BOT_WAIT_MS = 8000','botDifficulty:\'medium\'','BOT_','bot:true','rankServerAuthoritative:false'])server.includes(t)?ok('Race bot '+t):bad('Race bot missing '+t);
+if(server.includes("room.kind!=='quick'"))ok('Rank settlement remains Quick Race only');else bad('Rank guard missing');
+if(failed)process.exit(1);console.log('beta.102 validation passed');
