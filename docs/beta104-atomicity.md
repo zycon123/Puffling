@@ -1,0 +1,1 @@
+The Boss Session row is locked before settlement. Inventory mutation, acquisition receipt, and proof consumption commit or roll back together.
