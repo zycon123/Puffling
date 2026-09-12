@@ -1,22 +1,24 @@
-/* Puffling — Puff Fusion Core v0.6 */
+/* Orbuff — Fusion Core v0.7
+ * Legacy storage keys and Puffling response fields are retained for beta save/API compatibility.
+ */
 (function(){
   const BASE = {
-    starterpuff:{id:'starterpuff',name:'Starter Puff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
-    starterspark:{id:'starterspark',name:'Starter Spark',icon:'✨',rarity:'common',ability:'starter',value:.35,palette:['#fff6bc','#e7bd54'],mark:'✦',starterOnly:true},
-    starterdrop:{id:'starterdrop',name:'Starter Drop',icon:'💧',rarity:'common',ability:'starter',value:.35,palette:['#dff7ff','#67b8de'],mark:'◇',starterOnly:true},
-    ember:{id:'ember',name:'Ember Puff',icon:'🔥',rarity:'common',ability:'blastDamage',value:1.10},
-    volt:{id:'volt',name:'Volt Puff',icon:'⚡',rarity:'common',ability:'chainShot',value:1},
-    frost:{id:'frost',name:'Frost Puff',icon:'❄️',rarity:'common',ability:'freeze',value:0.8},
-    prism:{id:'prism',name:'Prism Puff',icon:'🌈',rarity:'rare',ability:'rainbowGain',value:1.15},
-    shadow:{id:'shadow',name:'Shadow Puff',icon:'🌑',rarity:'rare',ability:'airDash',value:1},
-    wind:{id:'wind',name:'Wind Puff',icon:'💨',rarity:'common',ability:'jumpControl',value:1.10}
+    starterpuff:{id:'starterpuff',name:'Starter Orbuff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
+    starterspark:{id:'starterspark',name:'Spark Orbuff',icon:'✨',rarity:'common',ability:'starter',value:.35,palette:['#fff6bc','#e7bd54'],mark:'✦',starterOnly:true},
+    starterdrop:{id:'starterdrop',name:'Drop Orbuff',icon:'💧',rarity:'common',ability:'starter',value:.35,palette:['#dff7ff','#67b8de'],mark:'◇',starterOnly:true},
+    ember:{id:'ember',name:'Ember Orbuff',icon:'🔥',rarity:'common',ability:'blastDamage',value:1.10},
+    volt:{id:'volt',name:'Volt Orbuff',icon:'⚡',rarity:'common',ability:'chainShot',value:1},
+    frost:{id:'frost',name:'Frost Orbuff',icon:'❄️',rarity:'common',ability:'freeze',value:0.8},
+    prism:{id:'prism',name:'Prism Orbuff',icon:'🌈',rarity:'rare',ability:'rainbowGain',value:1.15},
+    shadow:{id:'shadow',name:'Shadow Orbuff',icon:'🌑',rarity:'rare',ability:'airDash',value:1},
+    wind:{id:'wind',name:'Wind Orbuff',icon:'💨',rarity:'common',ability:'jumpControl',value:1.10}
   };
   const FUSIONS = {
-    'ember+volt':{id:'thunderflame',name:'Thunderflame',icon:'🔥⚡',rarity:'epic',ability:'chainBlast'},
-    'frost+prism':{id:'aurora',name:'Aurora Puff',icon:'❄️🌈',rarity:'epic',ability:'rescuePlatform'},
-    'ember+shadow':{id:'eclipse',name:'Eclipse Puff',icon:'🌑🔥',rarity:'legendary',ability:'phaseDash'},
-    'volt+wind':{id:'tempest',name:'Tempest Puff',icon:'💨⚡',rarity:'epic',ability:'stormJump'},
-    'prism+volt':{id:'neonstorm',name:'Neon Storm',icon:'🌈⚡',rarity:'legendary',ability:'rainbowChain'}
+    'ember+volt':{id:'thunderflame',name:'Thunderflame Orbuff',icon:'🔥⚡',rarity:'epic',ability:'chainBlast'},
+    'frost+prism':{id:'aurora',name:'Aurora Orbuff',icon:'❄️🌈',rarity:'epic',ability:'rescuePlatform'},
+    'ember+shadow':{id:'eclipse',name:'Eclipse Orbuff',icon:'🌑🔥',rarity:'legendary',ability:'phaseDash'},
+    'volt+wind':{id:'tempest',name:'Tempest Orbuff',icon:'💨⚡',rarity:'epic',ability:'stormJump'},
+    'prism+volt':{id:'neonstorm',name:'Neon Storm Orbuff',icon:'🌈⚡',rarity:'legendary',ability:'rainbowChain'}
   };
   const STARTER_IDS=['starterpuff','starterspark','starterdrop'];
   const key=(a,b)=>[a,b].sort().join('+');
@@ -37,7 +39,7 @@
   function availableCount(id){return availableCountFrom(load(),id);}
   function remove(id,count=1){const s=load(),dec=Math.max(0,Math.floor(+count||0));if(!id||dec<=0)return {ok:false,reason:'invalid'};if(availableCountFrom(s,id)<dec)return {ok:false,reason:'protected_or_missing',state:s};s.owned[id]=(s.owned[id]||0)-dec;if(s.owned[id]<=0)delete s.owned[id];const state=save(s);return {ok:true,state,remaining:state.owned[id]||0};}
   function canFuse(a,b,opts={}){const s=load(),recipe=FUSIONS[key(a,b)];if(!recipe)return false;if(opts.crystal){return a===b?availableCountFrom(s,a)>=1:availableCountFrom(s,a)>0&&availableCountFrom(s,b)>0;}return a===b?availableCountFrom(s,a)>=2:availableCountFrom(s,a)>0&&availableCountFrom(s,b)>0;}
-  function fuse(a,b,opts={}){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load(),crystal=!!opts.crystal;if(!canFuse(a,b,{crystal}))return {ok:false,reason:'protected_or_missing'};if(crystal){s.owned[a]--;if(s.owned[a]<=0)delete s.owned[a];}else{s.owned[a]--;s.owned[b]--;if(s.owned[a]<=0)delete s.owned[a];if(s.owned[b]<=0)delete s.owned[b];}s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,puffling:recipe,state,crystalUsed:crystal,preservedParent:crystal?b:null};}
+  function fuse(a,b,opts={}){const recipe=FUSIONS[key(a,b)];if(!recipe)return {ok:false,reason:'unknown_recipe'};const s=load(),crystal=!!opts.crystal;if(!canFuse(a,b,{crystal}))return {ok:false,reason:'protected_or_missing'};if(crystal){s.owned[a]--;if(s.owned[a]<=0)delete s.owned[a];}else{s.owned[a]--;s.owned[b]--;if(s.owned[a]<=0)delete s.owned[a];if(s.owned[b]<=0)delete s.owned[b];}s.owned[recipe.id]=(s.owned[recipe.id]||0)+1;if(!s.discovered.includes(recipe.id))s.discovered.push(recipe.id);const state=save(s);return {ok:true,orbuff:recipe,puffling:recipe,state,crystalUsed:crystal,preservedParent:crystal?b:null};}
   function tradeTransfer(outgoing,incoming,txId){
     outgoing=String(outgoing||'');incoming=String(incoming||'');txId=String(txId||'').slice(0,80);
     const s=load();
@@ -53,5 +55,7 @@
     const state=save(s);
     return {ok:true,duplicate:false,state,outgoingRemaining:state.owned[outgoing]||0,incomingWasNew};
   }
-  window.SkyPuffFusion={BASE,FUSIONS,STARTER_IDS,key,load,save,add,remove,canFuse,fuse,normalize,availableCount,tradeTransfer,crystalFusion:true};
+  const api={BASE,FUSIONS,STARTER_IDS,key,load,save,add,remove,canFuse,fuse,normalize,availableCount,tradeTransfer,crystalFusion:true};
+  window.OrbuffFusion=api;
+  window.SkyPuffFusion=api;
 })();
