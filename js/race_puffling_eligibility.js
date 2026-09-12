@@ -1,6 +1,7 @@
-/* Sky Puff — Race My Puffling eligibility gate v1.2
- * Race mode is unavailable until the player owns at least one Puffling.
+/* Orbuff — Race My Orbuff eligibility gate v1.3
+ * Race mode is unavailable until the player owns at least one Orbuff.
  * Online Race syncs authoritative inventory before joining.
+ * Legacy Puffling identifiers remain for save/API compatibility.
  */
 (function(){
   const baseOpen=typeof window.openMultiplayer==='function'?window.openMultiplayer:null;
@@ -9,11 +10,11 @@
   if(!baseStart)return;
 
   const COPY={
-    no:{need:'Du må skaffe deg minst én Puffling før du kan spille Race My Puffling.',hint:'Velg en gratis starter-Puffling først. Deretter låses Race My Puffling opp automatisk.',cta:'VELG STARTER-PUFFLING',locked:'🔒 RACE MY PUFFLING — VELG EN PUFFLING FØRST',syncFail:'Kunne ikke bekrefte Puffling-samlingen med serveren. Race ble stoppet for å beskytte inventory.'},
-    en:{need:'You need to own at least one Puffling before you can play Race My Puffling.',hint:'Choose a free starter Puffling first. Race My Puffling will then unlock automatically.',cta:'CHOOSE STARTER PUFFLING',locked:'🔒 RACE MY PUFFLING — CHOOSE A PUFFLING FIRST',syncFail:'Could not verify your Puffling collection with the server. Race was stopped to protect inventory.'},
-    de:{need:'Du brauchst mindestens einen Puffling, bevor du Race My Puffling spielen kannst.',hint:'Wähle zuerst einen kostenlosen Starter-Puffling. Danach wird Race My Puffling automatisch freigeschaltet.',cta:'STARTER-PUFFLING WÄHLEN',locked:'🔒 RACE MY PUFFLING — ZUERST PUFFLING WÄHLEN',syncFail:'Die Puffling-Sammlung konnte nicht mit dem Server bestätigt werden. Das Rennen wurde zum Schutz des Inventars gestoppt.'},
-    es:{need:'Necesitas al menos un Puffling antes de jugar Race My Puffling.',hint:'Elige primero un Puffling inicial gratis. Race My Puffling se desbloqueará automáticamente.',cta:'ELEGIR PUFFLING INICIAL',locked:'🔒 RACE MY PUFFLING — ELIGE UN PUFFLING',syncFail:'No se pudo verificar tu colección de Pufflings con el servidor. La carrera se detuvo para proteger el inventario.'},
-    fr:{need:'Vous devez posséder au moins un Puffling avant de jouer à Race My Puffling.',hint:'Choisissez d’abord un Puffling de départ gratuit. Race My Puffling sera ensuite débloqué automatiquement.',cta:'CHOISIR UN PUFFLING DE DÉPART',locked:'🔒 RACE MY PUFFLING — CHOISISSEZ UN PUFFLING',syncFail:'Impossible de vérifier votre collection de Pufflings avec le serveur. La course a été arrêtée pour protéger l’inventaire.'}
+    no:{need:'Du må skaffe deg minst én Orbuff før du kan spille Race My Orbuff.',hint:'Velg en gratis starter-Orbuff først. Deretter låses Race My Orbuff opp automatisk.',cta:'VELG STARTER-ORBUFF',locked:'🔒 RACE MY ORBUFF — VELG EN ORBUFF FØRST',syncFail:'Kunne ikke bekrefte Orbuff-samlingen med serveren. Race ble stoppet for å beskytte inventory.'},
+    en:{need:'You need to own at least one Orbuff before you can play Race My Orbuff.',hint:'Choose a free starter Orbuff first. Race My Orbuff will then unlock automatically.',cta:'CHOOSE STARTER ORBUFF',locked:'🔒 RACE MY ORBUFF — CHOOSE AN ORBUFF FIRST',syncFail:'Could not verify your Orbuff collection with the server. Race was stopped to protect inventory.'},
+    de:{need:'Du brauchst mindestens einen Orbuff, bevor du Race My Orbuff spielen kannst.',hint:'Wähle zuerst einen kostenlosen Starter-Orbuff. Danach wird Race My Orbuff automatisch freigeschaltet.',cta:'STARTER-ORBUFF WÄHLEN',locked:'🔒 RACE MY ORBUFF — ZUERST ORBUFF WÄHLEN',syncFail:'Die Orbuff-Sammlung konnte nicht mit dem Server bestätigt werden. Das Rennen wurde zum Schutz des Inventars gestoppt.'},
+    es:{need:'Necesitas al menos un Orbuff antes de jugar Race My Orbuff.',hint:'Elige primero un Orbuff inicial gratis. Race My Orbuff se desbloqueará automáticamente.',cta:'ELEGIR ORBUFF INICIAL',locked:'🔒 RACE MY ORBUFF — ELIGE UN ORBUFF',syncFail:'No se pudo verificar tu colección de Orbuffs con el servidor. La carrera se detuvo para proteger el inventario.'},
+    fr:{need:'Vous devez posséder au moins un Orbuff avant de jouer à Race My Orbuff.',hint:'Choisissez d’abord un Orbuff de départ gratuit. Race My Orbuff sera ensuite débloqué automatiquement.',cta:'CHOISIR UN ORBUFF DE DÉPART',locked:'🔒 RACE MY ORBUFF — CHOISISSEZ UN ORBUFF',syncFail:'Impossible de vérifier votre collection d’Orbuffs avec le serveur. La course a été arrêtée pour protéger l’inventaire.'}
   };
 
   function tr(){try{return COPY[typeof lang==='string'?lang:'no']||COPY.en;}catch(e){return COPY.no;}}
@@ -33,7 +34,7 @@
     panel.style.cssText='display:none;margin:12px 0;padding:16px;border-radius:18px;background:rgba(255,244,210,.96);border:2px solid rgba(239,179,45,.45);box-shadow:0 9px 24px rgba(75,55,10,.10);text-align:center';
     panel.innerHTML='<div style="font-size:34px;margin-bottom:5px">🔒☁️</div><div id="racePufflingRequiredTitle" style="font-size:16px;font-weight:1000;color:#624b18"></div><div id="racePufflingRequiredHint" class="small" style="margin:7px 0 12px;color:#705d2b"></div><button id="racePufflingRequiredCta" class="gold" type="button" style="margin:0;width:100%"></button>';
     const status=el('multiplayerStatus');if(status)status.insertAdjacentElement('afterend',panel);else card.appendChild(panel);
-    el('racePufflingRequiredCta').onclick=goToPufflings;
+    el('racePufflingRequiredCta').onclick=goToOrbuffs;
     return panel;
   }
   function controls(){
@@ -53,7 +54,7 @@
     }
     controls().forEach(node=>{node.disabled=!ok;node.style.opacity=ok?'':'0.45';node.style.cursor=ok?'':'not-allowed';});
     const race=el('raceMyPufflingBtn');
-    if(race){race.disabled=!ok;race.style.opacity=ok?'':'0.55';race.textContent=ok?'RACE MY PUFFLING 🏁':t.locked;}
+    if(race){race.disabled=!ok;race.style.opacity=ok?'':'0.55';race.textContent=ok?'RACE MY ORBUFF 🏁':t.locked;}
     const friendPanel=el('raceFriendLobbyPanel');if(friendPanel&&!ok)friendPanel.style.display='none';
     return ok;
   }
@@ -61,17 +62,18 @@
     const t=tr();
     if(baseOpen)baseOpen();
     if(typeof multiplayerMode!=='undefined')multiplayerMode=false;
-    if(typeof multiplayerState!=='undefined')multiplayerState='locked_puffling_required';
+    if(typeof multiplayerState!=='undefined')multiplayerState='locked_orbuff_required';
     if(typeof running!=='undefined')running=false;
     if(el('multiplayerHud'))el('multiplayerHud').style.display='none';
     if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='flex';
     if(typeof multiplayerStatusEl!=='undefined'&&multiplayerStatusEl)multiplayerStatusEl.textContent=t.need;
     refresh();
     if(typeof showToast==='function')showToast('🔒 '+t.need);
+    window.dispatchEvent(new CustomEvent('race:orbuffRequired'));
     window.dispatchEvent(new CustomEvent('race:pufflingRequired'));
     return false;
   }
-  function requirePuffling(){return eligible()?true:deny();}
+  function requireOrbuff(){return eligible()?true:deny();}
   async function syncServerInventory(){
     const sync=window.PufflingTradeInventorySync?.ensure;
     if(typeof sync!=='function')return true;
@@ -88,7 +90,7 @@
       return false;
     }
   }
-  function goToPufflings(){
+  function goToOrbuffs(){
     try{window.SkyPuffRaceTransport?.disconnect?.();}catch(e){}
     if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='none';
     if(window.SkyPuffStarterChoice?.eligible?.()){window.SkyPuffStarterChoice.open();return;}
@@ -97,19 +99,16 @@
     setTimeout(()=>el('pufflingsHubBtn')?.click(),0);
   }
 
-  window.openMultiplayer=function(){
-    if(!eligible())return deny();
-    const result=baseOpen?.apply(this,arguments);refresh();return result;
-  };
-  if(baseQuick)window.quickMatch=function(){if(!requirePuffling())return;return baseQuick.apply(this,arguments);};
-  window.startMultiplayerRace=async function(){if(!requirePuffling())return false;if(!await syncServerInventory())return false;return baseStart.apply(this,arguments);};
+  window.openMultiplayer=function(){if(!eligible())return deny();const result=baseOpen?.apply(this,arguments);refresh();return result;};
+  if(baseQuick)window.quickMatch=function(){if(!requireOrbuff())return;return baseQuick.apply(this,arguments);};
+  window.startMultiplayerRace=async function(){if(!requireOrbuff())return false;if(!await syncServerInventory())return false;return baseStart.apply(this,arguments);};
 
   function bindButtons(){
     const mp=typeof multiplayerBtnEl!=='undefined'?multiplayerBtnEl:el('multiplayerBtn');if(mp)mp.onclick=()=>window.openMultiplayer();
-    const quick=typeof quickMatchBtnEl!=='undefined'?quickMatchBtnEl:el('quickMatchBtn');if(quick)quick.onclick=()=>{if(requirePuffling())window.quickMatch?.();};
-    const create=typeof createRoomBtnEl!=='undefined'?createRoomBtnEl:el('createRoomBtn');if(create)create.onclick=()=>{if(requirePuffling())window.PufflingRaceMode?.hostRoom?.();};
-    const join=typeof joinRoomBtnEl!=='undefined'?joinRoomBtnEl:el('joinRoomBtn');if(join)join.onclick=()=>{if(requirePuffling())window.PufflingRaceMode?.joinRoom?.();};
-    const race=el('raceMyPufflingBtn');if(race)race.onclick=()=>{if(requirePuffling())window.openMultiplayer();};
+    const quick=typeof quickMatchBtnEl!=='undefined'?quickMatchBtnEl:el('quickMatchBtn');if(quick)quick.onclick=()=>{if(requireOrbuff())window.quickMatch?.();};
+    const create=typeof createRoomBtnEl!=='undefined'?createRoomBtnEl:el('createRoomBtn');if(create)create.onclick=()=>{if(requireOrbuff())(window.OrbuffRaceMode||window.PufflingRaceMode)?.hostRoom?.();};
+    const join=typeof joinRoomBtnEl!=='undefined'?joinRoomBtnEl:el('joinRoomBtn');if(join)join.onclick=()=>{if(requireOrbuff())(window.OrbuffRaceMode||window.PufflingRaceMode)?.joinRoom?.();};
+    const race=el('raceMyPufflingBtn');if(race)race.onclick=()=>{if(requireOrbuff())window.openMultiplayer();};
     refresh();
   }
 
@@ -118,7 +117,11 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
   window.addEventListener('storage',ev=>{if(ev.key==='skyPuffPufflings')refresh();});
   window.addEventListener('race:pufflingAcquired',refresh);
+  window.addEventListener('race:orbuffAcquired',refresh);
   window.addEventListener('puffling:starterChosen',refresh);
+  window.addEventListener('orbuff:starterChosen',refresh);
 
-  window.SkyPuffRaceEligibility={eligible,ownedIds,refresh,requirePuffling,syncServerInventory,goToPufflings};
+  const api={eligible,ownedIds,refresh,requireOrbuff,requirePuffling:requireOrbuff,syncServerInventory,goToOrbuffs,goToPufflings:goToOrbuffs};
+  window.OrbuffRaceEligibility=api;
+  window.SkyPuffRaceEligibility=api;
 })();

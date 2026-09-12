@@ -1,13 +1,13 @@
-/* Puffling — first Puffling starter choice v1.1 */
+/* Orbuff — first Orbuff starter choice v1.2 (legacy Puffling internals retained for save compatibility) */
 (function(){
  const KEY='skyPuffStarterChoiceV1';
  const IDS=['starterpuff','starterspark','starterdrop'];
  const COPY={
-  no:{title:'Velg din første Puffling',sub:'Velg én starter-Puffling. Alle tre er enkle og klart svakere enn Pufflings du kan finne senere.',choose:'VELG',common:'COMMON • STARTER',weak:'Lav styrke',picked:'Din første Puffling er klar!'},
-  en:{title:'Choose your first Puffling',sub:'Choose one starter Puffling. All three are simple and clearly weaker than Pufflings you can find later.',choose:'CHOOSE',common:'COMMON • STARTER',weak:'Low power',picked:'Your first Puffling is ready!'},
-  de:{title:'Wähle deinen ersten Puffling',sub:'Wähle einen Starter-Puffling. Alle drei sind einfach und deutlich schwächer als spätere Pufflings.',choose:'WÄHLEN',common:'COMMON • STARTER',weak:'Geringe Stärke',picked:'Dein erster Puffling ist bereit!'},
-  es:{title:'Elige tu primer Puffling',sub:'Elige un Puffling inicial. Los tres son simples y claramente más débiles que los Pufflings que encontrarás después.',choose:'ELEGIR',common:'COMMON • STARTER',weak:'Poca fuerza',picked:'¡Tu primer Puffling está listo!'},
-  fr:{title:'Choisissez votre premier Puffling',sub:'Choisissez un Puffling de départ. Tous les trois sont simples et nettement plus faibles que les Pufflings trouvés plus tard.',choose:'CHOISIR',common:'COMMON • STARTER',weak:'Faible puissance',picked:'Votre premier Puffling est prêt !'}
+  no:{title:'Velg din første Orbuff',sub:'Velg én starter-Orbuff. Alle tre er enkle og klart svakere enn Orbuffs du kan finne senere.',choose:'VELG',common:'COMMON • STARTER',weak:'Lav styrke',picked:'Din første Orbuff er klar!'},
+  en:{title:'Choose your first Orbuff',sub:'Choose one starter Orbuff. All three are simple and clearly weaker than Orbuffs you can find later.',choose:'CHOOSE',common:'COMMON • STARTER',weak:'Low power',picked:'Your first Orbuff is ready!'},
+  de:{title:'Wähle deinen ersten Orbuff',sub:'Wähle einen Starter-Orbuff. Alle drei sind einfach und deutlich schwächer als spätere Orbuffs.',choose:'WÄHLEN',common:'COMMON • STARTER',weak:'Geringe Stärke',picked:'Dein erster Orbuff ist bereit!'},
+  es:{title:'Elige tu primer Orbuff',sub:'Elige un Orbuff inicial. Los tres son simples y claramente más débiles que los Orbuffs que encontrarás después.',choose:'ELEGIR',common:'COMMON • STARTER',weak:'Poca fuerza',picked:'¡Tu primer Orbuff está listo!'},
+  fr:{title:'Choisissez votre premier Orbuff',sub:'Choisissez un Orbuff de départ. Tous les trois sont simples et nettement plus faibles que les Orbuffs trouvés plus tard.',choose:'CHOISIR',common:'COMMON • STARTER',weak:'Faible puissance',picked:'Votre premier Orbuff est prêt !'}
  };
  function tr(){try{return COPY[typeof lang==='string'?lang:'no']||COPY.en}catch(e){return COPY.en}}
  function F(){return window.SkyPuffFusion}
@@ -44,8 +44,11 @@
   try{localStorage.setItem(KEY,id)}catch(e){}
   window.SkyPuffPufflingGameplay?.setActive?.(id);window.SkyPuffFusionUI?.renderDex?.();window.SkyPuffRaceEligibility?.refresh?.();
   const root=ensure();root.style.display='none';
-  if(typeof showToast==='function')showToast(`${tr().picked} ${p.icon||'☁️'} ${p.name}`);
-  window.dispatchEvent(new CustomEvent('puffling:starterChosen',{detail:{id,puffling:p}}));return true;
+  if(typeof showToast==='function')showToast(`${tr().picked} ${p.icon||'☁️'} ${window.OrbuffBrand?.replaceText?.(p.name)||p.name}`);
+  const detail={id,orbuff:p,puffling:p};
+  window.dispatchEvent(new CustomEvent('orbuff:starterChosen',{detail}));
+  window.dispatchEvent(new CustomEvent('puffling:starterChosen',{detail}));
+  return true;
  }
  function open(){if(eligible())render();return eligible()}
  function maybeShow(){if(!eligible())return;const start=document.getElementById('start');if(start?.inert){setTimeout(maybeShow,80);return;}render();}
@@ -59,11 +62,10 @@
  function bindGuards(){
   for(const id of ['playBtn','retryBtn']){const button=document.getElementById(id);if(button&&!button.dataset.starterGuard){button.dataset.starterGuard='1';button.addEventListener('click',guardPlay,true);}}
  }
- // The bundle is loaded after the menu markup, so create the modal and bind the
- // play guards immediately. This avoids a short first-load window where a fast
- // tap could start a run before the starter prompt's delayed reveal.
  ensure();bindGuards();
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindGuards();setTimeout(maybeShow,120)});else setTimeout(maybeShow,120);
  document.getElementById('languageSelect')?.addEventListener('change',()=>{if(ensure().style.display!=='none')render()});
- window.SkyPuffStarterChoice={IDS,ownsAny,ownedStarter,chosen,eligible,open,select,render,guardPlay,bindGuards};
+ const api={IDS,ownsAny,ownedStarter,chosen,eligible,open,select,render,guardPlay,bindGuards};
+ window.OrbuffStarterChoice=api;
+ window.SkyPuffStarterChoice=api;
 })();

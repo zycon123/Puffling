@@ -1,5 +1,5 @@
-/* Puffling — Race My Puffling multiplayer entry v1.2
- * Compatibility filename retained for the current beta loader.
+/* Orbuff — Race My Orbuff multiplayer entry v1.3
+ * Compatibility filename and legacy globals retained for the current beta loader.
  */
 (function(){
  let lobbyMode='idle';
@@ -7,11 +7,11 @@
  let hostCode='';
 
  const copy={
-  no:{race:'RACE MY PUFFLING 🏁',intro:'Førstemann til 1500m. Spill mot en venn med vennekode eller finn en motstander.',host:'LAG VENNEKODE',join:'BLI MED',placeholder:'VENNEKODE',waiting:'Venter på venn…',share:'Send denne koden til vennen din',copy:'KOPIER KODE',copied:'KOPIERT ✓',shareBtn:'DEL KODE',joining:'Kobler til rom',joined:'Venn koblet til ✓',ready:'Begge er klare — racet starter snart!',invalid:'Skriv inn en gyldig 6-tegns vennekode',copyFail:'Kunne ikke kopiere automatisk',back:'TILBAKE'},
-  en:{race:'RACE MY PUFFLING 🏁',intro:'First to 1500m. Race a friend with a code or find an opponent.',host:'CREATE FRIEND CODE',join:'JOIN',placeholder:'FRIEND CODE',waiting:'Waiting for friend…',share:'Send this code to your friend',copy:'COPY CODE',copied:'COPIED ✓',shareBtn:'SHARE CODE',joining:'Connecting to room',joined:'Friend connected ✓',ready:'Both players are ready — race starting soon!',invalid:'Enter a valid 6-character friend code',copyFail:'Could not copy automatically',back:'BACK'},
-  de:{race:'RACE MY PUFFLING 🏁',intro:'Wer zuerst 1500 m erreicht, gewinnt. Spiele per Freundescode oder finde einen Gegner.',host:'FREUNDESCODE ERSTELLEN',join:'BEITRETEN',placeholder:'FREUNDESCODE',waiting:'Warte auf Freund…',share:'Sende diesen Code an deinen Freund',copy:'CODE KOPIEREN',copied:'KOPIERT ✓',shareBtn:'CODE TEILEN',joining:'Verbindung zu Raum',joined:'Freund verbunden ✓',ready:'Beide sind bereit — das Rennen startet gleich!',invalid:'Gib einen gültigen 6-stelligen Freundescode ein',copyFail:'Code konnte nicht automatisch kopiert werden',back:'ZURÜCK'},
-  es:{race:'RACE MY PUFFLING 🏁',intro:'El primero en llegar a 1500 m gana. Compite con un amigo mediante código o busca rival.',host:'CREAR CÓDIGO',join:'UNIRSE',placeholder:'CÓDIGO',waiting:'Esperando a tu amigo…',share:'Envía este código a tu amigo',copy:'COPIAR CÓDIGO',copied:'COPIADO ✓',shareBtn:'COMPARTIR',joining:'Conectando a la sala',joined:'Amigo conectado ✓',ready:'Ambos están listos — ¡la carrera empieza pronto!',invalid:'Introduce un código válido de 6 caracteres',copyFail:'No se pudo copiar automáticamente',back:'VOLVER'},
-  fr:{race:'RACE MY PUFFLING 🏁',intro:'Le premier à 1500 m gagne. Affrontez un ami avec un code ou trouvez un adversaire.',host:'CRÉER UN CODE',join:'REJOINDRE',placeholder:'CODE AMI',waiting:'En attente de votre ami…',share:'Envoyez ce code à votre ami',copy:'COPIER LE CODE',copied:'COPIÉ ✓',shareBtn:'PARTAGER',joining:'Connexion au salon',joined:'Ami connecté ✓',ready:'Les deux joueurs sont prêts — départ imminent !',invalid:'Entrez un code ami valide à 6 caractères',copyFail:'Impossible de copier automatiquement',back:'RETOUR'}
+  no:{race:'RACE MY ORBUFF 🏁',intro:'Førstemann til 1500m. Spill mot en venn med vennekode eller finn en motstander.',host:'LAG VENNEKODE',join:'BLI MED',placeholder:'VENNEKODE',waiting:'Venter på venn…',share:'Send denne koden til vennen din',copy:'KOPIER KODE',copied:'KOPIERT ✓',shareBtn:'DEL KODE',joining:'Kobler til rom',joined:'Venn koblet til ✓',ready:'Begge er klare — racet starter snart!',invalid:'Skriv inn en gyldig 6-tegns vennekode',copyFail:'Kunne ikke kopiere automatisk',back:'TILBAKE'},
+  en:{race:'RACE MY ORBUFF 🏁',intro:'First to 1500m. Race a friend with a code or find an opponent.',host:'CREATE FRIEND CODE',join:'JOIN',placeholder:'FRIEND CODE',waiting:'Waiting for friend…',share:'Send this code to your friend',copy:'COPY CODE',copied:'COPIED ✓',shareBtn:'SHARE CODE',joining:'Connecting to room',joined:'Friend connected ✓',ready:'Both players are ready — race starting soon!',invalid:'Enter a valid 6-character friend code',copyFail:'Could not copy automatically',back:'BACK'},
+  de:{race:'RACE MY ORBUFF 🏁',intro:'Wer zuerst 1500 m erreicht, gewinnt. Spiele per Freundescode oder finde einen Gegner.',host:'FREUNDESCODE ERSTELLEN',join:'BEITRETEN',placeholder:'FREUNDESCODE',waiting:'Warte auf Freund…',share:'Sende diesen Code an deinen Freund',copy:'CODE KOPIEREN',copied:'KOPIERT ✓',shareBtn:'CODE TEILEN',joining:'Verbindung zu Raum',joined:'Freund verbunden ✓',ready:'Beide sind bereit — das Rennen startet gleich!',invalid:'Gib einen gültigen 6-stelligen Freundescode ein',copyFail:'Code konnte nicht automatisch kopiert werden',back:'ZURÜCK'},
+  es:{race:'RACE MY ORBUFF 🏁',intro:'El primero en llegar a 1500 m gana. Compite con un amigo mediante código o busca rival.',host:'CREAR CÓDIGO',join:'UNIRSE',placeholder:'CÓDIGO',waiting:'Esperando a tu amigo…',share:'Envía este código a tu amigo',copy:'COPIAR CÓDIGO',copied:'COPIADO ✓',shareBtn:'COMPARTIR',joining:'Conectando a la sala',joined:'Amigo conectado ✓',ready:'Ambos están listos — ¡la carrera empieza pronto!',invalid:'Introduce un código válido de 6 caracteres',copyFail:'No se pudo copiar automáticamente',back:'VOLVER'},
+  fr:{race:'RACE MY ORBUFF 🏁',intro:'Le premier à 1500 m gagne. Affrontez un ami avec un code ou trouvez un adversaire.',host:'CRÉER UN CODE',join:'REJOINDRE',placeholder:'CODE AMI',waiting:'En attente de votre ami…',share:'Envoyez ce code à votre ami',copy:'COPIER LE CODE',copied:'COPIÉ ✓',shareBtn:'PARTAGER',joining:'Connexion au salon',joined:'Ami connecté ✓',ready:'Les deux joueurs sont prêts — départ imminent !',invalid:'Entrez un code ami valide à 6 caractères',copyFail:'Impossible de copier automatiquement',back:'RETOUR'}
  };
  function tr(){return copy[typeof lang==='string'?lang:'no']||copy.en;}
  function cleanCode(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);}
@@ -63,8 +63,8 @@
  }
  async function shareCode(){
   if(!hostCode)return;const t=tr();
-  const text=`Puffling — Race My Puffling\n${t.placeholder}: ${hostCode}`;
-  if(navigator.share){try{await navigator.share({title:'Race My Puffling',text,url:location.href});return;}catch(e){if(e&&e.name==='AbortError')return;}}
+  const text=`Orbuff — Race My Orbuff\n${t.placeholder}: ${hostCode}`;
+  if(navigator.share){try{await navigator.share({title:'Race My Orbuff',text,url:location.href});return;}catch(e){if(e&&e.name==='AbortError')return;}}
   await copyCode();
  }
  function keepLobbyVisible(){
@@ -94,27 +94,11 @@
  }
  function bindTransport(){
   if(transportBound)return;const T=window.SkyPuffRaceTransport;if(!T)return;transportBound=true;
-  T.on('race:opponentJoined',()=>{
-   const t=tr();if(lobbyMode==='host'){setPanel(hostCode,t.joined,true);if(multiplayerStatusEl)multiplayerStatusEl.textContent=t.joined;}
-  });
-  T.on('race:ready',()=>{
-   const t=tr();if(lobbyMode==='host')setPanel(hostCode,t.ready,true);if(multiplayerStatusEl)multiplayerStatusEl.textContent=t.ready;
-  });
-  T.on('race:matched',m=>{
-   const t=tr();
-   if(lobbyMode==='join'&&Array.isArray(m?.players)&&m.players.length>=1){if(multiplayerStatusEl)multiplayerStatusEl.textContent=t.joined;}
-  });
-  T.on('race:start',()=>{
-   lobbyMode='racing';
-   if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='none';
-   setPanel('', '',false);
-   const hud=typeof multiplayerHudEl!=='undefined'?multiplayerHudEl:el('multiplayerHud');if(hud)hud.style.display='block';
-  });
-  T.on('race:error',m=>{
-   if(lobbyMode!=='host'&&lobbyMode!=='join')return;
-   const msg=m?.code==='room_full'?'Rommet er fullt.':m?.code==='resume_expired'?'Rommet finnes ikke lenger.':'Kunne ikke koble til rommet.';
-   if(multiplayerStatusEl)multiplayerStatusEl.textContent=msg;
-  });
+  T.on('race:opponentJoined',()=>{const t=tr();if(lobbyMode==='host'){setPanel(hostCode,t.joined,true);if(multiplayerStatusEl)multiplayerStatusEl.textContent=t.joined;}});
+  T.on('race:ready',()=>{const t=tr();if(lobbyMode==='host')setPanel(hostCode,t.ready,true);if(multiplayerStatusEl)multiplayerStatusEl.textContent=t.ready;});
+  T.on('race:matched',m=>{const t=tr();if(lobbyMode==='join'&&Array.isArray(m?.players)&&m.players.length>=1){if(multiplayerStatusEl)multiplayerStatusEl.textContent=t.joined;}});
+  T.on('race:start',()=>{lobbyMode='racing';if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='none';setPanel('', '',false);const hud=typeof multiplayerHudEl!=='undefined'?multiplayerHudEl:el('multiplayerHud');if(hud)hud.style.display='block';});
+  T.on('race:error',m=>{if(lobbyMode!=='host'&&lobbyMode!=='join')return;const msg=m?.code==='room_full'?'Rommet er fullt.':m?.code==='resume_expired'?'Rommet finnes ikke lenger.':'Kunne ikke koble til rommet.';if(multiplayerStatusEl)multiplayerStatusEl.textContent=msg;});
  }
  function ensure(){
   styleBaseMenu();ensureFriendPanel();bindTransport();
@@ -137,6 +121,8 @@
  }
  function open(){if(typeof openMultiplayer==='function')openMultiplayer();setTimeout(()=>el('raceMyPufflingBtn')?.focus(),50);}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{ensure();removeLegacyCopy();},100));else setTimeout(()=>{ensure();removeLegacyCopy();},100);
- window.PufflingRaceMode={ensure,open,hostRoom,joinRoom};
- window.PufflingStealMode={ensure,open};
+ const api={ensure,open,hostRoom,joinRoom};
+ window.OrbuffRaceMode=api;
+ window.PufflingRaceMode=api;
+ window.PufflingStealMode=api;
 })();
