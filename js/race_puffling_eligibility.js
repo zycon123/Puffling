@@ -106,8 +106,8 @@
   function bindButtons(){
     const mp=typeof multiplayerBtnEl!=='undefined'?multiplayerBtnEl:el('multiplayerBtn');if(mp)mp.onclick=()=>window.openMultiplayer();
     const quick=typeof quickMatchBtnEl!=='undefined'?quickMatchBtnEl:el('quickMatchBtn');if(quick)quick.onclick=()=>{if(requireOrbuff())window.quickMatch?.();};
-    const create=typeof createRoomBtnEl!=='undefined'?createRoomBtnEl:el('createRoomBtn');if(create)create.onclick=()=>{if(requireOrbuff())window.OrbuffRaceMode?.hostRoom?.()||window.PufflingRaceMode?.hostRoom?.();};
-    const join=typeof joinRoomBtnEl!=='undefined'?joinRoomBtnEl:el('joinRoomBtn');if(join)join.onclick=()=>{if(requireOrbuff())window.OrbuffRaceMode?.joinRoom?.()||window.PufflingRaceMode?.joinRoom?.();};
+    const create=typeof createRoomBtnEl!=='undefined'?createRoomBtnEl:el('createRoomBtn');if(create)create.onclick=()=>{if(requireOrbuff())(window.OrbuffRaceMode||window.PufflingRaceMode)?.hostRoom?.();};
+    const join=typeof joinRoomBtnEl!=='undefined'?joinRoomBtnEl:el('joinRoomBtn');if(join)join.onclick=()=>{if(requireOrbuff())(window.OrbuffRaceMode||window.PufflingRaceMode)?.joinRoom?.();};
     const race=el('raceMyPufflingBtn');if(race)race.onclick=()=>{if(requireOrbuff())window.openMultiplayer();};
     refresh();
   }
