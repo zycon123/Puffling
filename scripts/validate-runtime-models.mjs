@@ -25,13 +25,17 @@ function run(context,relativePath){
  if(!starterIds.every(id=>F.load().discovered.includes(id)))fail('Starter Pufflings must stay visible in Puffdex before selection');
  const starterRaceAbility=context.SkyPuffRace?.abilityFor?.('starterpuff');
  if(!starterRaceAbility||starterRaceAbility.id!=='tinyGust'||starterRaceAbility.strength!==0.08||starterRaceAbility.duration!==350)fail('Starter Puffling Race ability is not the weak Tiny Gust profile');
+ const fusionLevels={ember:19,volt:20};context.SkyPuffPufflingProgress={get:id=>({level:fusionLevels[id]||1})};context.SkyPuffPufflingEvolution={stageFor:id=>(fusionLevels[id]||1)>=20?2:0};
  F.add('ember',1);F.add('volt',1);let state=F.load();state.vault=['ember'];F.save(state);
- if(F.canFuse('ember','volt'))fail('Vaulted Puffling was incorrectly available for Fusion');
- F.add('ember',1);if(!F.canFuse('ember','volt'))fail('Extra unprotected Puffling was not available for Fusion');
+ if(F.canFuse('ember','volt'))fail('Vaulted or under-levelled Orbuff was incorrectly available for Fusion');
+ const locked=F.fuse('ember','volt');if(locked.ok||locked.reason!=='level_or_evolution_required')fail('Fusion did not enforce level 20 Ascended requirement');
+ fusionLevels.ember=20;
+ if(F.canFuse('ember','volt'))fail('Vaulted Orbuff was incorrectly available for Fusion');
+ F.add('ember',1);if(!F.canFuse('ember','volt'))fail('Level 20 Ascended unprotected Orbuffs were not available for Fusion');
  if(!F.fuse('ember','volt').ok||F.load().owned.ember!==1||!F.load().vault.includes('ember'))fail('Fusion did not preserve the protected Vault copy');
  localStorage.setItem('skyPuffActivePuffling','volt');state=F.load();state.owned.volt=0;F.save(state);
  if(localStorage.getItem('skyPuffActivePuffling'))fail('Invalid active Puffling was not cleared');
- ok('100-Puffling catalog, starter tuning, unique traits, Vault-safe Fusion and active selection');
+ ok('100-Puffling catalog, starter tuning, unique traits, level-20 Ascended Vault-safe Fusion and active selection');
 }
 
 {
