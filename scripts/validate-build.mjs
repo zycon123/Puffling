@@ -29,11 +29,12 @@ checkSyntax('game.js');
 checkSyntax('audio_theme.js');
 checkSyntax('scripts/validate-runtime-models.mjs');
 checkSyntax('scripts/validate-onboarding.mjs');
+checkSyntax('scripts/validate-orbuff-branding.mjs');
 
 const jsDir=path.join(root,'js');
 const allJs=fs.readdirSync(jsDir).filter(f=>f.endsWith('.js')).map(f=>`js/${f}`).sort();
 for(const rel of allJs){if(!modules.includes(rel))checkSyntax(rel)}
-ok(`Syntax checked ${allJs.length+4} JavaScript entry files`);
+ok(`Syntax checked ${allJs.length+5} JavaScript entry files`);
 
 function hasScript(src){const escaped=src.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp(`<script[^>]+src=["']${escaped}(?:\\?[^"']*)?["'][^>]*>`,'i').test(index)}
 for(const rel of ['audio_theme.js','game.js']){if(!hasScript(rel))fail(`index.html does not load ${rel}`);else ok(`index.html loads ${rel}`)}
@@ -46,12 +47,13 @@ for(const id of ['gameOver','shop','upgrades'])if(!new RegExp(`id=["']${id}["'][
 if(!/function\s+finishLoading\s*\(\)[\s\S]*__skyPuffModulesReady\s*=\s*true[\s\S]*sky-puff-ready/.test(game))fail('Public ready signal must be emitted by the completed module loader');else ok('Main menu readiness waits for every module');
 if(/dispatchEvent\s*\(\s*new\s+Event\s*\(\s*['"]sky-puff-ready/.test(fs.readFileSync(path.join(root,'js/renderer_runtime.js'),'utf8')))fail('Renderer must not expose the menu before later modules finish loading');else ok('Renderer core cannot release the startup splash early');
 if(!/style\.css\?v=/i.test(index)||!/game\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
+if(!index.includes('RAINBOW BOOST')||index.includes('id="boostLabel">RAINBOW PUFF'))fail('First-paint HUD still uses legacy Rainbow Puff copy');else ok('First-paint HUD uses Rainbow Boost');
 
 if(!/location\.replace\s*\(\s*['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must redirect directly to versioned index.html');
 if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
 if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must use Orbuff branding');
 if(!/href=['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
-if(!/index\.html\?entry=beta42-v21/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
+if(!/index\.html\?entry=beta42-v22/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
 if(!process.exitCode)ok('Stable direct-loader checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js','js/fusion_crystal_runtime.js'];
