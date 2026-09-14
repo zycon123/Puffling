@@ -12,7 +12,7 @@ stage=2;if(E.get('prism').max!==6||E.get('prism').energy!==6)fail('Ascended Orbu
 for(let i=0;i<5;i++)E.consumeLoss('ember');
 if(!E.get('ember').exhausted||E.canUse('ember'))fail('Orbuff did not become exhausted after five losses');
 if(ctx.SkyPuffPufflingGameplay.setActive('ember')!==false)fail('Exhausted Orbuff could still be selected');
-const poor=E.revive('ember');if(poor.ok||poor.reason!=='not_enough_coins'||poor.cost!==250)fail('Revival coin guard failed');
+ctx.save.bank=100;const poor=E.revive('ember');if(poor.ok||poor.reason!=='not_enough_coins'||poor.cost!==250)fail('Revival coin guard failed');
 ctx.save.bank=500;const revived=E.revive('ember');if(!revived.ok||revived.energy!==5||ctx.save.bank!==250||!persisted)fail('Coin revival failed');
 for(let i=0;i<5;i++)E.consumeLoss('starterpuff');ctx.save.bank=0;const starter=E.revive('starterpuff');if(!starter.ok||starter.cost!==0||ctx.save.bank!==0)fail('Starter revival must be free');
 console.log('✅ Orbuff energy validated: 5 base, 6 Ascended, loss exhaustion, selection lock and revival');
