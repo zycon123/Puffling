@@ -1,10 +1,10 @@
 (function(){
  const RESET_COPY={
-  no:{button:'NULLSTILL BETA-DATA',confirm:'Dette sletter all lokal Puffling-progresjon på denne enheten. Språkvalget beholdes. Vil du starte helt på nytt?'},
-  en:{button:'RESET BETA DATA',confirm:'This deletes all local Puffling progress on this device. Your language choice is kept. Start completely fresh?'},
-  de:{button:'BETA-DATEN ZURÜCKSETZEN',confirm:'Dadurch wird der gesamte lokale Puffling-Fortschritt auf diesem Gerät gelöscht. Die Sprache bleibt erhalten. Neu starten?'},
-  es:{button:'RESTABLECER DATOS BETA',confirm:'Esto elimina todo el progreso local de Puffling en este dispositivo. Se conserva el idioma. ¿Empezar de cero?'},
-  fr:{button:'RÉINITIALISER LES DONNÉES BÊTA',confirm:'Cela supprime toute la progression Puffling locale sur cet appareil. La langue est conservée. Recommencer à zéro ?'}
+  no:{button:'NULLSTILL BETA-DATA',confirm:'Dette sletter all lokal Orbuff-progresjon på denne enheten. Språkvalget beholdes. Vil du starte helt på nytt?'},
+  en:{button:'RESET BETA DATA',confirm:'This deletes all local Orbuff progress on this device. Your language choice is kept. Start completely fresh?'},
+  de:{button:'BETA-DATEN ZURÜCKSETZEN',confirm:'Dadurch wird der gesamte lokale Orbuff-Fortschritt auf diesem Gerät gelöscht. Die Sprache bleibt erhalten. Neu starten?'},
+  es:{button:'RESTABLECER DATOS BETA',confirm:'Esto elimina todo el progreso local de Orbuff en este dispositivo. Se conserva el idioma. ¿Empezar de cero?'},
+  fr:{button:'RÉINITIALISER LES DONNÉES BÊTA',confirm:'Cela supprime toute la progression Orbuff locale sur cet appareil. La langue est conservée. Recommencer à zéro ?'}
  };
  function resetCopy(){try{return RESET_COPY[typeof lang==='string'?lang:'no']||RESET_COPY.en}catch(e){return RESET_COPY.en}}
  function clearPufflingStorage(storage){const keep=storage.getItem('skyPuffLang');for(let i=storage.length-1;i>=0;i--){const key=storage.key(i);if(/^(skyPuff|puffling)/i.test(String(key||'')))storage.removeItem(key);}if(keep)storage.setItem('skyPuffLang',keep);}
@@ -55,8 +55,8 @@
  function close(){diagnosticsMenuEl.style.display='none';startEl.style.display='flex';}
  function sendReport(){
    const d=collect(),codes=codesFor(d);const ai=d.ai?{repairs:d.ai.repairs,lastRepair:d.ai.lastRepair,lastIssue:d.ai.lastIssue}:null;const ac=d.anti?{flags:d.anti.flags||[],blockedSubmissions:d.anti.blockedSubmissions||0,runStartedAt:d.anti.runStartedAt||0}:null;
-   const body=['Puffling Beta Bug Report','',`Build: ${d.version}`,`Codes: ${codes.length?safeString(codes):'none'}`,`Smoke check: ${d.smoke?safeString(d.smoke):'missing'}`,`AI diagnostics: ${safeString(ai)}`,`Anti-cheat: ${safeString(ac)}`,`Race server: ${d.raceServerMode}${d.raceEndpoint?' • '+d.raceEndpoint:''}`,`Leaderboard: ${d.leaderboardMode}`,`Rank server profile: ${d.rankServerAuthoritative?'yes':'no'}`,`Trade server inventory: ${d.tradeServerInventory?'yes':'no'}`,`Diamond IAP: ${safeString(d.iap)}`,`Last runtime error: ${d.lastError?safeString(d.lastError):'none'}`,`Device/browser: ${d.userAgent}`,'','Hva skjedde?','','Hva gjorde du rett før feilen?','','Høyde / boss / modus:'].join('\n');
-   location.href=`mailto:${d.support}?subject=${encodeURIComponent(`Puffling Beta Support ${d.version}`)}&body=${encodeURIComponent(body)}`;
+   const body=['Orbuff Beta Bug Report','',`Build: ${d.version}`,`Codes: ${codes.length?safeString(codes):'none'}`,`Smoke check: ${d.smoke?safeString(d.smoke):'missing'}`,`AI diagnostics: ${safeString(ai)}`,`Anti-cheat: ${safeString(ac)}`,`Race server: ${d.raceServerMode}${d.raceEndpoint?' • '+d.raceEndpoint:''}`,`Leaderboard: ${d.leaderboardMode}`,`Rank server profile: ${d.rankServerAuthoritative?'yes':'no'}`,`Trade server inventory: ${d.tradeServerInventory?'yes':'no'}`,`Diamond IAP: ${safeString(d.iap)}`,`Last runtime error: ${d.lastError?safeString(d.lastError):'none'}`,`Device/browser: ${d.userAgent}`,'','Hva skjedde?','','Hva gjorde du rett før feilen?','','Høyde / boss / modus:'].join('\n');
+   location.href=`mailto:${d.support}?subject=${encodeURIComponent(`Orbuff Beta Support ${d.version}`)}&body=${encodeURIComponent(body)}`;
  }
  const resetBetaDataBtn=document.getElementById('resetBetaDataBtn');if(diagnosticsBtnEl)diagnosticsBtnEl.onclick=open;if(closeDiagnosticsEl)closeDiagnosticsEl.onclick=close;if(refreshDiagnosticsBtnEl)refreshDiagnosticsBtnEl.onclick=render;if(sendBugReportBtnEl)sendBugReportBtnEl.onclick=sendReport;if(resetBetaDataBtn)resetBetaDataBtn.onclick=resetBetaData;window.skyPuffDiagnosticsSupport={open,close,render,collect,codesFor,sendReport,resetBetaData,clearPufflingStorage};
 })();
