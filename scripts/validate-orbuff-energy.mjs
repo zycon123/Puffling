@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+const fail=m=>{throw new Error(m)},data=new Map();
+const localStorage={getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)};
+let active='ember',stage=0,persisted=0;
+const puffs={ember:{id:'ember',rarity:'common'},prism:{id:'prism',rarity:'rare'},starterpuff:{id:'starterpuff',rarity:'common',starterOnly:true}};
+const ctx={console,Date,JSON,Object,Number,String,Math,localStorage,running:false,save:{bank:1000},persist:()=>persisted++,refreshMenu:()=>{},showToast:()=>{},playBtnEl:null,retryBtnEl:null,startGame(){ctx.running=true;return true},endGame(){ctx.running=false},SkyPuffPufflingEvolution:{stageFor:()=>stage},SkyPuffFusion:{BASE:puffs,FUSIONS:{}},SkyPuffFusionUI:{renderDex:()=>{}},SkyPuffPufflingGameplay:{active:()=>active,getPuff:id=>puffs[id],setActive:id=>{active=id;return true}}};
+ctx.window=ctx;ctx.globalThis=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/orbuff_energy.js','utf8'),ctx,{filename:'js/orbuff_energy.js'});
+const E=ctx.OrbuffEnergy;if(!E)fail('Energy API missing');
+if(E.get('ember').energy!==5||E.get('ember').max!==5)fail('Base Orbuff must start with five energy');
+stage=2;if(E.get('prism').max!==6||E.get('prism').energy!==6)fail('Ascended Orbuff must have six energy');stage=0;
+for(let i=0;i<5;i++)E.consumeLoss('ember');
+if(!E.get('ember').exhausted||E.canUse('ember'))fail('Orbuff did not become exhausted after five losses');
+if(ctx.SkyPuffPufflingGameplay.setActive('ember')!==false)fail('Exhausted Orbuff could still be selected');
+const poor=E.revive('ember');if(poor.ok||poor.reason!=='not_enough_coins'||poor.cost!==250)fail('Revival coin guard failed');
+ctx.save.bank=500;const revived=E.revive('ember');if(!revived.ok||revived.energy!==5||ctx.save.bank!==250||!persisted)fail('Coin revival failed');
+for(let i=0;i<5;i++)E.consumeLoss('starterpuff');ctx.save.bank=0;const starter=E.revive('starterpuff');if(!starter.ok||starter.cost!==0||ctx.save.bank!==0)fail('Starter revival must be free');
+console.log('✅ Orbuff energy validated: 5 base, 6 Ascended, loss exhaustion, selection lock and revival');
