@@ -40,11 +40,11 @@
  function reviveCost(id){return STARTERS.has(id)?0:(COST[puff(id)?.rarity||'common']||250)}
  function patchGameplay(){
   const g=gameplay();if(!g||g.__energyPatched)return;const oldSet=g.setActive;
-  g.setActive=function(id){if(!canUse(id)){if(typeof showToast==='function')showToast('Denne Orbuffen er utmattet og må gjenopplives ❤️');return false}return oldSet.call(g,id)};
+  g.setActive=function(id){if(window.OrbuffVaultProgress?.isVaulted?.(id)){if(typeof showToast==='function')showToast('Denne Orbuffen hviler i OrbVault 🔐');return false}if(!canUse(id)){if(typeof showToast==='function')showToast('Denne Orbuffen er utmattet og må gjenopplives ❤️');return false}return oldSet.call(g,id)};
   g.__energyPatched=true;
  }
  function patchRun(){
-  if(typeof startGame==='function'){const oldStart=startGame;startGame=function(){const id=gameplay()?.active?.();if(id&&!canUse(id)){runArmed=false;if(typeof showToast==='function')showToast('Aktiv Orbuff er utmattet. Gjenoppliv den i Orbdex ❤️');return false}const result=oldStart.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};if(typeof playBtnEl!=='undefined'&&playBtnEl)playBtnEl.onclick=startGame;if(typeof retryBtnEl!=='undefined'&&retryBtnEl)retryBtnEl.onclick=startGame}
+  if(typeof startGame==='function'){const oldStart=startGame;startGame=function(){const id=gameplay()?.active?.();if(id&&!canUse(id)){runArmed=false;const vaulted=window.OrbuffVaultProgress?.isVaulted?.(id);if(typeof showToast==='function')showToast(vaulted?'Aktiv Orbuff hviler i OrbVault. Velg en annen Orbuff 🔐':'Aktiv Orbuff er utmattet. Gjenoppliv den i Orbdex ❤️');return false}const result=oldStart.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};if(typeof playBtnEl!=='undefined'&&playBtnEl)playBtnEl.onclick=startGame;if(typeof retryBtnEl!=='undefined'&&retryBtnEl)retryBtnEl.onclick=startGame}
   if(typeof endGame==='function'){const oldEnd=endGame;endGame=function(){const result=oldEnd.apply(this,arguments);if(runArmed&&(typeof running==='undefined'||!running)){runArmed=false;const r=consumeLoss();if(r.ok&&typeof showToast==='function')showToast(`Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`)}return result}}
  }
  patchGameplay();patchRun();
