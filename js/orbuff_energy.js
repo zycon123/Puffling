@@ -24,9 +24,11 @@
   if(!id)return {ok:false,reason:'no_active_orbuff'};const cur=get(id),s=load(),energy=Math.max(0,cur.energy-1),exhaustedAt=energy===0?Date.now():0;s[id]={energy,exhaustedAt};saveState(s);
   window.SkyPuffFusionUI?.renderDex?.();return {ok:true,...get(id)};
  }
+ function recharge(id,amount=1){const cur=get(id),gain=Math.max(0,Math.floor(+amount||0));if(!id||gain<1)return cur;const s=load(),energy=Math.min(cur.max,cur.energy+gain);s[id]={energy,exhaustedAt:energy>0?0:cur.exhaustedAt};saveState(s);window.SkyPuffFusionUI?.renderDex?.();return get(id)}
  function revive(id,method='coins'){
   const cur=get(id);if(!cur.exhausted)return {ok:true,unchanged:true,...cur};
   const p=puff(id),cost=STARTERS.has(id)?0:(COST[p?.rarity||'common']||250);
+  if(method==='orb'&&!window.OrbuffVaultProgress?.useReviveOrb?.())return {ok:false,reason:'no_revive_orb',cost};
   if(method==='coins'){
    if(typeof save!=='object'||Number(save.bank||0)<cost)return {ok:false,reason:'not_enough_coins',cost};
    save.bank=Math.max(0,Number(save.bank||0)-cost);try{persist?.();refreshMenu?.()}catch(e){}
@@ -34,7 +36,7 @@
   const s=load();s[id]={energy:cur.max,exhaustedAt:0};saveState(s);window.SkyPuffFusionUI?.renderDex?.();
   return {ok:true,cost,...get(id)};
  }
- function canUse(id){return !!id&&!get(id).exhausted}
+ function canUse(id){return !!id&&!get(id).exhausted&&!window.OrbuffVaultProgress?.isVaulted?.(id)}
  function reviveCost(id){return STARTERS.has(id)?0:(COST[puff(id)?.rarity||'common']||250)}
  function patchGameplay(){
   const g=gameplay();if(!g||g.__energyPatched)return;const oldSet=g.setActive;
@@ -46,6 +48,6 @@
   if(typeof endGame==='function'){const oldEnd=endGame;endGame=function(){const result=oldEnd.apply(this,arguments);if(runArmed&&(typeof running==='undefined'||!running)){runArmed=false;const r=consumeLoss();if(r.ok&&typeof showToast==='function')showToast(`Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`)}return result}}
  }
  patchGameplay();patchRun();
- window.OrbuffEnergy={get,maxEnergy,consumeLoss,revive,reviveCost,canUse,load};
+ window.OrbuffEnergy={get,maxEnergy,consumeLoss,recharge,revive,reviveCost,canUse,load};
  window.SkyPuffOrbuffEnergy=window.OrbuffEnergy;
 })();
