@@ -47,10 +47,10 @@ if(!/function\s+finishLoading\s*\(\)[\s\S]*__skyPuffModulesReady\s*=\s*true[\s\S
 if(/dispatchEvent\s*\(\s*new\s+Event\s*\(\s*['"]sky-puff-ready/.test(fs.readFileSync(path.join(root,'js/renderer_runtime.js'),'utf8')))fail('Renderer must not expose the menu before later modules finish loading');else ok('Renderer core cannot release the startup splash early');
 if(!/style\.css\?v=/i.test(index)||!/game\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
 
-if(!/location\.replace\s*\(\s*['"]\.\/(?:index|orbuff-v7)\.html\?/i.test(stable))fail('Stable loader must redirect directly to versioned index.html');
+if(!/location\.replace\s*\(\s*['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must redirect directly to versioned index.html');
 if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
 if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must use Orbuff branding');
-if(!/href=['"]\.\/(?:index|orbuff-v7)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
+if(!/href=['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
 if(!process.exitCode)ok('Stable direct-loader checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js'];
