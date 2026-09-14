@@ -1,4 +1,4 @@
-/* Puffling — Multiplayer -> Race My Puffling bridge v1.6
+/* Puffling — Multiplayer -> Race My Orbuff bridge v1.6
  * Compatibility filename retained for the current beta loader.
  */
 (function(){
@@ -141,7 +141,7 @@
     baseStart(type);if(!multiplayerMode)return;multiplayerRaceSeconds=9999;multiplayerEndAt=Date.now()+multiplayerRaceSeconds*1000;
     onlineOpponent=null;onlineMode=false;lastLocalHeight=0;serverResult=null;awaitingServerStart=true;serverStartAt=0;reconnecting=false;opponentReconnectDeadline=0;
     const R=window.SkyPuffRace;R?.start?.({selectedPufflingId:currentPufflingId()});window.SkyPuffRaceUI?.show?.();running=false;multiplayerState='connecting';connectTransport(type);
-    if(mpTimerEl)mpTimerEl.textContent='1500m';if(multiplayerStatusEl)multiplayerStatusEl.textContent='Kobler til Race My Puffling…';if(typeof showToast==='function')showToast('🏁 RACE MY PUFFLING — FIRST TO 1500m!');
+    if(mpTimerEl)mpTimerEl.textContent='1500m';if(multiplayerStatusEl)multiplayerStatusEl.textContent='Kobler til Race My Orbuff…';if(typeof showToast==='function')showToast('🏁 RACE MY ORBUFF — FIRST TO 1500m!');
   };
 
   multiplayerTick=function(){
