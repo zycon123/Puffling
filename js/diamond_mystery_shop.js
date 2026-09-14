@@ -4,9 +4,9 @@
  const COST=25;
  const bundles=[{count:1,cost:25},{count:3,cost:75},{count:10,cost:250}];
  const eggFusionChances=[
-  {tier:'rare',label:'Rare Puffling Egg',weight:70},
-  {tier:'epic',label:'Epic Puffling Egg',weight:25},
-  {tier:'legendary',label:'Legendary Puffling Egg',weight:5}
+  {tier:'rare',label:'Rare Orbuff Egg',weight:70},
+  {tier:'epic',label:'Epic Orbuff Egg',weight:25},
+  {tier:'legendary',label:'Legendary Orbuff Egg',weight:5}
  ];
  let buyBusy=false;
  const earnedGet=()=>{const n=Number(localStorage.getItem(KEY));return Number.isFinite(n)?Math.max(0,Math.floor(n)):0;};
@@ -27,10 +27,10 @@
  const rewards=[
   {id:'coins500',label:'500 Coins',weight:38,type:'coins',amount:500},
   {id:'fusionCrystal',label:'Fusion Crystal',weight:26,type:'item',amount:1},
-  {id:'rareEgg',label:'Rare Puffling Egg',weight:18,type:'egg',tier:'rare'},
-  {id:'epicEgg',label:'Epic Puffling Egg',weight:11,type:'egg',tier:'epic'},
-  {id:'legendaryEgg',label:'Legendary Puffling Egg',weight:6,type:'egg',tier:'legendary'},
-  {id:'legendaryPuff',label:'Random Legendary Puffling',weight:1,type:'legendaryPuff'}
+  {id:'rareEgg',label:'Rare Orbuff Egg',weight:18,type:'egg',tier:'rare'},
+  {id:'epicEgg',label:'Epic Orbuff Egg',weight:11,type:'egg',tier:'epic'},
+  {id:'legendaryEgg',label:'Legendary Orbuff Egg',weight:6,type:'egg',tier:'legendary'},
+  {id:'legendaryPuff',label:'Random Legendary Orbuff',weight:1,type:'legendaryPuff'}
  ];
  function weightedRoll(list){const total=list.reduce((n,x)=>n+(Number(x.weight)||0),0);let x=Math.random()*total;for(const item of list){x-=Number(item.weight)||0;if(x<0)return item;}return list[0];}
  function roll(){return weightedRoll(rewards);}
@@ -68,7 +68,7 @@
   if(document.getElementById('mysteryShopMenu'))return;
   const style=document.createElement('style');style.id='mysteryVaultCss';style.textContent=`#mysteryBoxBundles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}#mysteryBoxBundles button{min-width:0!important;margin:0!important;padding:10px 4px!important;font-size:11px!important}.mysteryVaultBox{margin:14px 0;padding:13px;border-radius:17px;background:linear-gradient(145deg,rgba(223,239,255,.96),rgba(240,228,255,.94));border:2px solid rgba(104,112,210,.18)}.mysteryVaultCount{font-size:27px;font-weight:1000;margin:4px 0 9px}.mysteryVaultActions{display:grid;grid-template-columns:1fr 1fr;gap:7px}.mysteryVaultActions button{min-width:0!important;margin:0!important;padding:10px 5px!important;font-size:11px!important}@media(max-width:420px){#mysteryBoxBundles{grid-template-columns:1fr}.mysteryVaultActions{grid-template-columns:1fr}}`;
   document.head.appendChild(style);
-  const el=document.createElement('div');el.id='mysteryShopMenu';el.className='overlay';el.style.display='none';el.innerHTML=`<div class="card" style="max-width:540px;max-height:92dvh;overflow-y:auto"><h1 style="font-size:34px">Mystery Shop 💎</h1><div style="font-size:24px;font-weight:1000;margin:8px 0">💎 <span id="diamondBalance">0</span></div><div id="diamondBalanceSplit" class="small" style="margin:-4px 0 10px"></div><div class="small" style="margin-bottom:10px">Kjøpte Mystery Boxer lagres uåpnet i Mystery Vault.</div><div id="mysteryBoxBundles"><button class="gold" data-buy-boxes="1">1 BOX<br>${bundles[0].cost} 💎</button><button class="gold" data-buy-boxes="3">3 BOXER<br>${bundles[1].cost} 💎</button><button class="gold" data-buy-boxes="10">10 BOXER<br>${bundles[2].cost} 💎</button></div><div class="mysteryVaultBox"><div style="font-size:12px;font-weight:1000;letter-spacing:.7px;opacity:.68">🔐 MYSTERY VAULT</div><div class="mysteryVaultCount">🎁 x<span id="mysteryBoxCount">0</span></div><div class="small" style="margin-bottom:9px">Åpne én vanlig Mystery Box, eller kombiner 3 uåpnede boxer til ett garantert Puffling-egg.</div><div class="mysteryVaultActions"><button id="openMysteryBox" class="secondary">ÅPNE 1 BOX</button><button id="combineMysteryBoxes" class="gold">3 BOXER → 🥚</button></div></div><div id="diamondBoxResult" style="margin:12px 0;font-weight:900;min-height:18px"></div><div style="text-align:left;background:rgba(255,255,255,.6);padding:12px;border-radius:14px;font-size:12px;line-height:1.55"><b>Vanlig Mystery Box</b><br>500 Coins — 38%<br>Fusion Crystal — 26%<br>Rare Puffling Egg — 18%<br>Epic Puffling Egg — 11%<br>Legendary Puffling Egg — 6%<br>Random Legendary Puffling — 1%<br><br><b>3 Boxer → garantert egg</b><br>Rare Puffling Egg — 70%<br>Epic Puffling Egg — 25%<br>Legendary Puffling Egg — 5%</div><div class="small" style="margin-top:10px;opacity:.72">Odds vises før diamanter brukes. Betalte diamanter verifiseres og lagres på server.</div><button id="closeMysteryShop" class="secondary" style="margin-top:12px">TILBAKE</button></div>`;document.body.appendChild(el);
+  const el=document.createElement('div');el.id='mysteryShopMenu';el.className='overlay';el.style.display='none';el.innerHTML=`<div class="card" style="max-width:540px;max-height:92dvh;overflow-y:auto"><h1 style="font-size:34px">Mystery Shop 💎</h1><div style="font-size:24px;font-weight:1000;margin:8px 0">💎 <span id="diamondBalance">0</span></div><div id="diamondBalanceSplit" class="small" style="margin:-4px 0 10px"></div><div class="small" style="margin-bottom:10px">Kjøpte Mystery Boxer lagres uåpnet i Mystery Vault.</div><div id="mysteryBoxBundles"><button class="gold" data-buy-boxes="1">1 BOX<br>${bundles[0].cost} 💎</button><button class="gold" data-buy-boxes="3">3 BOXER<br>${bundles[1].cost} 💎</button><button class="gold" data-buy-boxes="10">10 BOXER<br>${bundles[2].cost} 💎</button></div><div class="mysteryVaultBox"><div style="font-size:12px;font-weight:1000;letter-spacing:.7px;opacity:.68">🔐 MYSTERY VAULT</div><div class="mysteryVaultCount">🎁 x<span id="mysteryBoxCount">0</span></div><div class="small" style="margin-bottom:9px">Åpne én vanlig Mystery Box, eller kombiner 3 uåpnede boxer til ett garantert Puffling-egg.</div><div class="mysteryVaultActions"><button id="openMysteryBox" class="secondary">ÅPNE 1 BOX</button><button id="combineMysteryBoxes" class="gold">3 BOXER → 🥚</button></div></div><div id="diamondBoxResult" style="margin:12px 0;font-weight:900;min-height:18px"></div><div style="text-align:left;background:rgba(255,255,255,.6);padding:12px;border-radius:14px;font-size:12px;line-height:1.55"><b>Vanlig Mystery Box</b><br>500 Coins — 38%<br>Fusion Crystal — 26%<br>Rare Orbuff Egg — 18%<br>Epic Orbuff Egg — 11%<br>Legendary Orbuff Egg — 6%<br>Random Legendary Orbuff — 1%<br><br><b>3 Boxer → garantert egg</b><br>Rare Orbuff Egg — 70%<br>Epic Orbuff Egg — 25%<br>Legendary Orbuff Egg — 5%</div><div class="small" style="margin-top:10px;opacity:.72">Odds vises før diamanter brukes. Betalte diamanter verifiseres og lagres på server.</div><button id="closeMysteryShop" class="secondary" style="margin-top:12px">TILBAKE</button></div>`;document.body.appendChild(el);
   el.querySelectorAll('[data-buy-boxes]').forEach(b=>b.onclick=()=>buyBoxes(Number(b.dataset.buyBoxes)));
   document.getElementById('openMysteryBox').onclick=openBox;document.getElementById('combineMysteryBoxes').onclick=combineBoxes;
   document.getElementById('closeMysteryShop').onclick=()=>{el.style.display='none';document.getElementById('start').style.display='flex';};
