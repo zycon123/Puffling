@@ -37,15 +37,15 @@ ok(`Syntax checked ${allJs.length+4} JavaScript entry files`);
 
 function hasScript(src){const escaped=src.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp(`<script[^>]+src=["']${escaped}(?:\\?[^"']*)?["'][^>]*>`,'i').test(index)}
 for(const rel of ['audio_theme.js','game.js']){if(!hasScript(rel))fail(`index.html does not load ${rel}`);else ok(`index.html loads ${rel}`)}
-const audioPos=index.search(/audio_theme\.js(?:\?[^"']*)?/i),gamePos=index.search(/game\.js(?:\?[^"']*)?/i);
-if(audioPos<0||gamePos<0||audioPos>gamePos)fail('audio_theme.js must load before game.js');else ok('Bootstrap script order');
+const audioPos=index.search(/audio_theme\.js(?:\?[^"']*)?/i),gamePos=index.search(/orbuff\.bundle\.js(?:\?[^"']*)?/i);
+if(audioPos<0||gamePos<0||audioPos>gamePos)fail('audio_theme.js must load before orbuff.bundle.js');else ok('Bootstrap script order');
 
 const requiredIds=['game','start','playBtn','pauseBtn','gameOver','shop','upgrades','bossBarWrap','bossBar','bossRushMenu','multiplayerMenu','leaderboardMenu','audioSettings','bgMusic','toast'];
 for(const id of requiredIds)if(!index.includes(`id="${id}"`)&&!index.includes(`id='${id}'`))fail(`Missing required DOM id: ${id}`);
 for(const id of ['gameOver','shop','upgrades'])if(!new RegExp(`id=["']${id}["'][^>]*style=["'][^"']*display\\s*:\\s*none`,'i').test(index))fail(`${id} overlay must be hidden in initial HTML`);else ok(`${id} overlay starts hidden`);
 if(!/function\s+finishLoading\s*\(\)[\s\S]*__skyPuffModulesReady\s*=\s*true[\s\S]*sky-puff-ready/.test(game))fail('Public ready signal must be emitted by the completed module loader');else ok('Main menu readiness waits for every module');
 if(/dispatchEvent\s*\(\s*new\s+Event\s*\(\s*['"]sky-puff-ready/.test(fs.readFileSync(path.join(root,'js/renderer_runtime.js'),'utf8')))fail('Renderer must not expose the menu before later modules finish loading');else ok('Renderer core cannot release the startup splash early');
-if(!/style\.css\?v=/i.test(index)||!/game\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
+if(!/style\.css\?v=/i.test(index)||!/orbuff\.bundle\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
 
 if(!/location\.replace\s*\(\s*['"]\.\/index\.html\?build=/i.test(stable))fail('Stable loader must redirect directly to versioned index.html');
 if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
@@ -69,7 +69,7 @@ const firstPaintIds=['menuPrimaryGroup','spMainNav','pufflingsHubBtn','modesHubB
 for(const id of firstPaintIds)if(!index.includes(`id="${id}"`)&&!index.includes(`id='${id}'`))fail(`Compact first paint is missing DOM id: ${id}`);
 if(!/#start\s+\.menuActions\s*\{[^}]*display\s*:\s*none\s*!important/i.test(index))fail('Legacy main-menu actions are not hidden before first paint');else ok('Legacy actions hidden before first paint');
 const compactNavPos=index.search(/id=["']spMainNav["']/i);
-if(compactNavPos<0||gamePos<0||compactNavPos>gamePos)fail('Compact navigation must be present before game.js loads');else ok('Compact navigation is rendered in initial HTML');
+if(compactNavPos<0||gamePos<0||compactNavPos>gamePos)fail('Compact navigation must be present before the Orbuff bundle loads');else ok('Compact navigation is rendered in initial HTML');
 
 const betaUiPath=path.join(root,'js/beta_release_ui.js');
 const betaUiSource=fs.existsSync(betaUiPath)?fs.readFileSync(betaUiPath,'utf8'):'';
