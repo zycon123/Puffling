@@ -116,8 +116,8 @@ function run(context,relativePath){
  const failed=loaderScenario(Infinity);
  if(failed.start.inert||failed.events.filter(type=>type==='sky-puff-ready').length!==1||failed.nodes.size||failed.executed.includes('js/puffling_nursery_vault.js')||!failed.executed.includes('js/smoke_check.js'))fail('Permanent module failure blocked fail-open startup');
  if(failed.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==1)fail('Permanent module failure was retried unexpectedly');
- if(failed.reloads!==1||failed.localStorage.getItem('skyPuffPufflings')!=='saved inventory')fail('Startup recovery did not preserve saved inventory');
- ok('Atomic menu readiness, module loader order, bounded retries, recovery button and saved progress');
+ if(failed.reloads!==0||failed.localStorage.getItem('skyPuffPufflings')!=='saved inventory')fail('Fail-open startup did not preserve saved inventory');
+ ok('Atomic menu readiness, parallel fail-open loading and saved progress');
 }
 
 console.log('✅ Runtime model regression checks passed');
