@@ -7,6 +7,7 @@
   [/PUFFLINGS/g,'ORBUFFS'],[/Pufflings/g,'Orbuffs'],[/pufflings/g,'orbuffs'],
   [/PUFFLING/g,'ORBUFF'],[/Puffling/g,'Orbuff'],[/puffling/g,'orbuff'],
   [/BOSS PUFF/g,'BOSS ORBUFF'],[/Boss Puff/g,'Boss Orbuff'],[/boss puff/g,'boss Orbuff'],
+  [/RAINBOW PUFF/g,'RAINBOW BOOST'],[/Rainbow Puff/g,'Rainbow Boost'],[/rainbow puff/g,'rainbow boost'],
   [/SKY PUFF/g,'ORBUFF'],[/Sky Puff/g,'Orbuff'],[/sky puff/g,'orbuff'],
   [/Sky Cosmetics/g,'Orbuff Cosmetics'],[/SKY COSMETICS/g,'ORBUFF COSMETICS'],
   [/Sky Treasure/g,'Orbuff Treasure'],[/SKY TREASURE/g,'ORBUFF TREASURE'],
@@ -33,6 +34,7 @@
   document.title=BRAND;
   const splash=document.querySelector('.studioGame');if(splash)splash.textContent='ORBUFF';
   const main=document.querySelector('#start h1');if(main)main.textContent=BRAND;
+  const boost=document.getElementById('boostLabel');if(boost)boost.textContent='RAINBOW BOOST';
   cleanNode(document.body);patchToast();
  }
  let queued=false,pending=[];
