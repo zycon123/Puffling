@@ -1,4 +1,4 @@
-/* Orbuff energy and revival system v1.0
+/* Orbuff energy and revival system v1.1
  * Legacy collection/progression data is untouched. Energy is stored separately.
  */
 (function(){
@@ -38,16 +38,19 @@
  }
  function canUse(id){return !!id&&!get(id).exhausted&&!window.OrbuffVaultProgress?.isVaulted?.(id)}
  function reviveCost(id){return STARTERS.has(id)?0:(COST[puff(id)?.rarity||'common']||250)}
+ function unavailableMessage(id){const vaulted=window.OrbuffVaultProgress?.isVaulted?.(id);return vaulted?'Aktiv Orbuff hviler i OrbVault. Velg en annen Orbuff 🔐':'Aktiv Orbuff er utmattet. Gjenoppliv den i Orbdex ❤️'}
+ function guardActive(){const id=gameplay()?.active?.();if(id&&!canUse(id)){runArmed=false;if(typeof showToast==='function')showToast(unavailableMessage(id));return false}return true}
  function patchGameplay(){
   const g=gameplay();if(!g||g.__energyPatched)return;const oldSet=g.setActive;
   g.setActive=function(id){if(window.OrbuffVaultProgress?.isVaulted?.(id)){if(typeof showToast==='function')showToast('Denne Orbuffen hviler i OrbVault 🔐');return false}if(!canUse(id)){if(typeof showToast==='function')showToast('Denne Orbuffen er utmattet og må gjenopplives ❤️');return false}return oldSet.call(g,id)};
   g.__energyPatched=true;
  }
  function patchRun(){
-  if(typeof startGame==='function'){const oldStart=startGame;startGame=function(){const id=gameplay()?.active?.();if(id&&!canUse(id)){runArmed=false;const vaulted=window.OrbuffVaultProgress?.isVaulted?.(id);if(typeof showToast==='function')showToast(vaulted?'Aktiv Orbuff hviler i OrbVault. Velg en annen Orbuff 🔐':'Aktiv Orbuff er utmattet. Gjenoppliv den i Orbdex ❤️');return false}const result=oldStart.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};if(typeof playBtnEl!=='undefined'&&playBtnEl)playBtnEl.onclick=startGame;if(typeof retryBtnEl!=='undefined'&&retryBtnEl)retryBtnEl.onclick=startGame}
-  if(typeof endGame==='function'){const oldEnd=endGame;endGame=function(){const result=oldEnd.apply(this,arguments);if(runArmed&&(typeof running==='undefined'||!running)){runArmed=false;const r=consumeLoss();if(r.ok&&typeof showToast==='function')showToast(`Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`)}return result}}
+  if(typeof startGame==='function'&&!startGame.__orbuffEnergyGuard){const oldStart=startGame;const wrapped=function(){if(!guardActive())return false;const result=oldStart.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};wrapped.__orbuffEnergyGuard=true;startGame=wrapped;if(typeof playBtnEl!=='undefined'&&playBtnEl)playBtnEl.onclick=startGame;if(typeof retryBtnEl!=='undefined'&&retryBtnEl)retryBtnEl.onclick=startGame}
+  if(typeof startBossRush==='function'&&!startBossRush.__orbuffEnergyGuard){const oldBossRush=startBossRush;const wrapped=function(){if(!guardActive())return false;const result=oldBossRush.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};wrapped.__orbuffEnergyGuard=true;startBossRush=wrapped}
+  if(typeof endGame==='function'&&!endGame.__orbuffEnergyLoss){const oldEnd=endGame;const wrapped=function(){const result=oldEnd.apply(this,arguments);if(runArmed&&(typeof running==='undefined'||!running)){runArmed=false;const r=consumeLoss();if(r.ok&&typeof showToast==='function')showToast(`Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`)}return result};wrapped.__orbuffEnergyLoss=true;endGame=wrapped}
  }
  patchGameplay();patchRun();
- window.OrbuffEnergy={get,maxEnergy,consumeLoss,recharge,revive,reviveCost,canUse,load};
+ window.OrbuffEnergy={get,maxEnergy,consumeLoss,recharge,revive,reviveCost,canUse,load,guardActive};
  window.SkyPuffOrbuffEnergy=window.OrbuffEnergy;
 })();
