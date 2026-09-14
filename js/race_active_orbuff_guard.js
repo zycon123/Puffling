@@ -1,8 +1,9 @@
-/* Orbuff — Race active-Orbuff selection guard v1.0
+/* Orbuff — Race active-Orbuff selection + energy guard v1.1
  * Keeps legacy Fusion state compatible while making Race use the player's real active Orbuff.
  */
 (function(){
  const F=window.SkyPuffFusion,G=window.SkyPuffPufflingGameplay;if(!F||!G)return;
+ let raceOrbuffId='',raceLossCharged=false;
  function rawOwned(){try{return F.load?.().owned||{}}catch(e){return {}}}
  function canUse(id){if(!id||Number(rawOwned()[id]||0)<=0)return false;const check=window.OrbuffEnergy?.canUse;return typeof check==='function'?!!check(id):true}
  function usableIds(){return Object.keys(rawOwned()).filter(canUse)}
@@ -24,8 +25,18 @@
  }
  const baseStart=window.startMultiplayerRace;
  if(typeof baseStart==='function'&&!baseStart.__orbuffActiveGuard){
-  const wrapped=async function(){const id=ensureActive();if(!id)return block();return await baseStart.apply(this,arguments)};
+  const wrapped=async function(){const id=ensureActive();if(!id)return block();raceOrbuffId=id;raceLossCharged=false;return await baseStart.apply(this,arguments)};
   wrapped.__orbuffActiveGuard=true;window.startMultiplayerRace=wrapped;
  }
- const api={canUse,usableIds,ensureActive};window.OrbuffRaceActiveGuard=api;
+ function chargeRaceLoss(state){
+  if(raceLossCharged||!state||!(state.winner==='rival'||state.disconnectLoss))return null;
+  raceLossCharged=true;const id=raceOrbuffId||G.active?.(),r=window.OrbuffEnergy?.consumeLoss?.(id);
+  if(r?.ok&&typeof showToast==='function')setTimeout(()=>showToast(`Race-tap: Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`),150);
+  return r||null;
+ }
+ const raceUi=window.SkyPuffRaceUI;
+ if(raceUi&&typeof raceUi.showResult==='function'&&!raceUi.showResult.__orbuffEnergyLoss){
+  const baseShowResult=raceUi.showResult.bind(raceUi);const wrapped=function(state){chargeRaceLoss(state||window.SkyPuffRace?.snapshot?.());return baseShowResult(state)};wrapped.__orbuffEnergyLoss=true;raceUi.showResult=wrapped;
+ }
+ const api={canUse,usableIds,ensureActive,chargeRaceLoss,get raceOrbuffId(){return raceOrbuffId}};window.OrbuffRaceActiveGuard=api;
 })();
