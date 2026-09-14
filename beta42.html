@@ -1,1 +1,14 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Puffling Beta</title><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#58c4ff}</style></head><body><script>(async()=>{try{const nonce='stable-'+Date.now();let h=await fetch('./index.html?force='+nonce,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('index '+r.status);return r.text()});h=h.replace(/SKY PUFF/g,'PUFFLING').replace(/Sky Puff/g,'Puffling').replace(/sky puff/g,'puffling').replace(/game\.js\?v=[^"']+/g,'game.js?v=20260914-loading-hotfix').replace(/audio_theme\.js\?v=[^"']+/g,'audio_theme.js?v=20260914-loading-hotfix').replace(/style\.css\?v=[^"']+/g,'style.css?v=20260914-loading-hotfix');document.open();document.write(h);document.close();}catch(e){document.body.innerHTML='<div style="padding:30px;font:700 18px system-ui;color:white;text-align:center">Puffling could not load.<br><small>Please refresh the page.</small></div>';console.error('Puffling stable loader',e)}})();</script></body></html>
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta http-equiv="cache-control" content="no-cache">
+<title>Orbuff Beta</title>
+<style>html,body{margin:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:#58c4ff;color:#173650;font:700 18px system-ui;text-align:center}a{color:#173650}</style>
+</head>
+<body>
+<div>Åpner Orbuff …<br><small><a href="./index.html?build=20260914-direct-loader">Trykk her hvis spillet ikke åpnes</a></small></div>
+<script>location.replace('./index.html?build=20260914-direct-loader');</script>
+</body>
+</html>
