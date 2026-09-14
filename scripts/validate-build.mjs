@@ -53,13 +53,9 @@ if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must u
 if(!/href=['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
 if(!process.exitCode)ok('Stable direct-loader checks passed');
 
-const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js'];
+const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js','js/fusion_crystal_runtime.js'];
 for(const rel of forbidden)if(fs.existsSync(path.join(root,rel)))fail(`Obsolete file still present: ${rel}`);
 if(!process.exitCode)ok('No obsolete experiment files remain');
-const fusionCrystal=fs.readFileSync(path.join(root,'js/fusion_crystal_runtime.js'),'utf8');
-if(/MutationObserver[\s\S]{0,160}ensure\(\);\s*render\(\)/.test(fusionCrystal))fail('Fusion Crystal observer can recursively render forever');
-if(!/ensureQueued/.test(fusionCrystal))fail('Fusion Crystal observer must debounce DOM initialization');
-else ok('Fusion Crystal observer cannot self-trigger an infinite render loop');
 
 const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/puffling_nursery_vault.js','js/diamond_mystery_shop.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
 for(const rel of requiredActive)if(!modules.includes(rel))fail(`Required regression/system module is not active: ${rel}`);
