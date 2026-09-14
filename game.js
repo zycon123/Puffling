@@ -26,6 +26,6 @@ setTimeout(()=>{
   if(finished)return;
   if(notice)notice.remove();
   release();
-  console.warn('Orbuff startup watchdog released the menu at module',i,'of',parts.length);
+  console.error('Orbuff startup watchdog released the menu at module',i,'of',parts.length);
 },8000);
 })();
