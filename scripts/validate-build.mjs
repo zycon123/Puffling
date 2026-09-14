@@ -36,7 +36,7 @@ for(const rel of allJs){if(!modules.includes(rel))checkSyntax(rel)}
 ok(`Syntax checked ${allJs.length+4} JavaScript entry files`);
 
 function hasScript(src){const escaped=src.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return new RegExp(`<script[^>]+src=["']${escaped}(?:\\?[^"']*)?["'][^>]*>`,'i').test(index)}
-for(const rel of ['audio_theme.js','game.js']){if(!hasScript(rel))fail(`index.html does not load ${rel}`);else ok(`index.html loads ${rel}`)}
+for(const rel of ['audio_theme.js','orbuff.bundle.js']){if(!hasScript(rel))fail(`index.html does not load ${rel}`);else ok(`index.html loads ${rel}`)}
 const audioPos=index.search(/audio_theme\.js(?:\?[^"']*)?/i),gamePos=index.search(/orbuff\.bundle\.js(?:\?[^"']*)?/i);
 if(audioPos<0||gamePos<0||audioPos>gamePos)fail('audio_theme.js must load before orbuff.bundle.js');else ok('Bootstrap script order');
 
