@@ -1,16 +1,16 @@
-/* Orbuff — in-game rules and rewards guide v1.0 */
+/* Orbuff — in-game rules and rewards guide v1.1 */
 (function(){
  const sections=[
   ['🎮 Slik spiller du','Hopp oppover, land på plattformer og samle mynter. Unngå fiender og bruk Rainbow Boost når måleren er klar. Et tap avslutter runden og bruker 1 energi på aktiv Orbuff.'],
   ['❤️ Orbuff-energi','Vanlige Orbuffs har 5 energi. Ascended Orbuffs har 6. Ett energipoeng mistes ved tap. Ved 0 energi er Orbuffen utmattet og må hvile eller gjenopplives. Level og evolution beholdes.'],
-  ['🔐 OrbVault – hvile og trening','Orbuffs i OrbVault er beskyttet mot Fusion og Trade, kan ikke brukes mens de hviler, får passiv XP og lader energi. Level 1 har 3 plasser og gir 1 energi hvert 15. minutt. Oppgraderinger gir opptil 8 plasser, raskere lading og 10 XP per time. Level 5 gir også 15 % daglig sjanse for en Revive Orb.'],
+  ['🔐 OrbVault – hvile og trening','Orbuffs i OrbVault er beskyttet mot Fusion og Trade, kan ikke brukes mens de hviler, får passiv XP og lader energi. Level 1 har 3 plasser og gir 1 energi hvert 15. minutt. Oppgraderinger gir opptil 8 beskyttede plasser, raskere lading og 10 XP per time. Level 5 gir også 15 % daglig sjanse for en Revive Orb.'],
   ['🌱 Evolution','Orbuffs blir Evolved på level 10 og Ascended på level 20. Starterne Airbuff, Rainbuff og Sparkbuff utvikler seg ikke.'],
-  ['🧬 Fusion','Begge Orbuffs må være level 20 og Ascended. Fusion bruker begge valgte Orbuffs. Beskyttede kopier i OrbVault kan ikke brukes.'],
+  ['🧬 Fusion','Begge Orbuffs må være level 20 og Ascended. Fusion bruker begge valgte Orbuffs. Beskyttede kopier i alle OrbVault-plasser kan ikke brukes.'],
   ['🥚 Nursery','Egg kan klekke nye Orbuffs. Rare Egg gir Common eller Rare, Epic Egg gir Epic, og Legendary Egg gir Legendary. Starter-Orbuffs kan ikke klekkes fra egg.'],
   ['🎁 Belønninger','Mynter fås gjennom spilling, oppdrag, daglig belønning og Boss Rush. Bosser kan gi Orbuffs og andre belønninger. Mystery Boxes kan gi mynter, diamanter og egg-relaterte belønninger.'],
-  ['👑 Bosser og Boss Rush','Vanlig spill fortsetter etter hver beseiret boss. Boss Rush lar deg kjempe på nytt mot bosser du allerede har slått og gir 100 mynter per seier.'],
-  ['🏁 Race My Orbuff','Førstemann til 1500 meter vinner. Hver spiller kan angripe opptil 3 ganger, med 4 sekunders cooldown. Orbuffene har forskjellige Race-effekter.'],
-  ['💰 Gjenoppliving','Startere: gratis. Common: 250 mynter. Rare: 500. Epic: 1 000. Legendary: 2 000. Mythic: 2 500. Full hviletid uten OrbVault er 30/60/90/120 minutter etter sjeldenhet. En Revive Orb gjenoppliver umiddelbart.']
+  ['👑 Bosser og Boss Rush','Vanlig spill fortsetter etter hver beseiret boss. Boss Rush lar deg kjempe på nytt mot bosser du allerede har slått. Første Boss Rush-seier mot hver boss gir 250 mynter, og senere replay-seiere gir 25 mynter.'],
+  ['🏁 Race My Orbuff','Førstemann til 1500 meter vinner. Hver spiller kan angripe opptil 3 ganger, med 4 sekunders cooldown. Race bruker den aktive Orbuffen din. Utmattede Orbuffs og Orbuffs som hviler i OrbVault kan ikke brukes i Race.'],
+  ['💰 Gjenoppliving','Startere: gratis. Common: 250 mynter. Rare: 500. Epic: 1 000. Legendary: 2 000. Mythic: 2 500. Full hviletid uten OrbVault er Common 30 min, Rare 60 min, Epic 90 min og Legendary/Mythic 120 min. En Revive Orb gjenoppliver umiddelbart.']
  ];
  function ensure(){
   if(document.getElementById('gameGuideMenu'))return;
