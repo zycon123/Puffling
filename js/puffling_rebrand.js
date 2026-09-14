@@ -6,6 +6,7 @@
  const textRules=[
   [/PUFFLINGS/g,'ORBUFFS'],[/Pufflings/g,'Orbuffs'],[/pufflings/g,'orbuffs'],
   [/PUFFLING/g,'ORBUFF'],[/Puffling/g,'Orbuff'],[/puffling/g,'orbuff'],
+  [/BOSS PUFF/g,'BOSS ORBUFF'],[/Boss Puff/g,'Boss Orbuff'],[/boss puff/g,'boss Orbuff'],
   [/SKY PUFF/g,'ORBUFF'],[/Sky Puff/g,'Orbuff'],[/sky puff/g,'orbuff'],
   [/Sky Cosmetics/g,'Orbuff Cosmetics'],[/SKY COSMETICS/g,'ORBUFF COSMETICS'],
   [/Sky Treasure/g,'Orbuff Treasure'],[/SKY TREASURE/g,'ORBUFF TREASURE'],
@@ -22,19 +23,25 @@
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){const old=n.nodeValue,v=replaceText(old);if(v!==old)n.nodeValue=v;}
   if(root.querySelectorAll)root.querySelectorAll('[title],[aria-label],[placeholder],[alt]').forEach(el=>{for(const a of ['title','aria-label','placeholder','alt'])if(el.hasAttribute(a)){const old=el.getAttribute(a),v=replaceText(old);if(v!==old)el.setAttribute(a,v);}});
  }
+ function patchToast(){
+  const base=window.showToast;
+  if(typeof base!=='function'||base.__orbuffBrandPatched)return;
+  const wrapped=function(message){const args=[...arguments];args[0]=replaceText(message);return base.apply(this,args)};
+  wrapped.__orbuffBrandPatched=true;wrapped.__orbuffBrandBase=base;window.showToast=wrapped;
+ }
  function apply(){
   document.title=BRAND;
   const splash=document.querySelector('.studioGame');if(splash)splash.textContent='ORBUFF';
   const main=document.querySelector('#start h1');if(main)main.textContent=BRAND;
-  cleanNode(document.body);
+  cleanNode(document.body);patchToast();
  }
  let queued=false,pending=[];
  function flush(){queued=false;const nodes=pending;pending=[];for(const n of nodes)cleanNode(n);}
- // Only inspect newly inserted UI. Do not observe characterData: rewriting text while observing text mutations could create a feedback loop on some mobile browsers.
+ // Inspect newly inserted/replaced UI nodes. Existing save/API identifiers remain untouched.
  const observer=new MutationObserver(list=>{for(const m of list)for(const n of m.addedNodes||[])pending.push(n);if(pending.length&&!queued){queued=true;requestAnimationFrame(flush);}});
  function start(){apply();observer.observe(document.body,{subtree:true,childList:true});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
- const api={name:BRAND,legacyName:'Puffling',apply,replaceText};
+ const api={name:BRAND,legacyName:'Puffling',apply,replaceText,patchToast};
  window.OrbuffBrand=api;
  // Backward-compatible alias for existing modules/tests that still reference PufflingBrand.
  window.PufflingBrand=api;
