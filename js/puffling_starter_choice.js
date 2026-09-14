@@ -1,7 +1,7 @@
 /* Orbuff — first Orbuff starter choice v1.2 (legacy Puffling internals retained for save compatibility) */
 (function(){
  const KEY='skyPuffStarterChoiceV1';
- const IDS=['starterpuff','starterspark','starterdrop'];
+ const IDS=['starterpuff','starterdrop','starterspark'];
  const COPY={
   no:{title:'Velg din første Orbuff',sub:'Velg én starter-Orbuff. Alle tre er enkle og klart svakere enn Orbuffs du kan finne senere.',choose:'VELG',common:'COMMON • STARTER',weak:'Lav styrke',picked:'Din første Orbuff er klar!'},
   en:{title:'Choose your first Orbuff',sub:'Choose one starter Orbuff. All three are simple and clearly weaker than Orbuffs you can find later.',choose:'CHOOSE',common:'COMMON • STARTER',weak:'Low power',picked:'Your first Orbuff is ready!'},
