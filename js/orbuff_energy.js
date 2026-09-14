@@ -1,4 +1,4 @@
-/* Orbuff energy and revival system v1.1
+/* Orbuff energy and revival system v1.2
  * Legacy collection/progression data is untouched. Energy is stored separately.
  */
 (function(){
@@ -48,7 +48,8 @@
  function patchRun(){
   if(typeof startGame==='function'&&!startGame.__orbuffEnergyGuard){const oldStart=startGame;const wrapped=function(){if(!guardActive())return false;const result=oldStart.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};wrapped.__orbuffEnergyGuard=true;startGame=wrapped;if(typeof playBtnEl!=='undefined'&&playBtnEl)playBtnEl.onclick=startGame;if(typeof retryBtnEl!=='undefined'&&retryBtnEl)retryBtnEl.onclick=startGame}
   if(typeof startBossRush==='function'&&!startBossRush.__orbuffEnergyGuard){const oldBossRush=startBossRush;const wrapped=function(){if(!guardActive())return false;const result=oldBossRush.apply(this,arguments);runArmed=typeof running==='undefined'||!!running;return result};wrapped.__orbuffEnergyGuard=true;startBossRush=wrapped}
-  if(typeof endGame==='function'&&!endGame.__orbuffEnergyLoss){const oldEnd=endGame;const wrapped=function(){const result=oldEnd.apply(this,arguments);if(runArmed&&(typeof running==='undefined'||!running)){runArmed=false;const r=consumeLoss();if(r.ok&&typeof showToast==='function')showToast(`Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`)}return result};wrapped.__orbuffEnergyLoss=true;endGame=wrapped}
+  if(typeof finishBossRushWin==='function'&&!finishBossRushWin.__orbuffEnergyWin){const oldWin=finishBossRushWin;const wrapped=function(){runArmed=false;return oldWin.apply(this,arguments)};wrapped.__orbuffEnergyWin=true;finishBossRushWin=wrapped}
+  if(typeof endGame==='function'&&!endGame.__orbuffEnergyLoss){const oldEnd=endGame;const wrapped=function(){const wasRace=typeof multiplayerMode!=='undefined'&&!!multiplayerMode,shouldCharge=runArmed&&!wasRace;const result=oldEnd.apply(this,arguments);runArmed=false;if(shouldCharge&&(typeof running==='undefined'||!running)){const r=consumeLoss();if(r.ok&&typeof showToast==='function')showToast(`Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`)}return result};wrapped.__orbuffEnergyLoss=true;endGame=wrapped}
  }
  patchGameplay();patchRun();
  window.OrbuffEnergy={get,maxEnergy,consumeLoss,recharge,revive,reviveCost,canUse,load,guardActive};
