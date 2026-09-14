@@ -47,10 +47,10 @@ function context(seed={}){
   if(buttons.length!==3||buttons.some(button=>button.type!=='button'||!String(button.style.cssText).includes('touch-action:manipulation')))fail('Starter chooser does not render three touch-safe choices');
   buttons[1].onclick();
   const state=F.load(),starters=S.IDS.filter(id=>(state.owned[id]||0)>0);
-  if(starters.length!==1||starters[0]!=='starterspark'||state.owned.starterspark!==1)fail('Starter selection did not grant exactly the chosen Puffling');
-  if(localStorage.getItem('skyPuffStarterChoiceV1')!=='starterspark'||S.eligible())fail('Completed starter selection was not persisted');
+  if(starters.length!==1||starters[0]!=='starterdrop'||state.owned.starterdrop!==1)fail('Starter selection did not grant exactly the chosen Puffling');
+  if(localStorage.getItem('skyPuffStarterChoiceV1')!=='starterdrop'||S.eligible())fail('Completed starter selection was not persisted');
   buttons[2].onclick();
-  if((F.load().owned.starterdrop||0)!==0||S.IDS.filter(id=>(F.load().owned[id]||0)>0).length!==1)fail('A second starter could be claimed');
+  if((F.load().owned.starterspark||0)!==0||S.IDS.filter(id=>(F.load().owned[id]||0)>0).length!==1)fail('A second starter could be claimed');
   ok('Fresh/legacy profile can choose exactly one touch-safe starter before normal play');
 }
 
