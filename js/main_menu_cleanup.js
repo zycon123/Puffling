@@ -1,11 +1,11 @@
 /* Puffling — compact categorized main navigation v1.1 */
 (function(){
  const COPY={
-  no:{pufflings:'PUFFLINGS ☁️',modes:'SPILLMODUSER ⚔️',more:'MER ☰',back:'TILBAKE',open:'ÅPNE',audio:'Lyd',titles:{pufflings:'Pufflings',modes:'Spillmoduser',more:'Mer'},sub:{pufflings:'Samling, egg og Mystery Shop',modes:'Velg hvordan du vil spille',more:'Belønninger, oppgraderinger og hjelp'}},
-  en:{pufflings:'PUFFLINGS ☁️',modes:'GAME MODES ⚔️',more:'MORE ☰',back:'BACK',open:'OPEN',audio:'Audio',titles:{pufflings:'Pufflings',modes:'Game Modes',more:'More'},sub:{pufflings:'Collection, eggs and Mystery Shop',modes:'Choose how you want to play',more:'Rewards, upgrades and help'}},
-  de:{pufflings:'PUFFLINGS ☁️',modes:'SPIELMODI ⚔️',more:'MEHR ☰',back:'ZURÜCK',open:'ÖFFNEN',audio:'Audio',titles:{pufflings:'Pufflings',modes:'Spielmodi',more:'Mehr'},sub:{pufflings:'Sammlung, Eier und Mystery Shop',modes:'Wähle deinen Spielmodus',more:'Belohnungen, Upgrades und Hilfe'}},
-  es:{pufflings:'PUFFLINGS ☁️',modes:'MODOS DE JUEGO ⚔️',more:'MÁS ☰',back:'VOLVER',open:'ABRIR',audio:'Audio',titles:{pufflings:'Pufflings',modes:'Modos de juego',more:'Más'},sub:{pufflings:'Colección, huevos y Mystery Shop',modes:'Elige cómo quieres jugar',more:'Recompensas, mejoras y ayuda'}},
-  fr:{pufflings:'PUFFLINGS ☁️',modes:'MODES DE JEU ⚔️',more:'PLUS ☰',back:'RETOUR',open:'OUVRIR',audio:'Audio',titles:{pufflings:'Pufflings',modes:'Modes de jeu',more:'Plus'},sub:{pufflings:'Collection, œufs et Mystery Shop',modes:'Choisissez votre mode de jeu',more:'Récompenses, améliorations et aide'}}};
+  no:{pufflings:'ORBUFFS ☁️',modes:'SPILLMODUSER ⚔️',more:'MER ☰',back:'TILBAKE',open:'ÅPNE',audio:'Lyd',titles:{pufflings:'Orbuffs',modes:'Spillmoduser',more:'Mer'},sub:{pufflings:'Samling, egg og Mystery Shop',modes:'Velg hvordan du vil spille',more:'Belønninger, oppgraderinger og hjelp'}},
+  en:{pufflings:'ORBUFFS ☁️',modes:'GAME MODES ⚔️',more:'MORE ☰',back:'BACK',open:'OPEN',audio:'Audio',titles:{pufflings:'Orbuffs',modes:'Game Modes',more:'More'},sub:{pufflings:'Collection, eggs and Mystery Shop',modes:'Choose how you want to play',more:'Rewards, upgrades and help'}},
+  de:{pufflings:'ORBUFFS ☁️',modes:'SPIELMODI ⚔️',more:'MEHR ☰',back:'ZURÜCK',open:'ÖFFNEN',audio:'Audio',titles:{pufflings:'Orbuffs',modes:'Spielmodi',more:'Mehr'},sub:{pufflings:'Sammlung, Eier und Mystery Shop',modes:'Wähle deinen Spielmodus',more:'Belohnungen, Upgrades und Hilfe'}},
+  es:{pufflings:'ORBUFFS ☁️',modes:'MODOS DE JUEGO ⚔️',more:'MÁS ☰',back:'VOLVER',open:'ABRIR',audio:'Audio',titles:{pufflings:'Orbuffs',modes:'Modos de juego',more:'Más'},sub:{pufflings:'Colección, huevos y Mystery Shop',modes:'Elige cómo quieres jugar',more:'Recompensas, mejoras y ayuda'}},
+  fr:{pufflings:'ORBUFFS ☁️',modes:'MODES DE JEU ⚔️',more:'PLUS ☰',back:'RETOUR',open:'OUVRIR',audio:'Audio',titles:{pufflings:'Orbuffs',modes:'Modes de jeu',more:'Plus'},sub:{pufflings:'Collection, œufs et Mystery Shop',modes:'Choisissez votre mode de jeu',more:'Récompenses, améliorations et aide'}}};
  const GROUPS={
   pufflings:[['puffdexBtn','☁️','Puffdex'],['nurseryVaultBtn','🥚','Nursery & Vault'],['mysteryShopBtn','💎','Mystery Shop']],
   modes:[['multiplayerBtn','⚔️','Multiplayer'],['bossRushBtn','👑','Boss Rush'],['leaderboardBtn','🏆','Highscore']],
