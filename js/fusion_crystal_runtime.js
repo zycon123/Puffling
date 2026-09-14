@@ -11,9 +11,9 @@
   b.onclick=()=>{
    const F=window.SkyPuffFusion,a=document.getElementById('fusionA')?.value||'',c=document.getElementById('fusionB')?.value||'';
    if(count()<1){if(typeof showToast==='function')showToast('Ingen Fusion Crystal tilgjengelig 💠');render();return}
-   const res=F?.fuse?.(a,c,{crystal:true});if(!res?.ok){if(typeof showToast==='function')showToast('Crystal Fusion krever en gyldig fusion og tilgjengelige Pufflings.');return}
+   const res=F?.fuse?.(a,c,{crystal:true});if(!res?.ok){if(typeof showToast==='function')showToast('Crystal Fusion krever en gyldig fusion og tilgjengelige Orbuffs.');return}
    if(!spend()){if(typeof showToast==='function')showToast('Fusion Crystal kunne ikke brukes.');return}
-   if(typeof showToast==='function')showToast(`💠 Crystal Fusion! ${res.puffling?.name||'Ny Puffling'} • ${res.preservedParent||'én forelder'} bevart`);
+   if(typeof showToast==='function')showToast(`💠 Crystal Fusion! ${res.puffling?.name||'Ny Orbuff'} • ${res.preservedParent||'én forelder'} bevart`);
    window.SkyPuffFusionUI?.renderDex?.();document.getElementById('fusionA')?.dispatchEvent?.(new Event('change'));render();
   };
   render();
