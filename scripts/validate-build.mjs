@@ -47,11 +47,11 @@ if(!/function\s+finishLoading\s*\(\)[\s\S]*__skyPuffModulesReady\s*=\s*true[\s\S
 if(/dispatchEvent\s*\(\s*new\s+Event\s*\(\s*['"]sky-puff-ready/.test(fs.readFileSync(path.join(root,'js/renderer_runtime.js'),'utf8')))fail('Renderer must not expose the menu before later modules finish loading');else ok('Renderer core cannot release the startup splash early');
 if(!/style\.css\?v=/i.test(index)||!/game\.js\?v=/i.test(index))fail('Cache-busting version is missing from critical assets');else ok('Critical assets are cache-busted in index.html');
 
-if(!/cache\s*:\s*['"]no-store['"]/i.test(stable))fail('Stable loader must fetch index.html with no-store');
-if(!/Date\.now\(\)/.test(stable))fail('Stable loader must generate a unique asset nonce');
-for(const asset of ['game.js','audio_theme.js','style.css'])if(!stable.includes(asset))fail(`Stable loader does not refresh ${asset}`);
-if(!/<title>Puffling Beta<\/title>/i.test(stable))fail('Stable loader title must use Puffling branding');
-if(!process.exitCode)ok('Stable loader cache-safety checks passed');
+if(!/location\.replace\s*\(\s*['"]\.\/index\.html\?build=/i.test(stable))fail('Stable loader must redirect directly to versioned index.html');
+if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
+if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must use Orbuff branding');
+if(!/href=['"]\.\/index\.html\?build=/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
+if(!process.exitCode)ok('Stable direct-loader checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js'];
 for(const rel of forbidden)if(fs.existsSync(path.join(root,rel)))fail(`Obsolete file still present: ${rel}`);
