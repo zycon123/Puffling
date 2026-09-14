@@ -1,4 +1,4 @@
-name: Deploy Puffling Beta to GitHub Pages
+name: Deploy Orbuff Beta to GitHub Pages
 
 on:
   push:
@@ -31,7 +31,7 @@ jobs:
           node-version: "22"
           package-manager-cache: false
 
-      - name: Validate build
+      - name: Validate Orbuff build
         run: node scripts/validate-build.mjs
 
       - name: Configure Pages
@@ -42,6 +42,6 @@ jobs:
         with:
           path: .
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy Orbuff to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
