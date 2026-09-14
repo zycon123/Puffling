@@ -19,7 +19,13 @@
   render();
  }
  function render(){const b=document.getElementById('doCrystalFusionBtn'),n=document.getElementById('fusionCrystalInfo'),c=count();if(b){b.disabled=c<1;b.textContent=`CRYSTAL FUSION 💠 (${c})`;}if(n)n.textContent=c?`Bruk 1 Fusion Crystal for å lage fusionen og bevare den andre valgte forelderen.`:'Finn Fusion Crystal i Mystery Box for å bruke Crystal Fusion.';}
- const obs=typeof MutationObserver!=='undefined'?new MutationObserver(()=>{ensure();render()}):null;if(obs&&document.body)obs.observe(document.body,{childList:true,subtree:true});
+ let ensureQueued=false;
+ const obs=typeof MutationObserver!=='undefined'?new MutationObserver(()=>{
+  if(document.getElementById('doCrystalFusionBtn')||ensureQueued)return;
+  ensureQueued=true;
+  setTimeout(()=>{ensureQueued=false;ensure();},0);
+ }):null;
+ if(obs&&document.body)obs.observe(document.body,{childList:true,subtree:true});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(ensure,60));else setTimeout(ensure,60);
  window.PufflingFusionCrystals={count,spend,refresh:render};
 })();
