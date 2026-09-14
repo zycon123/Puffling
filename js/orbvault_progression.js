@@ -1,4 +1,4 @@
-/* Orbuff — OrbVault rest, training and upgrade progression v1.0 */
+/* Orbuff — OrbVault rest, training and upgrade progression v1.1 */
 (function(){
  const KEY='skyPuffOrbVaultProgressV1',MAX_OFFLINE=24*60*60*1000;
  const LEVELS={
@@ -16,12 +16,14 @@
  function isVaulted(id){try{return (window.SkyPuffNurseryVault?.loadVaultSlots?.()||[]).includes(id)}catch(e){return false}}
  function startRest(id){if(!id)return;const s=load(),now=Date.now();s.rest[id]={energyAt:now,xpAt:now};saveState(s)}
  function stopRest(id){settle(id);const s=load();delete s.rest[id];saveState(s)}
+ function localDayKey(now=Date.now()){const d=new Date(now),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
  function settle(id){
   const s=load(),ids=id?[id]:(window.SkyPuffNurseryVault?.loadVaultSlots?.()||[]).filter(Boolean),now=Date.now(),cfg=LEVELS[s.level];let changed=false;
-  for(const orbId of ids){if(!orbId)continue;const r=s.rest[orbId]||{energyAt:now,xpAt:now};const energyElapsed=Math.min(MAX_OFFLINE,Math.max(0,now-(+r.energyAt||now))),energyTicks=Math.floor(energyElapsed/(cfg.energyMinutes*60000));if(energyTicks>0){window.OrbuffEnergy?.recharge?.(orbId,energyTicks);r.energyAt=(+r.energyAt||now)+energyTicks*cfg.energyMinutes*60000;changed=true}
+  for(const orbId of ids){if(!orbId)continue;let r=s.rest[orbId];if(!r||typeof r!=='object'){r={energyAt:now,xpAt:now};s.rest[orbId]=r;changed=true}
+   const energyElapsed=Math.min(MAX_OFFLINE,Math.max(0,now-(+r.energyAt||now))),energyTicks=Math.floor(energyElapsed/(cfg.energyMinutes*60000));if(energyTicks>0){window.OrbuffEnergy?.recharge?.(orbId,energyTicks);r.energyAt=(+r.energyAt||now)+energyTicks*cfg.energyMinutes*60000;changed=true}
    const xpElapsed=Math.min(MAX_OFFLINE,Math.max(0,now-(+r.xpAt||now))),xpTicks=Math.floor(xpElapsed/3600000);if(xpTicks>0){window.SkyPuffPufflingProgress?.addXp?.(orbId,xpTicks*cfg.xpHour);r.xpAt=(+r.xpAt||now)+xpTicks*3600000;changed=true}s.rest[orbId]=r}
   for(const savedId of Object.keys(s.rest))if(!ids.includes(savedId)&&!isVaulted(savedId)){delete s.rest[savedId];changed=true}
-  const day=new Date(now).toISOString().slice(0,10);if(s.level>=5&&s.lastDailyRoll!==day){s.lastDailyRoll=day;if(Math.random()<.15)s.reviveOrbs++;changed=true}
+  const day=localDayKey(now);if(s.level>=5&&s.lastDailyRoll!==day){s.lastDailyRoll=day;if(Math.random()<.15)s.reviveOrbs++;changed=true}
   if(changed)saveState(s);return s
  }
  function upgrade(){
