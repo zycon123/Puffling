@@ -23,6 +23,8 @@ jobs:
         run: node scripts/validate-runtime-models.mjs
       - name: Validate Orbuff energy and revival
         run: node scripts/validate-orbuff-energy.mjs
+      - name: Validate OrbVault rest and upgrades
+        run: node scripts/validate-orbvault.mjs
       - name: Validate starter onboarding and first-run rewards
         run: node scripts/validate-onboarding.mjs
       - name: Simulate full launch gameplay journey
