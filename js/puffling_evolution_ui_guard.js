@@ -23,7 +23,7 @@
   });
   const formGrid=root.querySelector('.pufflingFormCard')?.parentElement;if(formGrid)formGrid.style.gridTemplateColumns='1fr';
   [...root.querySelectorAll('.small')].forEach(el=>{
-   if(/Evolution låses opp automatisk/i.test(el.textContent||''))el.textContent='Starter-Pufflings utvikler seg ikke. Finn andre Pufflings for å låse opp Evolved og Ascended forms.';
+   if(/Evolution låses opp automatisk/i.test(el.textContent||''))el.textContent='Starter-Orbuffs utvikler seg ikke. Finn andre Orbuffs for å låse opp Evolved og Ascended forms.';
   });
  }
  function patch(){patchGrid();patchDetail();}
