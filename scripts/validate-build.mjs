@@ -51,15 +51,16 @@ if(!/location\.replace\s*\(\s*['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(st
 if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
 if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must use Orbuff branding');
 if(!/href=['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
+if(!/index\.html\?entry=beta42-v19/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
 if(!process.exitCode)ok('Stable direct-loader checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js','js/fusion_crystal_runtime.js'];
 for(const rel of forbidden)if(fs.existsSync(path.join(root,rel)))fail(`Obsolete file still present: ${rel}`);
 if(!process.exitCode)ok('No obsolete experiment files remain');
 
-const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/orbvault_progression.js','js/puffling_nursery_vault.js','js/orbuff_energy.js','js/orbuff_game_guide.js','js/diamond_mystery_shop.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
+const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/orbvault_progression.js','js/puffling_nursery_vault.js','js/orbuff_energy.js','js/orbvault_status_ui.js','js/race_active_orbuff_guard.js','js/orbuff_game_guide.js','js/diamond_mystery_shop.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
 for(const rel of requiredActive)if(!modules.includes(rel))fail(`Required regression/system module is not active: ${rel}`);
-const orderPairs=[['js/late_game_bosses.js','js/late_boss_persistence_fix.js'],['js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js'],['js/orbvault_progression.js','js/puffling_nursery_vault.js'],['js/puff_fusion_core.js','js/puffling_nursery_vault.js'],['js/steal_my_puff_ui.js','js/steal_my_puffling_menu.js'],['js/puffling_rebrand.js','js/smoke_check.js']];
+const orderPairs=[['js/late_game_bosses.js','js/late_boss_persistence_fix.js'],['js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js'],['js/orbvault_progression.js','js/puffling_nursery_vault.js'],['js/puff_fusion_core.js','js/puffling_nursery_vault.js'],['js/orbuff_energy.js','js/orbvault_status_ui.js'],['js/race_puffling_eligibility.js','js/race_active_orbuff_guard.js'],['js/steal_my_puff_ui.js','js/steal_my_puffling_menu.js'],['js/puffling_rebrand.js','js/smoke_check.js']];
 for(const [a,b] of orderPairs)if(modules.indexOf(a)<0||modules.indexOf(b)<0||modules.indexOf(a)>=modules.indexOf(b))fail(`Loader order invalid: ${a} must load before ${b}`);
 const menuCleanupPath=path.join(root,'js/main_menu_cleanup.js');
 const menuCleanup=fs.existsSync(menuCleanupPath)?fs.readFileSync(menuCleanupPath,'utf8'):'';
@@ -81,10 +82,12 @@ if(!languageUiSource.includes('if(menuHintEl)menuHintEl.innerHTML'))fail('Remove
 
 const nurseryPath=path.join(root,'js/puffling_nursery_vault.js');
 const nurserySource=fs.existsSync(nurseryPath)?fs.readFileSync(nurseryPath,'utf8'):'';
-for(const token of ['vaultSlots','for(let i=0;i<maxVault();i++)','TOM PLASS','beginVaultSelection','placeInVault','vaultPicker'])if(!nurserySource.includes(token))fail(`Vault UI is missing ${token}`);
-for(const token of ['STANDARD_IDS','vaultChoices','VANLIG'])if(!nurserySource.includes(token))fail(`Vault common-first picker is missing ${token}`);
+for(const token of ['vaultSlots','for(let i=0;i<maxVault();i++)','TOM PLASS','beginVaultSelection','placeInVault','vaultPicker'])if(!nurserySource.includes(token))fail(`OrbVault UI is missing ${token}`);
+for(const token of ['STANDARD_IDS','vaultChoices','VANLIG'])if(!nurserySource.includes(token))fail(`OrbVault common-first picker is missing ${token}`);
+const fusionSource=fs.readFileSync(path.join(root,'js/puff_fusion_core.js'),'utf8');
+if(!fusionSource.includes('MAX_VAULT_SLOTS=8')||!fusionSource.includes('slice(0,MAX_VAULT_SLOTS)'))fail('Collection core still truncates OrbVault protection below 8 slots');
 const menuBetaPath=path.join(root,'js/menu_beta_cleanup.js');
 const menuBetaSource=fs.existsSync(menuBetaPath)?fs.readFileSync(menuBetaPath,'utf8'):'';
-if(/Dobbelttrykk|Double-tap|Doppeltippen|Doble toque|Double-tapez/.test(menuBetaSource))fail('Obsolete Rainbow Puff main-menu hint is still active');else ok('Three-slot Vault UI and clean main menu hint state');
+if(/Dobbelttrykk|Double-tap|Doppeltippen|Doble toque|Double-tapez/.test(menuBetaSource))fail('Obsolete Rainbow Puff main-menu hint is still active');else ok('Dynamic 3→8 OrbVault UI/protection and clean main-menu hint state');
 
-if(!process.exitCode){ok(`Loader references ${modules.length} named modules`);ok('Static Puffling build validation passed')}
+if(!process.exitCode){ok(`Loader references ${modules.length} named modules`);ok('Static Orbuff build validation passed')}
