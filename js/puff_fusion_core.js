@@ -3,9 +3,9 @@
  */
 (function(){
   const BASE = {
-    starterpuff:{id:'starterpuff',name:'Starter Orbuff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
-    starterspark:{id:'starterspark',name:'Spark Orbuff',icon:'✨',rarity:'common',ability:'starter',value:.35,palette:['#fff6bc','#e7bd54'],mark:'✦',starterOnly:true},
-    starterdrop:{id:'starterdrop',name:'Drop Orbuff',icon:'💧',rarity:'common',ability:'starter',value:.35,palette:['#dff7ff','#67b8de'],mark:'◇',starterOnly:true},
+    starterpuff:{id:'starterpuff',name:'Airbuff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
+    starterspark:{id:'starterspark',name:'Sparkbuff',icon:'✨',rarity:'common',ability:'starter',value:.35,palette:['#fff6bc','#e7bd54'],mark:'✦',starterOnly:true},
+    starterdrop:{id:'starterdrop',name:'Rainbuff',icon:'💧',rarity:'common',ability:'starter',value:.35,palette:['#dff7ff','#67b8de'],mark:'◇',starterOnly:true},
     ember:{id:'ember',name:'Ember Orbuff',icon:'🔥',rarity:'common',ability:'blastDamage',value:1.10},
     volt:{id:'volt',name:'Volt Orbuff',icon:'⚡',rarity:'common',ability:'chainShot',value:1},
     frost:{id:'frost',name:'Frost Orbuff',icon:'❄️',rarity:'common',ability:'freeze',value:0.8},
