@@ -5,26 +5,27 @@ const parts=['js/platform_compat.js','js/beta_config.js','js/dom_refs.js','js/lo
 const start=document.getElementById('start');if(start){start.inert=true;start.setAttribute?.('aria-busy','true');}window.__skyPuffModulesReady=false;let norwegian=false;try{norwegian=localStorage.getItem('skyPuffLang')==='no';}catch(e){}let i=0,notice=null;
 function loadingNotice(failed){if(!notice){notice=document.createElement('div');notice.id='skyPuffLoadNotice';notice.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:#58c4ff;padding:24px;text-align:center;font:700 18px system-ui;color:#173650';notice.innerHTML='<div><p role="status" aria-live="polite"></p><button type="button" style="display:none;padding:14px 24px;border:0;border-radius:16px;background:#fff;color:#173650;font:inherit"></button></div>';notice.querySelector('button').textContent=norwegian?'Prøv igjen':'Try again';notice.querySelector('button').onclick=()=>location.reload();document.body.appendChild(notice);}notice.querySelector('p').textContent=failed?(norwegian?'Orbuff kunne ikke lastes. Sjekk forbindelsen og prøv igjen.':'Could not load Orbuff. Check your connection and try again.'):(norwegian?'Laster Orbuff …':'Loading Orbuff …');notice.querySelector('button').style.display=failed?'inline-block':'none';}
 function finishLoading(){if(start){start.inert=false;start.removeAttribute?.('aria-busy');}if(notice)notice.remove();window.__skyPuffModulesReady=true;window.dispatchEvent?.(new Event('sky-puff-ready'));}
-/* Fetch modules in parallel while preserving classic-script execution order. */
-let settled=0,finished=false;
-function settle(path,failed){
-  settled++;
-  if(failed)console.error('Orbuff module failed to load',path);
-  if(settled>=parts.length&&!finished){finished=true;finishLoading();}
-}
-parts.forEach(path=>{
-  const script=document.createElement('script');
-  script.async=false;
-  script.src=path+'?v='+encodeURIComponent(BUILD);
-  script.onload=()=>settle(path,false);
-  script.onerror=()=>settle(path,true);
-  document.body.appendChild(script);
-});
-setTimeout(()=>{
+/* Yield between modules so mobile browsers can paint and run the startup watchdog. */
+let finished=false;
+function release(){
   if(finished)return;
   finished=true;
-  if(notice)notice.remove();
   finishLoading();
-  console.warn('Orbuff startup timeout released the menu',settled+'/'+parts.length);
-},10000);
+}
+function loadNext(){
+  if(i>=parts.length){release();return;}
+  const path=parts[i++];
+  const script=document.createElement('script');
+  script.src=path+'?v='+encodeURIComponent(BUILD);
+  script.onload=()=>setTimeout(loadNext,0);
+  script.onerror=()=>{console.error('Orbuff module failed to load',path);setTimeout(loadNext,0);};
+  document.body.appendChild(script);
+}
+setTimeout(loadNext,0);
+setTimeout(()=>{
+  if(finished)return;
+  if(notice)notice.remove();
+  release();
+  console.warn('Orbuff startup watchdog released the menu at module',i,'of',parts.length);
+},8000);
 })();
