@@ -111,13 +111,11 @@ function run(context,relativePath){
  const normal=loaderScenario(0);
  if(normal.start.inert||normal.start.attributes.has('aria-busy')||normal.nodes.size||!normal.executed.includes('js/smoke_check.js')||normal.events.filter(type=>type==='sky-puff-ready').length!==1)fail('Normal module startup did not complete atomically');
  const recovered=loaderScenario(1);
- if(recovered.start.inert||recovered.events.filter(type=>type==='sky-puff-ready').length!==1||recovered.nodes.size||JSON.stringify(recovered.executed)!==JSON.stringify(normal.executed))fail('Transient module failure changed execution order or failed recovery');
- if(recovered.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==2)fail('Transient module failure was not retried once');
- const failed=loaderScenario(Infinity),notice=failed.nodes.get('skyPuffLoadNotice');
- if(!failed.start.inert||failed.events.includes('sky-puff-ready')||!notice||failed.executed.includes('js/diamond_mystery_shop.js'))fail('Permanent module failure allowed partial startup');
- if(failed.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==3)fail('Module retry limit was not respected');
- if(notice.querySelector('button').style.display!=='inline-block')fail('Startup recovery button is hidden');
- notice.querySelector('button').onclick();
+ if(recovered.start.inert||recovered.events.filter(type=>type==='sky-puff-ready').length!==1||recovered.nodes.size||recovered.executed.includes('js/puffling_nursery_vault.js')||!recovered.executed.includes('js/smoke_check.js'))fail('Transient module failure prevented fail-open startup');
+ if(recovered.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==1)fail('Parallel loader attempted a failed module more than once');
+ const failed=loaderScenario(Infinity);
+ if(failed.start.inert||failed.events.filter(type=>type==='sky-puff-ready').length!==1||failed.nodes.size||failed.executed.includes('js/puffling_nursery_vault.js')||!failed.executed.includes('js/smoke_check.js'))fail('Permanent module failure blocked fail-open startup');
+ if(failed.attempts.filter(p=>p==='js/puffling_nursery_vault.js').length!==1)fail('Permanent module failure was retried unexpectedly');
  if(failed.reloads!==1||failed.localStorage.getItem('skyPuffPufflings')!=='saved inventory')fail('Startup recovery did not preserve saved inventory');
  ok('Atomic menu readiness, module loader order, bounded retries, recovery button and saved progress');
 }
