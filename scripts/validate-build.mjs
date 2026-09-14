@@ -57,9 +57,9 @@ const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_crea
 for(const rel of forbidden)if(fs.existsSync(path.join(root,rel)))fail(`Obsolete file still present: ${rel}`);
 if(!process.exitCode)ok('No obsolete experiment files remain');
 
-const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/puffling_nursery_vault.js','js/diamond_mystery_shop.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
+const requiredActive=['js/boss_pattern_override.js','js/boss_movement_fix.js','js/boss_transition_fix.js','js/post_boss_guard.js','js/rainbow_puff_hint.js','js/boss_puff_creator_v2.js','js/boss_puff_main_unlock.js','js/late_game_bosses.js','js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js','js/orbvault_progression.js','js/puffling_nursery_vault.js','js/orbuff_energy.js','js/orbuff_game_guide.js','js/diamond_mystery_shop.js','js/steal_my_puffling_menu.js','js/puffling_rebrand.js','js/smoke_check.js'];
 for(const rel of requiredActive)if(!modules.includes(rel))fail(`Required regression/system module is not active: ${rel}`);
-const orderPairs=[['js/late_game_bosses.js','js/late_boss_persistence_fix.js'],['js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js'],['js/puff_fusion_core.js','js/puffling_nursery_vault.js'],['js/steal_my_puff_ui.js','js/steal_my_puffling_menu.js'],['js/puffling_rebrand.js','js/smoke_check.js']];
+const orderPairs=[['js/late_game_bosses.js','js/late_boss_persistence_fix.js'],['js/late_boss_persistence_fix.js','js/boss_rush_all_defeated.js'],['js/orbvault_progression.js','js/puffling_nursery_vault.js'],['js/puff_fusion_core.js','js/puffling_nursery_vault.js'],['js/steal_my_puff_ui.js','js/steal_my_puffling_menu.js'],['js/puffling_rebrand.js','js/smoke_check.js']];
 for(const [a,b] of orderPairs)if(modules.indexOf(a)<0||modules.indexOf(b)<0||modules.indexOf(a)>=modules.indexOf(b))fail(`Loader order invalid: ${a} must load before ${b}`);
 const menuCleanupPath=path.join(root,'js/main_menu_cleanup.js');
 const menuCleanup=fs.existsSync(menuCleanupPath)?fs.readFileSync(menuCleanupPath,'utf8'):'';
