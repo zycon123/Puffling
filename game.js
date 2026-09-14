@@ -12,13 +12,14 @@ function release(){
   finished=true;
   finishLoading();
 }
+function progress(path,state){try{window.dispatchEvent(new CustomEvent('orbuff-load-progress',{detail:{loaded:i,total:parts.length,path,state}}));}catch(e){}}
 function loadNext(){
-  if(i>=parts.length){release();return;}
-  const path=parts[i++];
+  if(i>=parts.length){progress('', 'complete');release();return;}
+  const path=parts[i++];progress(path,'loading');
   const script=document.createElement('script');
   script.src=path+'?v='+encodeURIComponent(BUILD);
-  script.onload=()=>setTimeout(loadNext,0);
-  script.onerror=()=>{console.error('Orbuff module failed to load',path);setTimeout(loadNext,0);};
+  script.onload=()=>{progress(path,'loaded');setTimeout(loadNext,0);};
+  script.onerror=()=>{console.error('Orbuff module failed to load',path);progress(path,'failed');setTimeout(loadNext,0);};
   document.body.appendChild(script);
 }
 setTimeout(loadNext,0);
