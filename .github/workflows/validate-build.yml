@@ -43,6 +43,8 @@ jobs:
         run: node scripts/validate-race-course-seed.mjs
       - name: Validate Ranked Quick Race
         run: node scripts/validate-race-ranking.mjs
+      - name: Validate selected usable Orbuff in Race
+        run: node scripts/validate-race-active-orbuff.mjs
       - name: Validate Mystery Box vault
         run: node scripts/validate-mystery-box-vault.mjs
       - name: Validate Diamond wallet client
