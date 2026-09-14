@@ -18,7 +18,7 @@
   const oldReset=window.reset;
   if(typeof oldReset==='function')window.reset=function(){const r=oldReset.apply(this,arguments);resetRunState();refreshHud();return r};
   const oldAbsorb=window.absorbHit;
-  if(typeof oldAbsorb==='function')window.absorbHit=function(){const id=active(),ability=getPuff(id)?.ability;if(!frostUsed&&(ability==='freeze'||ability==='rescuePlatform')){frostUsed=true;if(typeof invuln!=='undefined')invuln=Math.max(invuln,70);if(typeof showToast==='function')showToast(`${getPuff(id)?.name||'Puffling'} reddet deg! ❄️`);return true;}return oldAbsorb.apply(this,arguments)};
+  if(typeof oldAbsorb==='function')window.absorbHit=function(){const id=active(),ability=getPuff(id)?.ability;if(!frostUsed&&(ability==='freeze'||ability==='rescuePlatform')){frostUsed=true;if(typeof invuln!=='undefined')invuln=Math.max(invuln,70);if(typeof showToast==='function')showToast(`${getPuff(id)?.name||'Orbuff'} reddet deg! ❄️`);return true;}return oldAbsorb.apply(this,arguments)};
   window.SkyPuffPufflingGameplay={active,setActive,getPuff,refreshHud,runHeightReward:false};
   ensureHud();
 })();
