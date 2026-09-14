@@ -1,7 +1,8 @@
-/* Orbuff — Fusion Core v0.7
+/* Orbuff — Fusion Core v0.8
  * Legacy storage keys and Puffling response fields are retained for beta save/API compatibility.
  */
 (function(){
+  const MAX_VAULT_SLOTS=8;
   const BASE = {
     starterpuff:{id:'starterpuff',name:'Airbuff',icon:'☁️',rarity:'common',ability:'starter',value:.35,palette:['#eef8ff','#8fc7e8'],mark:'○',starterOnly:true},
     starterspark:{id:'starterspark',name:'Sparkbuff',icon:'✨',rarity:'common',ability:'starter',value:.35,palette:['#fff6bc','#e7bd54'],mark:'✦',starterOnly:true},
@@ -28,7 +29,7 @@
     const discovered=[...new Set((Array.isArray(s.discovered)?s.discovered:[]).filter(id=>typeof id==='string'))];
     for(const id of STARTER_IDS)if(!discovered.includes(id))discovered.push(id);
     for(const id of Object.keys(owned))if(!discovered.includes(id))discovered.push(id);
-    const vault=[...new Set((Array.isArray(s.vault)?s.vault:[]).filter(id=>owned[id]>0))].slice(0,3);
+    const vault=[...new Set((Array.isArray(s.vault)?s.vault:[]).filter(id=>owned[id]>0))].slice(0,MAX_VAULT_SLOTS);
     const tradeReceipts=[...new Set((Array.isArray(s.tradeReceipts)?s.tradeReceipts:[]).filter(id=>typeof id==='string'&&id.length<=80))].slice(-50);
     return {owned,vault,discovered,tradeReceipts};
   }
@@ -60,7 +61,7 @@
     const state=save(s);
     return {ok:true,duplicate:false,state,outgoingRemaining:state.owned[outgoing]||0,incomingWasNew};
   }
-  const api={BASE,FUSIONS,STARTER_IDS,key,load,save,add,remove,fusionReady,canFuse,fuse,normalize,availableCount,tradeTransfer};
+  const api={BASE,FUSIONS,STARTER_IDS,MAX_VAULT_SLOTS,key,load,save,add,remove,fusionReady,canFuse,fuse,normalize,availableCount,tradeTransfer};
   window.OrbuffFusion=api;
   window.SkyPuffFusion=api;
 })();
