@@ -1,4 +1,20 @@
-# Sky Puff Beta Changelog
+# Orbuff Beta Changelog
+
+## 5.27-beta.107
+- Promote the active Orbuff build to `index.html` and point the stable `beta42.html` entry directly to it.
+- Add cache-busted Beta 107 assets so mobile browsers do not mix older game modules with the current UI.
+- Fix OrbVault migration/rest initialization for Orbuffs that were already stored before the progression upgrade.
+- Add live OrbVault status for energy, level, next energy recharge, next passive XP and Revive Orb count.
+- Keep the full OrbVault progression from 3 slots up to 8 slots.
+- **Critical fix:** preserve protection for all 8 OrbVault slots in the collection/Fusion/Trade core instead of truncating protection to the first 3.
+- Add regression coverage proving slot 4–8 Orbuffs cannot be consumed by Fusion or Trade.
+- **Race fix:** Race My Orbuff now uses the player's actually selected active Orbuff rather than falling back to the first owned Orbuff.
+- Race automatically selects another usable owned Orbuff if the active one is exhausted or resting in OrbVault, and blocks Race with a clear message if none are usable.
+- Add dedicated Race active-Orbuff regression coverage.
+- Align Boss Rush copy and the in-game guide with the current economy: 250 coins for the first Boss Rush clear of each boss and 25 coins for replays.
+- Expand the in-game guide with current OrbVault, Fusion, Race, energy and revival rules.
+- Bump the production beta configuration and launch audits to `5.27-beta.107`.
+- Rename active build/deploy validation to Orbuff terminology while retaining legacy internal identifiers where compatibility requires them.
 
 ## 5.27-beta.106
 - Keep the Zycon Studios splash visible until every ordered gameplay and menu module has finished loading.
@@ -35,21 +51,21 @@
 - Matched first-paint and runtime menu styling to prevent layout shifts on slower mobile loads.
 - Added build checks that reject regressions to the crowded first paint.
 
-## 5.26-beta.84
+## 5.26-beta.84 — Vault picker
 - Made every empty Vault slot tappable and added an in-panel Puffling picker.
 - Store the chosen Puffling in the exact slot the player selected, including non-sequential slots.
-- Preserve fixed slot positions between sessions while keeping the existing three-slot protection limit.
+- Preserve fixed slot positions between sessions while keeping the then-current three-slot protection limit.
 - Added keyboard-accessible empty slots, picker cancellation and direct removal from occupied slots.
 - Added runtime regression coverage for selecting, preserving and clearing exact Vault slots.
 
-## 5.26-beta.84
+## 5.26-beta.84 — diagnostics
 - Fixed false AI Diagnostics repairs when newer overlay menus such as Puffdex, Nursery/Vault, Mystery Shop or Audio settings are open.
 - Migrated away from the legacy repair log so old false `Main menu restored` counts are cleared automatically.
 - Added an explicit Anti-Cheat baseline sync for the intentional score adjustment after boss victories.
 - Deduplicated identical Anti-Cheat warnings and clear stale session flags when a new run starts.
 - Added regression coverage for dynamic overlay detection, legacy diagnostic cleanup and boss-transition integrity checks.
 
-## 5.26-beta.84
+## 5.26-beta.84 — progression/runtime
 - Fixed incremental height XP so small score increases accumulate instead of rounding down to zero.
 - Prevented Vault-protected Pufflings from being consumed by Fusion and improved the player-facing error message.
 - Clear an active Puffling automatically when its final owned copy is removed.
@@ -60,8 +76,7 @@
 - Added runtime-model regression tests to CI for catalog count, Vault-safe Fusion, active selection, XP accumulation and egg saves.
 
 ## 5.26-beta.5
-- Adopted `beta42.html` as the cache-safe stable beta entry and made it generate a unique asset nonce every launch.
-- Updated `game.js` so the stable nonce propagates to every JavaScript module, preventing mixed old/new builds on mobile browsers.
+- Adopted `beta42.html` as the cache-safe stable beta entry.
 - Removed obsolete Beta 39/polished-renderer experiments, superseded Boss Puff Creator v1 and unused legacy diagnostics/audio files.
 - Cached Boss Rush unlock state instead of parsing localStorage during every player-render frame.
 - Fixed startup guard so it no longer lowers the first jump; normal first-jump speed now matches regular platform jumps.
@@ -71,7 +86,6 @@
 - Fixed System & Support Anti-Cheat reporting to read the real anti-cheat status/flags.
 - Added rendering for all achievement headwear rewards that previously could be selected but appeared invisible.
 - Strengthened CI validation to syntax-check the full JS directory, reject duplicate/missing active modules, protect the stable loader and prevent removed experiment files from returning.
-- Preserved Boss Rush reward at 100 coins, current boss firing loop, post-boss countdown, Rainbow Puff burst/cooldown behavior and Boss Puff progression.
 
 ## 5.26-beta.4
 - Expanded beta diagnostics, stability patches and mobile/browser compatibility work.
