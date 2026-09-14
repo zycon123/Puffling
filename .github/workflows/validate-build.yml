@@ -1,4 +1,4 @@
-name: Validate Puffling Build
+name: Validate Orbuff Build
 
 on:
   push:
@@ -25,6 +25,8 @@ jobs:
         run: node scripts/validate-orbuff-energy.mjs
       - name: Validate OrbVault rest and upgrades
         run: node scripts/validate-orbvault.mjs
+      - name: Validate all 8 OrbVault protection slots
+        run: node scripts/validate-orbvault-protection.mjs
       - name: Validate starter onboarding and first-run rewards
         run: node scripts/validate-onboarding.mjs
       - name: Simulate full launch gameplay journey
@@ -47,11 +49,11 @@ jobs:
         run: node scripts/validate-diamond-wallet.mjs
       - name: Validate Diamond IAP scaffold
         run: node scripts/validate-diamond-iap.mjs
-      - name: Validate Puffling duplicates and trading
+      - name: Validate Orbuff duplicates and trading
         run: node scripts/validate-trading.mjs
-      - name: Validate 100 Pufflings and unique traits
+      - name: Validate 100 Orbuffs and unique traits
         run: node scripts/validate-100-pufflings.mjs
-      - name: Validate 97 evolvable Pufflings
+      - name: Validate 97 evolvable Orbuffs
         run: node scripts/validate-evolution.mjs
       - name: Validate launch readiness
         run: node scripts/validate-launch-readiness.mjs
