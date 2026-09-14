@@ -26,7 +26,7 @@
  const oldAbsorb=window.absorbHit;
  if(typeof oldAbsorb==='function')window.absorbHit=function(){
   const id=active(),trait=T(id),chance=Math.min(.5,(trait?.rescueChance||0)*E(id));
-  if(chance>0&&Math.random()<chance){if(typeof invuln!=='undefined')invuln=Math.max(invuln,26);if(typeof showToast==='function')showToast(`${G()?.getPuff?.(id)?.name||'Puffling'} trait save! ✨`);return true;}
+  if(chance>0&&Math.random()<chance){if(typeof invuln!=='undefined')invuln=Math.max(invuln,26);if(typeof showToast==='function')showToast(`${G()?.getPuff?.(id)?.name||'Orbuff'} trait save! ✨`);return true;}
   return oldAbsorb.apply(this,arguments);
  };
  function enhanceDex(){document.querySelectorAll('#puffdexGrid [data-puffling-id]').forEach(card=>{if(card.querySelector('[data-unique-trait]'))return;const trait=T(card.dataset.pufflingId);if(!trait)return;const d=document.createElement('div');d.dataset.uniqueTrait='1';d.className='small';d.style.cssText='margin-top:5px;font-weight:900;opacity:.78';d.textContent=`✦ ${trait.traitName}`;card.appendChild(d);});}
