@@ -1,0 +1,14 @@
+import fs from 'node:fs';import vm from 'node:vm';
+const fail=m=>{throw new Error(m)},data=new Map(),localStorage={getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)};
+const ctx={window:null,localStorage,console};ctx.window=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/puff_fusion_core.js','utf8'),ctx,{filename:'js/puff_fusion_core.js'});
+const F=ctx.SkyPuffFusion;if(!F)fail('Fusion API missing');
+const ids=['volt','frost','prism','shadow','wind','tempest','aurora','ember'];for(const id of ids)F.add(id,1);
+let s=F.load();s.vault=[...ids];s=F.save(s);
+if(F.MAX_VAULT_SLOTS!==8)fail(`Collection core max vault slots expected 8, got ${F.MAX_VAULT_SLOTS}`);
+if(s.vault.length!==8||s.vault[7]!=='ember')fail(`Vault protection was truncated: ${JSON.stringify(s.vault)}`);
+for(const id of ids)if(F.availableCount(id)!==0)fail(`Vaulted Orbuff ${id} is not protected from collection removal/trade`);
+ctx.SkyPuffPufflingProgress={get:()=>({level:20})};ctx.SkyPuffPufflingEvolution={stageFor:()=>2};
+s=F.load();s.vault=s.vault.filter(id=>id!=='volt');F.save(s);
+if(F.canFuse('ember','volt'))fail('Orbuff in slot 8 was incorrectly available for Fusion');
+const trade=F.tradeTransfer('ember','volt','vault-slot-8-test');if(trade.ok||trade.reason!=='protected_or_missing')fail('Orbuff in slot 8 was incorrectly available for Trade');
+console.log('✅ OrbVault protection validated across all 8 upgrade slots for Fusion and Trade');
