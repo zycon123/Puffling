@@ -1,71 +1,66 @@
 # Orbuff
 
-Orbuff `5.27-beta.106` – Zycon Studios browser beta.
+Orbuff `5.27-beta.107` – Zycon Studios browser beta.
 
 **Stable beta entry:** `beta42.html`  
 **Beta support:** `zyconstudios@protonmail.com`
 
 ## Current status
-The browser build is in launch-hardening. GitHub Actions validates the modular build, runtime models, Race HUD/desktop layout, all 100 Orbuffs and unique traits, 97 evolvable Orbuffs, launch invariants, and the Race server.
+The browser build is in launch-hardening. GitHub Actions validates the modular build, runtime models, energy/revival, the full 3→8-slot OrbVault progression and protection model, Race HUD/desktop layout, active-Orbuff Race selection, all 100 Orbuffs and unique traits, 97 evolvable Orbuffs, boss/endurance flows and launch invariants.
 
-`beta42.html` remains the canonical test entry because it reloads the current assets with `no-store` and a unique nonce.
+`beta42.html` is the canonical test entry. It redirects directly to the current active `index.html` build, while the active page uses versioned asset URLs to prevent stale browser JavaScript/CSS from mixing with the current beta.
 
 ## Core features
-- Endless vertical high-score gameplay with bosses, Boss Rush, rewards and progression
-- **100 Orbuffs**, including 3 deliberately weak starter Orbuffs
+- Endless vertical high-score gameplay with 10 unique bosses, Boss Rush, rewards and progression
+- **100 Orbuffs**, including 3 deliberately weak starter Orbuffs: Airbuff, Rainbuff and Sparkbuff
 - First-time player chooses exactly 1 starter Orbuff
 - Normal play cannot start before that starter choice is complete
-- No automatic Orbuff rewards are granted before the first boss
-- 97 non-starter Orbuffs can evolve at level 10 and ascend at level 20
-- 100 distinct gameplay trait profiles
-- OrbuffDex, Nursery, fixed 3-slot Vault, Fusion and Mystery Shop
-- Starter Orbuffs are excluded from egg and boss reward pools
-- Cosmetics, upgrades, achievements, daily rewards and local persistence
-- Mobile/tablet support plus a centered narrower desktop playfield
-- **Race My Orbuff**: first to 1500m, live ghost, 3 attacks per player, 4-second attack cooldown, friend codes/Quick Match transport and reconnect flow
+- No automatic Orbuff rewards are granted before the first verified boss reward
+- 97 non-starter Orbuffs evolve at level 10 and ascend at level 20
+- Base Orbuffs have 5 energy; Ascended Orbuffs have 6
+- Orbdex with energy/revival and evolution details
+- Nursery with Rare, Epic and Legendary eggs; starters are excluded from egg pools
+- **OrbVault** starts with 3 slots and upgrades to 8; all unlocked slots protect from Fusion and Trade, recharge energy and grant passive XP
+- OrbVault Level 5 can award Revive Orbs through its daily roll
+- Fusion requires both parents to be Level 20 and Ascended
+- Mystery Shop, Diamonds, cosmetics, upgrades, achievements, daily rewards and local persistence
+- **Boss Rush:** first clear of each boss pays 250 coins; replay pays 25 coins
+- **Race My Orbuff:** first to 1500m, live ghost, 3 attacks per player, 4-second attack cooldown, friend codes/Quick Match, reconnect flow and selected active-Orbuff validation
 - System & Support diagnostics, runtime error capture and anti-cheat diagnostics
+- Mobile/tablet support plus a centered narrower desktop playfield
 
 ## Compatibility note
-The player-facing brand is now **Orbuff**. Some internal filenames, JavaScript globals, event names and localStorage/API keys still contain the legacy `Puffling`/`skyPuff` identifiers on purpose. They are retained as a compatibility layer so existing beta saves, inventories, Race data and tests keep working through the rebrand. New Orbuff aliases are added where safe.
+The player-facing brand is **Orbuff**. Some internal filenames, JavaScript globals, event names, database fields and localStorage/API keys still contain legacy `Puffling`/`skyPuff` identifiers intentionally. They are retained so existing beta saves, inventories and server/client contracts survive the rebrand. New Orbuff aliases are added where safe.
 
 ## Validation
-Every pull request and push to `main` validates:
-- syntax for every JavaScript file under `js/` and all active entry files
-- ordered module loading and bounded startup retries
-- required DOM/UI and cache-safe stable loader
-- runtime model normalization, persistence and Vault/Fusion behavior
-- exactly 100 Orbuffs and 100 unique trait profiles
+Every push to `main` validates, among other things:
+- syntax and ordered loading for the active browser modules
+- required DOM/UI state, stable entry and cache-busting
+- save/runtime model normalization and persistence
+- Orbuff energy, exhaustion and revival
+- OrbVault rest/upgrades plus protection across **all 8 possible slots**
+- Level-20 Ascended Fusion and protected-copy behavior
+- starter onboarding and first-run reward guards
+- a full launch gameplay journey
+- all 10 bosses plus a 300,000m endurance simulation
+- boss-session/reward authority
+- deterministic Race course, HUD, ranking and selected usable Orbuff
+- exactly 100 Orbuffs / 100 unique trait profiles
 - exactly 97 evolvable Orbuffs + 3 non-evolving starters
-- live Race HUD sync and desktop playfield behavior
-- launch-readiness invariants and current diagnostic codes
-- Race server syntax plus a two-client WebSocket integration flow
+- trading, Mystery Box, Diamond wallet/IAP scaffolding and launch-readiness invariants
 
-Runtime checks expose `window.skyPuffSmokeCheck`, `window.skyPuffBetaDiagnostics`, `window.skyPuffAIDiagnostics`, `window.skyPuffAntiCheat` and `window.skyPuffDiagnosticsSupport` as legacy-compatible diagnostics APIs.
+Runtime checks expose legacy-compatible diagnostics APIs such as `window.skyPuffSmokeCheck`, `window.skyPuffBetaDiagnostics`, `window.skyPuffAIDiagnostics`, `window.skyPuffAntiCheat` and `window.skyPuffDiagnosticsSupport`.
 
-## Diagnostics codes
-System & Support separates actual failures from launch configuration warnings. Current code families include:
-- `PFL-SMOKE-*` – missing/failed runtime smoke checks
-- `PFL-SAVE-*` – local save/storage problems
-- `PFL-RUNTIME-*` – captured JavaScript/runtime errors
-- `PFL-AC-*` – anti-cheat flags or blocked submissions
-- `PFL-AI-*` – AI diagnostics/watchdog issues
-- `PFL-LAUNCH-101` – Race WebSocket server is not configured
-- `PFL-LAUNCH-102` – global leaderboard backend is not configured
+## Race/backend status
+The authoritative Node/WebSocket server is under `server/` and the Render blueprint is in `render.yaml`. The production client is configured for the shared Race/game API endpoints.
 
-The `PFL-` codes are retained for backward compatibility during the beta and can be migrated separately after launch-critical systems are stable.
+Race uses signed identity, deterministic server-provided course seeds, account-bound reconnect, movement validation, server-owned abilities and authoritative results. Boss completion/reward settlement, leaderboard, ranked identity and Diamond wallet also use server-side authority where implemented.
 
-## Race backend
-The authoritative Node/WebSocket server is under `server/` and a Render blueprint is provided in `render.yaml`.
+Large-scale public launch still needs operational monitoring/scaling and final production certification rather than only browser-beta validation.
 
-It currently supports Quick Match, friend rooms, shared countdown, position relay, validated attack limits/cooldown, reconnect grace and authoritative 1500m results. CI starts the server and verifies a real two-client race flow.
-
-### Remaining production hardening
-The Race server and production `wss://` endpoint are configured. Race now uses signed identities, server-generated deterministic course seeds, account-bound reconnect, movement validation, server-owned abilities and authoritative 1500m results. Rate limiting, metrics and a scaling strategy are still required before a large public launch.
-
-## Other launch limitations
-- Progress is currently browser-local; there is no account/cloud save yet.
-- Global leaderboard falls back to local scores until `API_BASE` is configured.
-- Payment/IAP hooks are not production-enabled in this browser beta.
+## Release limitations
+- Core browser progress is still primarily local; a complete cross-device cloud-save experience is not yet the release baseline.
+- Real-money purchases require the native iOS/Android billing bridge and provider verification; browser beta stays fail-closed for real purchases.
 - Store packaging/signing, privacy/legal metadata and final Android/iOS device certification are separate release steps.
 
 ## Local Race server
@@ -76,13 +71,7 @@ npm run check
 npm start
 ```
 
-Then point the client to it:
-```js
-localStorage.setItem('skyPuffRaceWsUrl', 'ws://localhost:10000');
-location.reload();
-```
-
-Use `wss://` in production.
+Then point a development client to it when using a local server override. Use `wss://` for production.
 
 ## Beta testing
-Use `beta42.html` and follow `BETA_TESTING.md`. At minimum test one Android phone, one iPhone/iPad if available, and one desktop browser, including normal play, bosses, Boss Rush, Orbuff collection/progression, starter onboarding, Race, save persistence and System & Support.
+Use `beta42.html` and follow `BETA_TESTING.md`. At minimum test one Android phone, one iPhone/iPad if available, and one desktop browser. Cover normal play, bosses, Boss Rush, Orbdex/OrbVault, energy/revival, Fusion, Nursery, Race, persistence and System & Support.
