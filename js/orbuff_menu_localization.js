@@ -32,7 +32,8 @@
   ['Systemstatus: OK ✅ • Launch-klar','System status: OK ✅ • Launch-ready'],['Aktiv: AUTO (HIGH)','Active: AUTO (HIGH)'],['Aktiv: AUTO (LOW)','Active: AUTO (LOW)']
  ]);
  const RULES=[
-  [/Alle (?:Pufflings|Orbuffs) – trykk på en (?:Puffling|Orbuff) under for å legge den i neste ledige plass eller fjerne den fra OrbVault\./g,'All Orbuffs — tap an Orbuff below to place it in the next available slot or remove it from the OrbVault.'],
+  [/\bAlle (?:Pufflings|Orbuffs)\b/g,'All Orbuffs'],
+  [/– trykk på en (?:Puffling|Orbuff) under for å legge den i neste ledige plass eller fjerne den fra OrbVault\./g,'— tap an Orbuff below to place it in the next available slot or remove it from the OrbVault.'],
   [/Åpne én vanlig Mystery Box, eller kombiner 3 uåpnede (?:boxer|boxes) til ett garantert (?:Puffling|Orbuff)-egg\./g,'Open one regular Mystery Box, or combine 3 unopened boxes into one guaranteed Orbuff Egg.'],
   [/Starter (?:Pufflings|Orbuffs) og Vault-beskyttede kopier kan ikke trades\. XP\/evolution følger ikke den tradede kopien\./g,'Starter Orbuffs and Vault-protected copies cannot be traded. XP/evolution does not follow the traded copy.'],
   [/\bTrade-regler:/g,'Trade rules:'],[/\bSaldo:/g,'Balance:'],[/\bDu:/g,'You:'],[/\bMotspiller:/g,'Opponent:'],
