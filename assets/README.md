@@ -1,49 +1,42 @@
 # Orbuff native production assets
 
-The native Android/iOS projects are generated from scratch in CI. Production branding must therefore live here as source assets and be applied after `npx cap add` / `npx cap sync`.
+The native Android/iOS projects are generated from scratch in CI. Production branding therefore lives here as source art and is applied after `npx cap add` / `npx cap sync`.
 
-Do not place temporary Capacitor/default art in this folder. When the final Orbuff artwork is approved, add **all five** PNG files together:
+The approved Orbuff native direction uses Capacitor Assets **Easy Mode** with two vector masters:
 
 ```text
 assets/
-  icon-only.png
-  icon-foreground.png
-  icon-background.png
-  splash.png
-  splash-dark.png
+  logo.svg
+  logo-dark.svg
 ```
 
-Requirements enforced by `scripts/apply-native-assets.mjs`:
+Both SVGs must use `viewBox="0 0 1024 1024"` and keep the important mascot/orbit detail comfortably inside the safe center area. The current approved direction is the blue cosmic Orbuff mascot with warm gold/orange orbital accents.
 
-- `icon-only.png`: at least 1024×1024 — primary iOS/icon source.
-- `icon-foreground.png`: at least 1024×1024 — Android adaptive foreground. Keep important character/logo detail well inside the safe center area.
-- `icon-background.png`: at least 1024×1024 — Android adaptive background layer.
-- `splash.png`: at least 2732×2732 — light-mode splash source.
-- `splash-dark.png`: at least 2732×2732 — dark-mode splash source.
-- Files must be valid PNG images.
+`scripts/apply-native-assets.mjs` runs pinned `@capacitor/assets` 3.0.5 and generates all required Android/iOS icon and splash resources from these masters. It applies the canonical brand backgrounds:
 
-Generation is pinned to `@capacitor/assets` 3.0.5 in the helper script.
+- icon light: `#081B3F`
+- icon dark: `#030A18`
+- splash light: `#59BFFF`
+- splash dark: `#030A18`
+
+The helper still understands the older full-control five-PNG source layout for compatibility, but the SVG path is canonical for the launch build.
 
 ## CI behavior
 
-Normal unsigned/test CI remains buildable while the production artwork is not yet present: the asset helper logs a clear skip when **none** of the five files exists.
+The Android and iOS workflows regenerate native projects, then apply these approved masters before compiling. Android production signing is fail-closed: when upload-key secrets are configured, `assets/logo.svg` and `assets/logo-dark.svg` must both be present.
 
-A **partial** asset set fails CI because mixing Orbuff and Capacitor/default assets is not acceptable.
-
-Android production signing is additionally gated so a signed Play AAB cannot be created while the five production assets are missing.
-
-For iOS, the simulator validation can still run without production art; before a signed App Store/TestFlight archive, run:
-
-```bash
-npm run mobile:add:ios
-npm run mobile:assets:ios
-```
-
-For Android production:
+For local Android generation:
 
 ```bash
 npm run mobile:add:android
 npm run mobile:assets:android
 ```
 
-The source art should match the store-asset direction in `docs/STORE_ASSET_SPEC.md` and must not advertise paid Diamonds while real-money IAP remains disabled.
+For local iOS generation:
+
+```bash
+npm run mobile:add:ios
+npm run mobile:assets:ios
+```
+
+Do not replace these masters with temporary Capacitor/default artwork. Store screenshots and Google Play feature graphics remain separate deliverables under `docs/STORE_ASSET_SPEC.md`.

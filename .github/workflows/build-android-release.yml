@@ -101,13 +101,13 @@ jobs:
             exit 1
           fi
           if [ "$count" -eq 4 ]; then
-            for asset in icon-only.png icon-foreground.png icon-background.png splash.png splash-dark.png; do
+            for asset in logo.svg logo-dark.svg; do
               if [ ! -f "assets/$asset" ]; then
-                echo "Production signing requires the complete Orbuff native asset set. Missing assets/$asset"
+                echo "Production signing requires approved Orbuff SVG masters. Missing assets/$asset"
                 exit 1
               fi
             done
-            echo "Android production signing secrets and branded asset sources are fully configured."
+            echo "Android production signing secrets and approved Orbuff SVG masters are fully configured."
           else
             echo "Android production signing secrets are not configured; signed AAB generation will remain disabled."
           fi

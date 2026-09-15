@@ -6,7 +6,8 @@ const root=process.cwd();
 const platform=String(process.argv[2]||'').toLowerCase();
 const allowMissing=process.argv.includes('--allow-missing');
 const assetsDir=path.join(root,'assets');
-const required=[
+const svgSources=['logo.svg','logo-dark.svg'];
+const customPngSources=[
   ['icon-only.png',1024,1024],
   ['icon-foreground.png',1024,1024],
   ['icon-background.png',1024,1024],
@@ -26,29 +27,56 @@ function pngSize(file){
   return {width:b.readUInt32BE(16),height:b.readUInt32BE(20)};
 }
 
-const present=required.filter(([name])=>fs.existsSync(path.join(assetsDir,name)));
-if(present.length===0){
-  const message='Production Orbuff icon/splash source assets are not present yet; native asset generation skipped.';
+function validSvg(file){
+  const text=fs.readFileSync(file,'utf8');
+  return /<svg\b/i.test(text)&&/viewBox\s*=\s*["']0\s+0\s+1024\s+1024["']/i.test(text);
+}
+
+const svgPresent=svgSources.filter(name=>fs.existsSync(path.join(assetsDir,name)));
+const pngPresent=customPngSources.filter(([name])=>fs.existsSync(path.join(assetsDir,name)));
+const anyPresent=svgPresent.length||pngPresent.length;
+
+if(!anyPresent){
+  const message='Production Orbuff native source art is not present; asset generation skipped.';
   if(allowMissing){console.log(`ℹ️ ${message}`);process.exit(0);}
   console.error(`❌ ${message}`);
-  console.error('Add all five PNG files under assets/ before creating a production-signed store build.');
   process.exit(1);
 }
 
-if(present.length!==required.length){
-  const missing=required.filter(([name])=>!fs.existsSync(path.join(assetsDir,name))).map(([name])=>name);
-  console.error(`❌ Partial native asset set found. Missing: ${missing.join(', ')}`);
+if(svgPresent.length>0&&svgPresent.length!==svgSources.length){
+  const missing=svgSources.filter(name=>!fs.existsSync(path.join(assetsDir,name)));
+  console.error(`❌ Partial SVG native asset set found. Missing: ${missing.join(', ')}`);
   process.exit(1);
 }
 
-for(const [name,minW,minH] of required){
-  const file=path.join(assetsDir,name);
-  const {width,height}=pngSize(file);
-  if(width<minW||height<minH){
-    console.error(`❌ ${name} is ${width}×${height}; minimum is ${minW}×${minH}`);
-    process.exit(1);
+if(pngPresent.length>0&&pngPresent.length!==customPngSources.length){
+  const missing=customPngSources.filter(([name])=>!fs.existsSync(path.join(assetsDir,name))).map(([name])=>name);
+  console.error(`❌ Partial custom PNG native asset set found. Missing: ${missing.join(', ')}`);
+  process.exit(1);
+}
+
+let mode='';
+if(svgPresent.length===svgSources.length){
+  for(const name of svgSources){
+    const file=path.join(assetsDir,name);
+    if(!validSvg(file)){
+      console.error(`❌ ${name} must be a valid 1024×1024 SVG master with viewBox="0 0 1024 1024"`);
+      process.exit(1);
+    }
+    console.log(`✅ ${name}: approved 1024×1024 SVG master`);
   }
-  console.log(`✅ ${name}: ${width}×${height}`);
+  mode='easy-svg';
+}else{
+  for(const [name,minW,minH] of customPngSources){
+    const file=path.join(assetsDir,name);
+    const {width,height}=pngSize(file);
+    if(width<minW||height<minH){
+      console.error(`❌ ${name} is ${width}×${height}; minimum is ${minW}×${minH}`);
+      process.exit(1);
+    }
+    console.log(`✅ ${name}: ${width}×${height}`);
+  }
+  mode='custom-png';
 }
 
 const platformDir=path.join(root,platform);
@@ -58,6 +86,9 @@ if(!fs.existsSync(platformDir)){
 }
 
 const args=['--yes','--package','@capacitor/assets@3.0.5','capacitor-assets','generate',`--${platform}`,'--assetPath','assets'];
-console.log(`Generating Orbuff ${platform} icons/splash screens with @capacitor/assets 3.0.5…`);
+if(mode==='easy-svg'){
+  args.push('--iconBackgroundColor','#081B3F','--iconBackgroundColorDark','#030A18','--splashBackgroundColor','#59BFFF','--splashBackgroundColorDark','#030A18');
+}
+console.log(`Generating Orbuff ${platform} icons/splash screens from ${mode} sources with @capacitor/assets 3.0.5…`);
 execFileSync('npx',args,{cwd:root,stdio:'inherit',shell:process.platform==='win32'});
-console.log(`✅ Orbuff ${platform} native assets generated from production sources.`);
+console.log(`✅ Orbuff ${platform} native assets generated from approved production sources.`);
