@@ -152,3 +152,9 @@ store-assets/
 ```
 
 Do not commit screenshots containing private tester information.
+
+## Repository tooling
+
+The approved icon and Google Play feature graphic are generated from `assets/logo.svg` with `npm run store:generate` and checked with `npm run store:validate`.
+
+`scripts/store-capture-bootstrap.js` exists only for local, non-distributed capture preparation and is not referenced by `index.html` or the native mobile bundle. Final Boss, Race and Orbdex screenshots must be taken from the reviewed signed build so the submitted images match the exact release behavior.

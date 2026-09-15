@@ -43,16 +43,20 @@ The privacy and account-deletion URLs are also linked from Orbuff under **System
 - Age rating: still requires App Store Connect questionnaire
 - App Review notes: explain automatic guest account creation, in-app account deletion under System & Support, and that paid Diamonds remain disabled until store billing/provider verification are production-ready
 
-## Store assets still required
+## Store asset status
 
-- Production 1024×1024 app icon source
-- Android adaptive icon foreground/background
-- Native splash assets
-- iPhone screenshots for required device sizes
-- iPad screenshots if iPad distribution is enabled
-- Google Play phone screenshots
-- Google Play feature graphic
-- Final short description, full description, subtitle/promotional text and keywords where applicable
+Completed in the repository:
+
+- Production 1024×1024 opaque store icon and 512×512 Google Play icon.
+- Approved SVG native icon/splash masters and native generation pipeline.
+- Google Play 1024×500 feature graphic.
+
+Still required before submission:
+
+- Gameplay, Boss, Race and Orbdex screenshots captured from the reviewed signed build after the final UI/localization fixes are deployed.
+- iPhone screenshots at an accepted App Store Connect device size.
+- iPad screenshots if iPad distribution remains enabled.
+- Final review of short description, full description, subtitle/promotional text and keywords in each submitted locale.
 
 ## Payment release rule
 

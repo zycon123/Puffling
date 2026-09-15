@@ -21,7 +21,10 @@
     "mobile:add:android": "npm run mobile:prepare && npx cap add android && npx cap sync android && npm run mobile:assets:android:optional && npm run mobile:configure:android",
     "mobile:add:ios": "npm run mobile:prepare && npx cap add ios && npx cap sync ios && npm run mobile:assets:ios:optional && npm run mobile:configure:ios",
     "mobile:open:android": "npm run mobile:sync && npm run mobile:assets:android:optional && npm run mobile:configure:android && npx cap open android",
-    "mobile:open:ios": "npm run mobile:sync && npm run mobile:assets:ios:optional && npm run mobile:configure:ios && npx cap open ios"
+    "mobile:open:ios": "npm run mobile:sync && npm run mobile:assets:ios:optional && npm run mobile:configure:ios && npx cap open ios",
+    "store:capture:prepare": "node scripts/prepare-store-capture.mjs",
+    "store:generate": "node scripts/generate-store-assets.mjs",
+    "store:validate": "node scripts/validate-store-assets.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",
@@ -31,6 +34,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.2",
+    "sharp": "0.35.4",
     "typescript": "5.9.2"
   }
 }
