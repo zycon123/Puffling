@@ -9,6 +9,8 @@ Release identity:
 
 Never commit a private key, keystore, certificate private key, provisioning profile containing private material, store password, key password, App Store Connect API private key, or plaintext secret to this repository.
 
+Before any production-signed store build, also require the approved Orbuff native artwork under `assets/`. The repository intentionally allows unsigned/test builds without final artwork, but a production-signed Android AAB is blocked until the complete source set exists.
+
 ---
 
 # Android / Google Play
@@ -40,15 +42,33 @@ Choose unique strong passwords. Store the `.jks`, store password, key password, 
 
 Do **not** add `orbuff-upload.jks` to Git.
 
+## Production native artwork gate
+
+Before signing, the repository must contain all five approved PNG sources:
+
+- `assets/icon-only.png`
+- `assets/icon-foreground.png`
+- `assets/icon-background.png`
+- `assets/splash.png`
+- `assets/splash-dark.png`
+
+Run the strict generator/check after creating the native project:
+
+```bash
+npm run mobile:add:android
+npm run mobile:assets:android
+```
+
+The helper validates minimum dimensions and generates Android adaptive icons/splash resources with the pinned Capacitor asset generator. A partial asset set fails. GitHub production signing also fails if any of the five sources is missing.
+
 ## Local signing of the generated AAB
 
-The existing CI builds an unsigned release bundle. Locally, after creating/syncing the Android project and building the release bundle:
+After the native project and production assets pass:
 
 ```bash
 npm install
-npm run mobile:prepare
-npx cap add android
-npx cap sync android
+npm run mobile:add:android
+npm run mobile:assets:android
 npm run mobile:configure:android
 cd android
 ./gradlew bundleRelease
@@ -72,7 +92,7 @@ The final upload bundle must verify successfully before Play Console upload.
 
 ## GitHub Actions secret names
 
-The repository's Android release workflow is prepared to produce a signed AAB automatically **only when all four secrets are configured**:
+The repository's Android release workflow is prepared to produce a signed AAB automatically **only when all four secrets are configured and the complete production asset set is present**:
 
 - `ORBUFF_ANDROID_KEYSTORE_BASE64`
 - `ORBUFF_ANDROID_KEY_ALIAS`
@@ -95,17 +115,18 @@ PowerShell:
 
 Paste only the resulting base64 value into the GitHub Actions secret. Never paste it into source files, issues, pull requests, chat logs, or workflow YAML.
 
-When the secrets are absent, CI continues to produce only the unsigned AAB and debug device-test APK. This is intentional fail-closed behavior.
+When the secrets are absent, CI continues to produce only the unsigned AAB and debug device-test APK. This is intentional fail-closed behavior. When all four secrets are present but production artwork is missing, signed AAB generation fails rather than shipping Capacitor/default branding.
 
 ## Google Play upload sequence
 
 1. Create the app in Play Console using package `com.zyconstudios.orbuff`.
 2. Enable Play App Signing.
 3. Register/use the Orbuff upload key.
-4. Complete App content, Data Safety, account deletion, target audience, content rating and store listing.
-5. Upload the signed `.aab` to **Internal testing** first.
-6. Install through Google Play Internal testing on a real Android device.
-7. Run the physical-device release checklist before promoting to production.
+4. Confirm the production Orbuff icon/splash sources are committed and generated into the native project.
+5. Complete App content, Data Safety, account deletion, target audience, content rating and store listing.
+6. Upload the signed `.aab` to **Internal testing** first.
+7. Install through Google Play Internal testing on a real Android device.
+8. Run the physical-device release checklist before promoting to production.
 
 ---
 
@@ -120,7 +141,8 @@ A production iOS upload needs:
 - an App Store Connect app record;
 - valid distribution signing managed by Xcode or equivalent CI credentials;
 - a build using the currently accepted Apple SDK/Xcode requirement;
-- version/build matching the App Store Connect record.
+- version/build matching the App Store Connect record;
+- the approved Orbuff icon/splash sources generated into the native iOS project.
 
 The current repository CI only proves that the generated iOS project builds for the simulator with code signing disabled. It does **not** create a distributable `.ipa` yet.
 
@@ -131,10 +153,12 @@ Use a Mac with the Apple Developer account signed into Xcode:
 ```bash
 npm install
 npm run mobile:add:ios
-npm run mobile:sync
+npm run mobile:assets:ios
 npm run mobile:configure:ios
 npm run mobile:open:ios
 ```
+
+`mobile:assets:ios` is strict: it must pass before creating the production archive. This prevents an App Store archive from accidentally retaining Capacitor/default icon or splash resources.
 
 In Xcode:
 
@@ -143,10 +167,11 @@ In Xcode:
 3. Under **Signing & Capabilities**, select the correct Zycon Studios Apple Developer Team.
 4. Keep **Automatically manage signing** enabled for the first release unless there is a reason to manage profiles manually.
 5. Confirm version `5.27.107` and build `107`.
-6. Select **Any iOS Device (arm64)** / an appropriate generic device destination.
-7. Choose **Product → Archive**.
-8. In Organizer, choose **Distribute App → App Store Connect → Upload**.
-9. After Apple finishes processing the build, add it to TestFlight before production review.
+6. Confirm the AppIcon/launch branding visibly matches the approved Orbuff source artwork.
+7. Select **Any iOS Device (arm64)** / an appropriate generic device destination.
+8. Choose **Product → Archive**.
+9. In Organizer, choose **Distribute App → App Store Connect → Upload**.
+10. After Apple finishes processing the build, add it to TestFlight before production review.
 
 ## Current Apple toolchain gate
 
@@ -154,7 +179,7 @@ Before archiving, install a current Xcode version accepted by App Store Connect.
 
 ## Future iOS CI automation
 
-Do not add Apple private signing material to the repository. If automated signed iOS releases are added later, use GitHub Actions secrets for an App Store Connect API key/certificate/provisioning setup or a dedicated signing service, and keep the workflow fail-closed when credentials are absent.
+Do not add Apple private signing material to the repository. If automated signed iOS releases are added later, use GitHub Actions secrets for an App Store Connect API key/certificate/provisioning setup or a dedicated signing service, and keep the workflow fail-closed when credentials or production native artwork are absent.
 
 Suggested future secret naming convention:
 
@@ -172,6 +197,7 @@ These are placeholders for future CI design; do not create or expose them until 
 - Never reuse the Android debug keystore as a Play upload key.
 - Never commit the Android `.jks` or Apple private key.
 - Never include plaintext passwords in workflow YAML.
+- Never production-sign a native build that still uses Capacitor/default icon or splash artwork.
 - Keep at least two encrypted backups of production signing credentials under the owner's control.
 - Build production releases from a clean, reviewed `main` commit.
 - Verify package/bundle ID, version and build before upload.
