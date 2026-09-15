@@ -7,9 +7,11 @@ on:
       - 'launch/**'
     paths:
       - 'package.json'
+      - 'release.config.json'
       - 'capacitor.config.ts'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
+      - 'scripts/configure-native-release.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -19,9 +21,11 @@ on:
   pull_request:
     paths:
       - 'package.json'
+      - 'release.config.json'
       - 'capacitor.config.ts'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
+      - 'scripts/configure-native-release.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -55,6 +59,9 @@ jobs:
 
       - name: Sync iOS project
         run: npx cap sync ios
+
+      - name: Apply native release version
+        run: npm run mobile:configure:ios
 
       - name: Build iOS simulator app without signing
         shell: bash
