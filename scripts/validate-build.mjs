@@ -92,5 +92,9 @@ if(!fusionSource.includes('MAX_VAULT_SLOTS=8')||!fusionSource.includes('slice(0,
 const menuBetaPath=path.join(root,'js/menu_beta_cleanup.js');
 const menuBetaSource=fs.existsSync(menuBetaPath)?fs.readFileSync(menuBetaPath,'utf8'):'';
 if(/Dobbelttrykk|Double-tap|Doppeltippen|Doble toque|Double-tapez/.test(menuBetaSource))fail('Obsolete Rainbow Puff main-menu hint is still active');else ok('Dynamic 3→8 OrbVault UI/protection and clean main-menu hint state');
+const rainbowHint=fs.readFileSync(path.join(root,'js/rainbow_puff_hint.js'),'utf8');
+if(!rainbowHint.includes("Date.now()-runStartedAt<7000"))fail('Gameplay boost hint no longer expires after the onboarding window');
+if(!rainbowHint.includes("+ 62px"))fail('Gameplay boost hint overlaps the Rainbow Boost bar');
+else ok('Gameplay boost hint is temporary and clears the Rainbow Boost bar');
 
 if(!process.exitCode){ok(`Loader references ${modules.length} named modules`);ok('Static Orbuff build validation passed')}
