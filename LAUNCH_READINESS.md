@@ -24,9 +24,11 @@ The native pipeline:
 - Generates clean Android and iOS projects in CI.
 - Uses approved vector masters `assets/logo.svg` and `assets/logo-dark.svg` through pinned `@capacitor/assets` generation for native icons/splash resources.
 - Builds an unsigned Android release AAB and an installable debug-signed Android device-test APK.
-- Builds the iOS simulator target without signing.
 - Enforces Android compile/target SDK API 36 for the current Google Play launch requirement.
 - Has a fail-closed production Android signing path: all four upload-key GitHub secrets and approved Orbuff native masters must be present before CI can create and verify `orbuff-android-play-signed-aab`.
+- Always validates the iOS toolchain and builds a simulator target without signing.
+- Has a fail-closed App Store signing path: Apple Distribution certificate, certificate password, App Store provisioning profile and Team ID must all be present before CI can create `orbuff-ios-app-store-ipa` and `orbuff-ios-app-store-xcarchive`.
+- The iOS signed path checks Xcode/iOS SDK minimums, profile Team ID, exact bundle entitlement, release version/build and final code signature, and removes its temporary keychain/signing material after the build.
 - Includes the Capacitor 8 StoreKit 2 / Google Play native purchase bridge. Android consumables are consumed only after Orbuff server credit; iOS StoreKit transactions are finished only after server credit. CI validates the bridge and the pinned StoreKit safety patch.
 - Keeps real-money purchases fail-closed until provider credentials and production verification mode are configured and official sandbox/internal tests pass.
 
@@ -81,8 +83,8 @@ These gates must be completed before claiming a fully production-ready App Store
 
 1. **Production IAP configuration and store testing:** Configure Apple App ID/root certificates, Google Play service-account credentials and `PUFFLING_IAP_PROVIDER_MODE=apple_google` on the production backend. Confirm `/iap/status` only becomes `providerReady:true` after both providers are ready, then pass Apple sandbox/TestFlight and Google Play license/Internal tests for success, cancel, pending, retry, duplicate, network loss and revoked/refunded cases.
 2. **Purchase-record retention policy:** Finalize the exact retention period/legal basis for wallet transaction and purchase-verification records after account deletion, then make the public privacy policy and store disclosures match it before live IAP is enabled.
-3. **Production signing credentials:** Create and securely store the owner's Android upload key, add all four Android GitHub signing secrets, and configure the correct Apple Developer Team/App Store Connect signing. CI support is prepared, but no private production key is committed or assumed.
-4. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS archive from reviewed `main` using the approved Orbuff native artwork.
+3. **Production signing credentials:** Create and securely store the owner's Android upload key plus Apple Distribution certificate/App Store provisioning profile, then configure the documented GitHub Actions secrets. CI support for both stores is prepared, but no private production key is committed or assumed.
+4. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS App Store IPA/archive from reviewed `main` using the approved Orbuff native artwork.
 5. **Store listing assets:** Produce the Google Play feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
 6. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
 7. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Include account recovery, paid-wallet recovery, deletion and network interruption. Repeat critical tests in Google Play Internal and TestFlight builds.
