@@ -32,9 +32,9 @@ See `docs/MOBILE_RELEASE_SETUP.md` and `docs/STORE_SIGNING_SETUP.md` for native 
 
 ## Store-account and privacy compliance state
 
-Guest accounts have an authenticated in-app deletion flow under System & Support in every selectable language. Successful deletion removes account-linked ranked, authoritative inventory, trade, boss-session, acquisition/reward and newly authenticated leaderboard data; writes a persistent deleted-account tombstone; revokes the deleted identity immediately; and reloads deleted IDs into revocation after server restart.
+Guest accounts have an authenticated in-app deletion flow under System & Support in every selectable language. Successful deletion removes account-linked ranked, authoritative inventory, trade, boss-session, acquisition/reward and authenticated leaderboard data; writes a persistent deleted-account tombstone; revokes the deleted identity immediately; and reloads deleted IDs into revocation after server restart.
 
-New leaderboard submissions use the signed guest identity when available so those score rows can be removed with the guest account. Older leaderboard rows that were submitted before account linkage may still require display-name support removal.
+Public leaderboard submissions no longer transmit the player's local free-text display name. The server exposes deterministic aliases such as `Orbuff-XXXXXX`, and legacy beta leaderboard names are anonymized during leaderboard-store initialization. Legacy anonymous score rows may remain non-account-linked until normal retention cleanup, but they no longer expose the old player-entered names publicly.
 
 The public privacy resources are deployed from `main` through GitHub Pages:
 
@@ -44,7 +44,19 @@ The public privacy resources are deployed from `main` through GitHub Pages:
 - A copyable guest Account ID to make support/deletion requests easier to match safely.
 - A direct external deletion-request route that does not require reinstalling the app.
 
-The repository also contains a release-specific working sheet for Apple App Privacy and Google Play Data Safety at `docs/STORE_PRIVACY_FORM_ANSWERS.md`. It separates the current submitted build from future paid-IAP disclosures so disabled purchases are not accidentally declared as live functionality.
+The repository contains a release-specific working sheet for Apple App Privacy and Google Play Data Safety at `docs/STORE_PRIVACY_FORM_ANSWERS.md`. It separates the current submitted build from future paid-IAP disclosures so disabled purchases are not accidentally declared as live functionality.
+
+## Content rating and store-asset preparation
+
+The launch branch now contains:
+
+- `docs/CONTENT_RATING_AUDIT.md` — production-content mapping for Apple age rating and Google Play/IARC questionnaire answers.
+- `docs/STORE_ASSET_SPEC.md` — required/recommended App Store and Google Play icon, feature-graphic and screenshot dimensions plus the exact Orbuff capture plan.
+- `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` — real Android/iPhone/iPad launch QA covering install, localization, Boss 10, endless mode, Boss Rush, Race, Trade, leaderboard privacy, deletion and network interruption.
+
+The content audit records fantasy/cartoon combat, competitive contests and the Mystery Box randomized-reward mechanic; it does not misclassify the game as casino gambling. Target audience remains a publisher decision because selecting child age groups in Google Play can trigger additional Families Policy obligations.
+
+The Mystery Shop audit also removed the final stale Fusion Crystal reward. Its 26% reward slot is now `1000 Coins`, preserving the remaining rarity odds rather than silently increasing rare/epic/legendary rewards.
 
 ## Public launch gates still open
 
@@ -55,11 +67,11 @@ These gates must be completed before claiming a fully production-ready App Store
 3. **Durable paid wallet recovery/deletion policy:** Ensure paid balance recovers safely after reinstall/device changes and finalize how the separate wallet/transaction records map to account deletion and legally required purchase retention before enabling real-money purchases.
 4. **Production signing credentials:** Create and securely store the owner's Android upload key, add all four Android GitHub signing secrets, and configure the correct Apple Developer Team/App Store Connect signing. CI support is prepared, but no private production key is committed or assumed.
 5. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS archive from reviewed `main`.
-6. **Store assets:** Add a production app icon, splash assets and final phone/tablet screenshots.
-7. **Store-form completion:** Enter the published privacy/deletion URLs and the reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md` in App Store Connect and Play Console, then complete age/content/target-audience declarations. Target audience remains an owner decision and is intentionally not guessed in code/docs.
-8. **Physical-device E2E:** Test production networking on real iPhone and Android hardware, including startup, save recovery, Boss Rush, Quick/Friend Race, Trade, leaderboard account linkage, account deletion, network interruption and — once enabled — purchase/restore/recovery paths.
+6. **Store assets:** Produce the production icon, feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
+7. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
+8. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Repeat critical tests in Google Play Internal and TestFlight builds.
 9. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
 
-See `docs/STORE_SUBMISSION_METADATA.md`, `docs/STORE_LISTING_COPY.md`, `docs/STORE_PRIVACY_FORM_ANSWERS.md` and `docs/STORE_SIGNING_SETUP.md` for the ready-to-copy launch material.
+See `docs/STORE_SUBMISSION_METADATA.md`, `docs/STORE_LISTING_COPY.md`, `docs/STORE_PRIVACY_FORM_ANSWERS.md`, `docs/CONTENT_RATING_AUDIT.md`, `docs/STORE_ASSET_SPEC.md`, `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` and `docs/STORE_SIGNING_SETUP.md` for the ready-to-use launch material.
 
 The web beta can remain live while these native-only/public-store gates are completed.
