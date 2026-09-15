@@ -11,7 +11,9 @@ const required = [
   'www/js/localization_core.js',
   'www/js/orbuff_game_guide.js',
   'www/js/orbuff_menu_localization.js',
-  'capacitor.config.ts'
+  'capacitor.config.ts',
+  'release.config.json',
+  'scripts/configure-native-release.mjs'
 ];
 
 for (const rel of required) {
@@ -22,6 +24,8 @@ for (const rel of required) {
 const html = await readFile(path.join(root, 'www/index.html'), 'utf8');
 const game = await readFile(path.join(root, 'www/game.js'), 'utf8');
 const config = await readFile(path.join(root, 'capacitor.config.ts'), 'utf8');
+const release = JSON.parse(await readFile(path.join(root, 'release.config.json'), 'utf8'));
+const pkg = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 
 const checks = [
   [/<title>Orbuff/i.test(html), 'index title is Orbuff'],
@@ -30,7 +34,12 @@ const checks = [
   [/js\/orbuff_game_guide\.js/.test(game), 'localized game guide runtime is bundled'],
   [/appId:\s*'com\.zyconstudios\.orbuff'/.test(config), 'native app id is com.zyconstudios.orbuff'],
   [/webDir:\s*'www'/.test(config), 'Capacitor uses prepared www directory'],
-  [/allowMixedContent:\s*false/.test(config), 'Android clear mixed content is disabled']
+  [/allowMixedContent:\s*false/.test(config), 'Android clear mixed content is disabled'],
+  [release.appName === 'Orbuff', 'release app name is Orbuff'],
+  [release.appId === 'com.zyconstudios.orbuff', 'release app id matches Capacitor identity'],
+  [/^\d+\.\d+\.\d+$/.test(String(release.version)), 'native version uses three numeric components'],
+  [pkg.version === release.version, 'package and native release versions match'],
+  [Number.isInteger(release.buildNumber) && release.buildNumber > 0, 'native build number is a positive integer']
 ];
 
 for (const [ok, label] of checks) {
@@ -38,4 +47,4 @@ for (const [ok, label] of checks) {
   console.log(`OK: ${label}`);
 }
 
-console.log('Orbuff mobile release foundation validated.');
+console.log(`Orbuff mobile release ${release.version} (${release.buildNumber}) validated.`);
