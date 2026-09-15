@@ -9,6 +9,7 @@ const progression=read('js/puffling_progression.js');
 const creator=read('js/boss_puff_creator_v2.js');
 const bossUnlock=read('js/boss_puff_main_unlock.js');
 const economy=read('js/reward_economy_hardening.js');
+const guide=read('js/orbuff_game_guide.js');
 
 for(const token of ['patchToast','BOSS ORBUFF','RAINBOW BOOST','window.showToast=wrapped']){
   if(!rebrand.includes(token))fail(`Rebrand layer missing ${token}`);
@@ -20,5 +21,6 @@ for(const [name,source] of [['Boss Creator',creator],['Boss main unlock',bossUnl
 }
 for(const token of ['alle 10 bossene','all 10 bosses'])if(!creator.includes(token))fail(`Boss Orbuff Creator missing 10-boss rule: ${token}`);
 if(!bossUnlock.includes("IDS=['storm','candy','ice','galaxy','solar','void','thunder','crystal','inferno','cosmic']"))fail('Boss Orbuff unlock no longer requires all 10 boss IDs');
+for(const token of ["en:{button:'GAME GUIDE 📖'","title:'Game Guide 📖'","['🎮 How to play'","document.getElementById('languageSelect')?.addEventListener('change',render)"])if(!guide.includes(token))fail(`Localized game guide missing ${token}`);
 
-console.log('✅ Orbuff branding validated: toast normalization, HUD/level copy, Boss Orbuff Creator and 10-boss unlock rules');
+console.log('✅ Orbuff branding validated: toast normalization, HUD/level copy, Boss Orbuff Creator, 10-boss unlock rules and localized game guide');
