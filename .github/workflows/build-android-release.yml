@@ -1,0 +1,74 @@
+name: Build Orbuff Android Release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'launch/**'
+    paths:
+      - 'package.json'
+      - 'capacitor.config.ts'
+      - 'scripts/prepare-mobile-web.mjs'
+      - 'scripts/validate-mobile-release.mjs'
+      - 'index.html'
+      - 'style.css'
+      - 'game.js'
+      - 'audio_theme.js'
+      - 'js/**'
+      - '.github/workflows/build-android-release.yml'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'capacitor.config.ts'
+      - 'scripts/prepare-mobile-web.mjs'
+      - 'scripts/validate-mobile-release.mjs'
+      - 'index.html'
+      - 'style.css'
+      - 'game.js'
+      - 'audio_theme.js'
+      - 'js/**'
+      - '.github/workflows/build-android-release.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate mobile web bundle
+        run: npm run mobile:validate
+
+      - name: Generate Android project
+        run: npx cap add android
+
+      - name: Sync Android project
+        run: npx cap sync android
+
+      - name: Build unsigned release AAB
+        working-directory: android
+        run: ./gradlew bundleRelease
+
+      - name: Upload unsigned AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbuff-android-unsigned-aab
+          path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
