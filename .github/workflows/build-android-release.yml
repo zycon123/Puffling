@@ -38,6 +38,12 @@ on:
 permissions:
   contents: read
 
+env:
+  ORBUFF_ANDROID_KEYSTORE_BASE64: ${{ secrets.ORBUFF_ANDROID_KEYSTORE_BASE64 }}
+  ORBUFF_ANDROID_KEY_ALIAS: ${{ secrets.ORBUFF_ANDROID_KEY_ALIAS }}
+  ORBUFF_ANDROID_STORE_PASSWORD: ${{ secrets.ORBUFF_ANDROID_STORE_PASSWORD }}
+  ORBUFF_ANDROID_KEY_PASSWORD: ${{ secrets.ORBUFF_ANDROID_KEY_PASSWORD }}
+
 jobs:
   build-android:
     runs-on: ubuntu-latest
@@ -74,15 +80,65 @@ jobs:
       - name: Apply native release version
         run: npm run mobile:configure:android
 
+      - name: Validate production signing secret set
+        shell: bash
+        run: |
+          set -euo pipefail
+          count=0
+          [ -n "${ORBUFF_ANDROID_KEYSTORE_BASE64:-}" ] && count=$((count+1))
+          [ -n "${ORBUFF_ANDROID_KEY_ALIAS:-}" ] && count=$((count+1))
+          [ -n "${ORBUFF_ANDROID_STORE_PASSWORD:-}" ] && count=$((count+1))
+          [ -n "${ORBUFF_ANDROID_KEY_PASSWORD:-}" ] && count=$((count+1))
+          if [ "$count" -ne 0 ] && [ "$count" -ne 4 ]; then
+            echo "Android production signing is partially configured. Set all four ORBUFF_ANDROID_* signing secrets or none of them."
+            exit 1
+          fi
+          if [ "$count" -eq 4 ]; then
+            echo "Android production signing secrets are fully configured."
+          else
+            echo "Android production signing secrets are not configured; signed AAB generation will remain disabled."
+          fi
+
       - name: Build unsigned release AAB and debug APK
         working-directory: android
         run: ./gradlew bundleRelease assembleDebug
+
+      - name: Create signed Play upload AAB
+        if: ${{ env.ORBUFF_ANDROID_KEYSTORE_BASE64 != '' && env.ORBUFF_ANDROID_KEY_ALIAS != '' && env.ORBUFF_ANDROID_STORE_PASSWORD != '' && env.ORBUFF_ANDROID_KEY_PASSWORD != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          keystore="$RUNNER_TEMP/orbuff-upload.jks"
+          signed="$RUNNER_TEMP/orbuff-5.27.107-107-signed.aab"
+          printf '%s' "$ORBUFF_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          unsigned="$(find android/app/build/outputs/bundle/release -maxdepth 1 -type f -name '*.aab' | head -n 1)"
+          test -n "$unsigned"
+          cp "$unsigned" "$signed"
+          jarsigner \
+            -sigalg SHA256withRSA \
+            -digestalg SHA-256 \
+            -keystore "$keystore" \
+            -storepass "$ORBUFF_ANDROID_STORE_PASSWORD" \
+            -keypass "$ORBUFF_ANDROID_KEY_PASSWORD" \
+            "$signed" \
+            "$ORBUFF_ANDROID_KEY_ALIAS"
+          jarsigner -verify -verbose -certs "$signed"
+          rm -f "$keystore"
 
       - name: Upload unsigned release AAB
         uses: actions/upload-artifact@v4
         with:
           name: orbuff-android-unsigned-aab
           path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+      - name: Upload signed Play AAB
+        if: ${{ env.ORBUFF_ANDROID_KEYSTORE_BASE64 != '' && env.ORBUFF_ANDROID_KEY_ALIAS != '' && env.ORBUFF_ANDROID_STORE_PASSWORD != '' && env.ORBUFF_ANDROID_KEY_PASSWORD != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbuff-android-play-signed-aab
+          path: ${{ runner.temp }}/orbuff-5.27.107-107-signed.aab
           if-no-files-found: error
 
       - name: Upload installable debug APK
