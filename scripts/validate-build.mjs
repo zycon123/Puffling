@@ -53,7 +53,7 @@ if(!/location\.replace\s*\(\s*['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(st
 if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
 if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must use Orbuff branding');
 if(!/href=['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
-if(!/index\.html\?entry=beta42-v23/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
+if(!/index\.html\?entry=beta42-v24/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
 if(!process.exitCode)ok('Stable direct-loader checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js','js/fusion_crystal_runtime.js'];
@@ -68,6 +68,7 @@ const menuCleanupPath=path.join(root,'js/main_menu_cleanup.js');
 const menuCleanup=fs.existsSync(menuCleanupPath)?fs.readFileSync(menuCleanupPath,'utf8'):'';
 for(const token of ['spMainNav','spMenuHub','pufflingsHubBtn','modesHubBtn','moreHubBtn'])if(!menuCleanup.includes(token))fail(`Compact main menu is missing ${token}`);
 if(/menuCollectionGroup|menuMoreGroup/.test(menuCleanup))fail('Legacy crowded main-menu groups are still active');else ok('Compact categorized main navigation');
+if(!menuCleanup.includes("['gameGuideBtn','📖','Spillguide']"))fail('Spillguide is not reachable from the visible More menu');else ok('Spillguide is reachable from the visible More menu');
 const firstPaintIds=['menuPrimaryGroup','spMainNav','pufflingsHubBtn','modesHubBtn','moreHubBtn'];
 for(const id of firstPaintIds)if(!index.includes(`id="${id}"`)&&!index.includes(`id='${id}'`))fail(`Compact first paint is missing DOM id: ${id}`);
 if(!/#start\s+\.menuActions\s*\{[^}]*display\s*:\s*none\s*!important/i.test(index))fail('Legacy main-menu actions are not hidden before first paint');else ok('Legacy actions hidden before first paint');

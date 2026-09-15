@@ -9,7 +9,7 @@
  const GROUPS={
   pufflings:[['puffdexBtn','☁️','Puffdex'],['nurseryVaultBtn','🥚','Nursery & Vault'],['mysteryShopBtn','💎','Mystery Shop']],
   modes:[['multiplayerBtn','⚔️','Multiplayer'],['bossRushBtn','👑','Boss Rush'],['leaderboardBtn','🏆','Highscore']],
-  more:[['dailyBtn','🎁','Daglig belønning'],['shopBtn','🎨','Cosmetics'],['upgradeBtn','⬆️','Oppgraderinger'],['achievementsBtn','🏅','Achievements'],['audioSettingsBtn','🔊','Lyd'],['diagnosticsBtn','🛠️','System & Support']]
+  more:[['dailyBtn','🎁','Daglig belønning'],['shopBtn','🎨','Cosmetics'],['upgradeBtn','⬆️','Oppgraderinger'],['achievementsBtn','🏅','Achievements'],['gameGuideBtn','📖','Spillguide'],['audioSettingsBtn','🔊','Lyd'],['diagnosticsBtn','🛠️','System & Support']]
  };
  let currentGroup='';
  function copy(){try{return COPY[typeof lang!=='undefined'?lang:'no']||COPY.en}catch(e){return COPY.en}}
@@ -26,7 +26,7 @@
   for(const [id,icon,fallback] of GROUPS[group]){
    const original=document.getElementById(id);if(!original)continue;
    const button=document.createElement('button');button.className=original.classList.contains('gold')?'spHubItem gold':'spHubItem secondary';
-   const stripped=(original.textContent||'').replace(/[☁️🥚🔐💎⚔️👑🏆🎁🎨⬆️🏅🔊🛠️😈]/gu,'').trim();
+   const stripped=(original.textContent||'').replace(/[☁️🥚🔐💎⚔️👑🏆🎁🎨⬆️🏅📖🔊🛠️😈]/gu,'').trim();
    const label=id==='audioSettingsBtn'?(t.audio||fallback):(stripped||fallback);
    button.innerHTML=`<span>${icon}</span><b>${label}</b><small>${t.open} →</small>`;
    button.onclick=()=>{hub.style.display='none';if(startEl)startEl.style.display='flex';currentGroup='';original.click();};grid.appendChild(button);
