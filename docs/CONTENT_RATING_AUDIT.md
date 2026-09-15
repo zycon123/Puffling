@@ -48,7 +48,7 @@ Purpose: provide a source-backed checklist for the Apple App Store age-rating qu
 - **Public UGC feed: No.**
 - Support email text is user-initiated customer-support content, not an in-app public social surface.
 
-**Apple working answer:** Messaging and Chat = **No**. User-Generated Content capability = **No** for the audited public game surfaces.
+**Apple working answer:** Messaging and Chat = **No**. User-Generated Content = **No** for the audited public game surfaces.
 
 ### Web access
 - **Unrestricted web access: No.** The app may open specific privacy/support resources, but it does not provide a general-purpose browser.
