@@ -29,6 +29,7 @@ The native pipeline:
 - Always validates the iOS toolchain and builds a simulator target without signing.
 - Has a fail-closed App Store signing path: Apple Distribution certificate, certificate password, App Store provisioning profile and Team ID must all be present before CI can create `orbuff-ios-app-store-ipa` and `orbuff-ios-app-store-xcarchive`.
 - The iOS signed path checks Xcode/iOS SDK minimums, profile Team ID, exact bundle entitlement, release version/build and final code signature, and removes its temporary keychain/signing material after the build.
+- Has a separate `workflow_dispatch`-only TestFlight uploader. It accepts only the signed IPA artifact from a successful current-`main` iOS build, requires the exact confirmation `UPLOAD TESTFLIGHT`, revalidates bundle/version/signature and authenticates to App Store Connect with a temporary API key file that is removed afterward. Pushes and pull requests cannot trigger an Apple upload.
 - Includes the Capacitor 8 StoreKit 2 / Google Play native purchase bridge. Android consumables are consumed only after Orbuff server credit; iOS StoreKit transactions are finished only after server credit. CI validates the bridge and the pinned StoreKit safety patch.
 - Keeps real-money purchases fail-closed until provider credentials and production verification mode are configured and official sandbox/internal tests pass.
 
@@ -83,12 +84,12 @@ These gates must be completed before claiming a fully production-ready App Store
 
 1. **Production IAP configuration and store testing:** Configure Apple App ID/root certificates, Google Play service-account credentials and `PUFFLING_IAP_PROVIDER_MODE=apple_google` on the production backend. Confirm `/iap/status` only becomes `providerReady:true` after both providers are ready, then pass Apple sandbox/TestFlight and Google Play license/Internal tests for success, cancel, pending, retry, duplicate, network loss and revoked/refunded cases.
 2. **Purchase-record retention policy:** Finalize the exact retention period/legal basis for wallet transaction and purchase-verification records after account deletion, then make the public privacy policy and store disclosures match it before live IAP is enabled.
-3. **Production signing credentials:** Create and securely store the owner's Android upload key plus Apple Distribution certificate/App Store provisioning profile, then configure the documented GitHub Actions secrets. CI support for both stores is prepared, but no private production key is committed or assumed.
+3. **Production signing/upload credentials:** Create and securely store the owner's Android upload key, Apple Distribution certificate/App Store provisioning profile and App Store Connect API upload key, then configure the documented GitHub Actions secrets. CI support for signing and guarded TestFlight upload is prepared, but no private production key is committed or assumed.
 4. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS App Store IPA/archive from reviewed `main` using the approved Orbuff native artwork.
 5. **Store listing assets:** Produce the Google Play feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
 6. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
 7. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Include account recovery, paid-wallet recovery, deletion and network interruption. Repeat critical tests in Google Play Internal and TestFlight builds.
-8. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
+8. **Pre-production distribution:** Use the guarded TestFlight uploader for the reviewed signed iOS build and complete Google Play Internal testing before production rollout. Apple/Google processing/review remains external to repository CI.
 
 See `docs/IAP_SETUP.md`, `docs/STORE_SUBMISSION_METADATA.md`, `docs/STORE_LISTING_COPY.md`, `docs/STORE_PRIVACY_FORM_ANSWERS.md`, `docs/CONTENT_RATING_AUDIT.md`, `docs/STORE_ASSET_SPEC.md`, `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` and `docs/STORE_SIGNING_SETUP.md` for the ready-to-use launch material.
 
