@@ -9,9 +9,11 @@ on:
       - 'package.json'
       - 'release.config.json'
       - 'capacitor.config.ts'
+      - 'assets/**'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
       - 'scripts/configure-native-release.mjs'
+      - 'scripts/apply-native-assets.mjs'
       - 'scripts/validate-android-store-target.mjs'
       - 'index.html'
       - 'style.css'
@@ -24,9 +26,11 @@ on:
       - 'package.json'
       - 'release.config.json'
       - 'capacitor.config.ts'
+      - 'assets/**'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
       - 'scripts/configure-native-release.mjs'
+      - 'scripts/apply-native-assets.mjs'
       - 'scripts/validate-android-store-target.mjs'
       - 'index.html'
       - 'style.css'
@@ -74,6 +78,9 @@ jobs:
       - name: Sync Android project
         run: npx cap sync android
 
+      - name: Apply Orbuff native assets
+        run: npm run mobile:assets:android:optional
+
       - name: Validate Google Play API 36 target
         run: node scripts/validate-android-store-target.mjs
 
@@ -94,7 +101,13 @@ jobs:
             exit 1
           fi
           if [ "$count" -eq 4 ]; then
-            echo "Android production signing secrets are fully configured."
+            for asset in icon-only.png icon-foreground.png icon-background.png splash.png splash-dark.png; do
+              if [ ! -f "assets/$asset" ]; then
+                echo "Production signing requires the complete Orbuff native asset set. Missing assets/$asset"
+                exit 1
+              fi
+            done
+            echo "Android production signing secrets and branded asset sources are fully configured."
           else
             echo "Android production signing secrets are not configured; signed AAB generation will remain disabled."
           fi
