@@ -6,9 +6,13 @@ services:
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeployTrigger: checksPass
     envVars:
       - key: DATABASE_URL
+        sync: false
+      - key: PUFFLING_AUTH_SECRET
+        sync: false
+      - key: PUFFLING_WALLET_SECRET
         sync: false
       - key: PUFFLING_IAP_PROVIDER_MODE
         value: disabled
