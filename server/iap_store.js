@@ -9,6 +9,7 @@ const PRODUCT_DIAMONDS=Object.freeze({
 });
 
 function cleanWalletId(v){return String(v||'').replace(/[^A-Za-z0-9_-]/g,'').slice(0,64);}
+function cleanAccountId(v){const s=String(v||'').trim();return /^[A-Za-z0-9:_-]{3,96}$/.test(s)?s:'';}
 function cleanTransaction(v){return String(v||'').replace(/[^A-Za-z0-9._:-]/g,'').slice(0,180);}
 function cleanReason(v){return String(v||'').replace(/[^A-Za-z0-9._:-]/g,'').slice(0,48)||'spend';}
 function b64url(buf){return Buffer.from(buf).toString('base64url');}
@@ -48,9 +49,14 @@ module.exports=function createIapStore(opts={}){
       wallet_id varchar(64) PRIMARY KEY,
       client_key_hash char(64) NOT NULL,
       paid_diamonds integer NOT NULL DEFAULT 0 CHECK(paid_diamonds>=0),
+      account_id varchar(96),
+      active boolean NOT NULL DEFAULT true,
       created_at timestamptz NOT NULL DEFAULT now(),
       updated_at timestamptz NOT NULL DEFAULT now()
     )`);
+    await pool.query('ALTER TABLE puffling_wallets ADD COLUMN IF NOT EXISTS account_id varchar(96)');
+    await pool.query('ALTER TABLE puffling_wallets ADD COLUMN IF NOT EXISTS active boolean NOT NULL DEFAULT true');
+    await pool.query('CREATE UNIQUE INDEX IF NOT EXISTS puffling_wallets_account_idx ON puffling_wallets(account_id) WHERE account_id IS NOT NULL');
     await pool.query(`CREATE TABLE IF NOT EXISTS puffling_iap_transactions(
       transaction_id varchar(180) PRIMARY KEY,
       wallet_id varchar(64) NOT NULL REFERENCES puffling_wallets(wallet_id),
@@ -75,20 +81,37 @@ module.exports=function createIapStore(opts={}){
     const id=cleanWalletId(walletId),key=String(clientKey||'');
     if(!id||key.length<24||key.length>256)throw new Error('invalid_wallet_credentials');
     const keyHash=hashClientKey(key);
-    const existing=await pool.query('SELECT client_key_hash,paid_diamonds FROM puffling_wallets WHERE wallet_id=$1',[id]);
+    const existing=await pool.query('SELECT client_key_hash,paid_diamonds,active,account_id FROM puffling_wallets WHERE wallet_id=$1',[id]);
     if(existing.rowCount){
+      if(existing.rows[0].active===false)throw new Error('wallet_disabled');
       if(!timingSafe(existing.rows[0].client_key_hash,keyHash))throw new Error('wallet_key_mismatch');
-      return {walletId:id,walletToken:sign(id),paidDiamondBalance:Number(existing.rows[0].paid_diamonds||0)};
+      return {walletId:id,walletToken:sign(id),paidDiamondBalance:Number(existing.rows[0].paid_diamonds||0),accountLinked:!!existing.rows[0].account_id};
     }
-    await pool.query('INSERT INTO puffling_wallets(wallet_id,client_key_hash) VALUES($1,$2)',[id,keyHash]);
-    return {walletId:id,walletToken:sign(id),paidDiamondBalance:0};
+    await pool.query('INSERT INTO puffling_wallets(wallet_id,client_key_hash,active) VALUES($1,$2,true)',[id,keyHash]);
+    return {walletId:id,walletToken:sign(id),paidDiamondBalance:0,accountLinked:false};
+  }
+  async function issueAccountWallet(accountId){
+    if(!pool||!walletSecret)throw new Error('wallet_unavailable');
+    const account=cleanAccountId(accountId);if(!account)throw new Error('invalid_account');
+    let existing=await pool.query('SELECT wallet_id,paid_diamonds FROM puffling_wallets WHERE account_id=$1 AND active=true',[account]);
+    if(existing.rowCount){const walletId=cleanWalletId(existing.rows[0].wallet_id);return{walletId,walletToken:sign(walletId),paidDiamondBalance:Number(existing.rows[0].paid_diamonds||0),accountLinked:true,recovered:true};}
+    const walletId=`aw_${crypto.randomBytes(18).toString('base64url')}`,keyHash=hashClientKey(crypto.randomBytes(32).toString('base64url'));
+    await pool.query('INSERT INTO puffling_wallets(wallet_id,client_key_hash,account_id,active) VALUES($1,$2,$3,true) ON CONFLICT DO NOTHING',[walletId,keyHash,account]);
+    existing=await pool.query('SELECT wallet_id,paid_diamonds FROM puffling_wallets WHERE account_id=$1 AND active=true',[account]);
+    if(!existing.rowCount)throw new Error('wallet_account_link_failed');
+    const linkedId=cleanWalletId(existing.rows[0].wallet_id);
+    return{walletId:linkedId,walletToken:sign(linkedId),paidDiamondBalance:Number(existing.rows[0].paid_diamonds||0),accountLinked:true,recovered:linkedId!==walletId};
+  }
+  async function activeWallet(walletId){
+    const q=await pool.query('SELECT paid_diamonds,account_id FROM puffling_wallets WHERE wallet_id=$1 AND active=true',[walletId]);
+    if(!q.rowCount)throw new Error('wallet_disabled');
+    return q.rows[0];
   }
   async function balance(token){
     if(!pool)throw new Error('database_unavailable');
     const id=verifyToken(token);if(!id)throw new Error('unauthorized');
-    const q=await pool.query('SELECT paid_diamonds FROM puffling_wallets WHERE wallet_id=$1',[id]);
-    if(!q.rowCount)throw new Error('wallet_not_found');
-    return {walletId:id,paidDiamondBalance:Number(q.rows[0].paid_diamonds||0)};
+    const row=await activeWallet(id);
+    return {walletId:id,paidDiamondBalance:Number(row.paid_diamonds||0),accountLinked:!!row.account_id};
   }
   async function spend(token,amount,reason='spend'){
     if(!pool)throw new Error('database_unavailable');
@@ -98,8 +121,8 @@ module.exports=function createIapStore(opts={}){
     const client=await pool.connect();
     try{
       await client.query('BEGIN');
-      const q=await client.query('UPDATE puffling_wallets SET paid_diamonds=paid_diamonds-$2,updated_at=now() WHERE wallet_id=$1 AND paid_diamonds>=$2 RETURNING paid_diamonds',[walletId,n]);
-      if(!q.rowCount)throw new Error('insufficient_paid_diamonds');
+      const q=await client.query('UPDATE puffling_wallets SET paid_diamonds=paid_diamonds-$2,updated_at=now() WHERE wallet_id=$1 AND active=true AND paid_diamonds>=$2 RETURNING paid_diamonds',[walletId,n]);
+      if(!q.rowCount){const active=await client.query('SELECT active FROM puffling_wallets WHERE wallet_id=$1',[walletId]);if(active.rowCount&&active.rows[0].active===false)throw new Error('wallet_disabled');throw new Error('insufficient_paid_diamonds');}
       await client.query('INSERT INTO puffling_wallet_ledger(wallet_id,delta,reason) VALUES($1,$2,$3)',[walletId,-n,why]);
       await client.query('COMMIT');
       return {ok:true,walletId,spent:n,paidDiamondBalance:Number(q.rows[0].paid_diamonds||0)};
@@ -123,12 +146,13 @@ module.exports=function createIapStore(opts={}){
     const dup=await pool.query('SELECT wallet_id,product_id,diamonds FROM puffling_iap_transactions WHERE transaction_id=$1',[transactionId]);
     if(!dup.rowCount)return null;
     if(dup.rows[0].wallet_id!==walletId||dup.rows[0].product_id!==productId||Number(dup.rows[0].diamonds)!==diamonds)throw new Error('transaction_conflict');
-    const bal=await pool.query('SELECT paid_diamonds FROM puffling_wallets WHERE wallet_id=$1',[walletId]);
-    return {ok:true,duplicate:true,walletId,productId,transactionId,diamonds,paidDiamondBalance:Number(bal.rows[0]?.paid_diamonds||0)};
+    const row=await activeWallet(walletId);
+    return {ok:true,duplicate:true,walletId,productId,transactionId,diamonds,paidDiamondBalance:Number(row.paid_diamonds||0)};
   }
   async function grantVerified(token,payload){
     if(!pool)throw new Error('database_unavailable');
     const walletId=verifyToken(token);if(!walletId)throw new Error('unauthorized');
+    await activeWallet(walletId);
     const productId=String(payload?.productId||'').slice(0,80);
     const transactionId=cleanTransaction(payload?.transactionId);
     const platform=String(payload?.platform||'').toLowerCase();
@@ -139,22 +163,23 @@ module.exports=function createIapStore(opts={}){
     const client=await pool.connect();
     try{
       await client.query('BEGIN');
-      const exists=await client.query('SELECT wallet_id FROM puffling_wallets WHERE wallet_id=$1 FOR UPDATE',[walletId]);
-      if(!exists.rowCount)throw new Error('wallet_not_found');
+      const exists=await client.query('SELECT wallet_id FROM puffling_wallets WHERE wallet_id=$1 AND active=true FOR UPDATE',[walletId]);
+      if(!exists.rowCount)throw new Error('wallet_disabled');
       const dup=await client.query('SELECT wallet_id,product_id,diamonds FROM puffling_iap_transactions WHERE transaction_id=$1 FOR UPDATE',[transactionId]);
       if(dup.rowCount){
         if(dup.rows[0].wallet_id!==walletId||dup.rows[0].product_id!==productId||Number(dup.rows[0].diamonds)!==diamonds)throw new Error('transaction_conflict');
-        const bal=await client.query('SELECT paid_diamonds FROM puffling_wallets WHERE wallet_id=$1',[walletId]);
+        const bal=await client.query('SELECT paid_diamonds FROM puffling_wallets WHERE wallet_id=$1 AND active=true',[walletId]);
         await client.query('COMMIT');
         return {ok:true,duplicate:true,walletId,productId,transactionId,diamonds,paidDiamondBalance:Number(bal.rows[0]?.paid_diamonds||0)};
       }
       await client.query('INSERT INTO puffling_iap_transactions(transaction_id,wallet_id,platform,product_id,diamonds,provider_payload) VALUES($1,$2,$3,$4,$5,$6)',[transactionId,walletId,platform,productId,diamonds,verified]);
-      const bal=await client.query('UPDATE puffling_wallets SET paid_diamonds=paid_diamonds+$2,updated_at=now() WHERE wallet_id=$1 RETURNING paid_diamonds',[walletId,diamonds]);
+      const bal=await client.query('UPDATE puffling_wallets SET paid_diamonds=paid_diamonds+$2,updated_at=now() WHERE wallet_id=$1 AND active=true RETURNING paid_diamonds',[walletId,diamonds]);
+      if(!bal.rowCount)throw new Error('wallet_disabled');
       await client.query('INSERT INTO puffling_wallet_ledger(wallet_id,delta,reason,ref_id) VALUES($1,$2,$3,$4)',[walletId,diamonds,'iap_purchase',transactionId]);
       await client.query('COMMIT');
       return {ok:true,duplicate:false,walletId,productId,transactionId,diamonds,paidDiamondBalance:Number(bal.rows[0]?.paid_diamonds||0)};
     }catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}
   }
   async function close(){if(!opts.pool)await pool?.end();}
-  return {PRODUCT_DIAMONDS,init,issueWallet,balance,spend,grantVerified,verifyToken,verifyProviderPurchase,status:()=>({database:!!pool,walletSecret:!!walletSecret,providerMode,providerReady:providerReady(),providerVerifierReady:!!providerVerifier,ready}),close};
+  return {PRODUCT_DIAMONDS,init,issueWallet,issueAccountWallet,balance,spend,grantVerified,verifyToken,verifyProviderPurchase,status:()=>({database:!!pool,walletSecret:!!walletSecret,providerMode,providerReady:providerReady(),providerVerifierReady:!!providerVerifier,accountWallets:true,ready}),close};
 };
