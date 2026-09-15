@@ -101,10 +101,10 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Checkout uploader from current main
+      - name: Checkout uploader from signed-build commit
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ steps.source.outputs.head_sha }}
           path: source
 
       - name: Validate signed AAB before Google Play
@@ -122,11 +122,25 @@ jobs:
           test "$(node -p "require('./source/release.config.json').version")" = '5.27.107'
           test "$(node -p "require('./source/release.config.json').buildNumber")" = '107'
           echo "aab=$AAB" >> "$GITHUB_OUTPUT"
-          echo 'Signed Orbuff AAB signature and current release metadata validated.'
+          echo 'Signed Orbuff AAB signature and signed-build release metadata validated.'
 
       - name: Install pinned Google auth client
         working-directory: source
         run: npm install --no-save --ignore-scripts --no-audit --no-fund google-auth-library@11.0.2
+
+      - name: Reconfirm current main before external upload
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.head_sha }}
+        run: |
+          set -euo pipefail
+          current="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$current" != "$SOURCE_SHA" ]; then
+            echo "Upload blocked: main moved after preflight. source=$SOURCE_SHA current=$current"
+            exit 1
+          fi
+          echo 'Current main still matches the signed AAB source commit.'
 
       - name: Upload AAB to Google Play Internal testing
         working-directory: source
