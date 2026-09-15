@@ -17,34 +17,38 @@ Store disclosure note: data that remains only on-device is generally different f
 
 ### 2. Leaderboard submissions
 
-The leaderboard client can submit a cleaned player display name, height/score, run signature and game version to the game API.
+The leaderboard client can submit score/height, run signature and game version to the game API. Public display uses a deterministic Orbuff alias rather than the player's local free-text name.
 
 Purpose: public/competitive leaderboard functionality and anti-cheat validation.
 
-New submissions now attach the signed guest account token when one is available. The server verifies that token and stores the authenticated guest account ID with the score row. Those account-linked rows are removed automatically when that guest account is deleted.
+New submissions attach the signed guest account token when one is available. The server verifies that token and stores the authenticated guest account ID with the score row. Those account-linked rows are removed automatically when that guest account is deleted.
 
-Older leaderboard rows created before this linkage may not contain an account ID. The public deletion page therefore also provides a support route for requesting removal by display name. Leaderboard presentation uses a 180-day recent-results window and the backend periodically removes older score rows.
+Older anonymous leaderboard rows created before account linkage may not contain an account ID. Leaderboard presentation uses a 180-day recent-results window and the backend periodically removes older score rows.
 
-### 3. Pseudonymous guest account identity
+### 3. Pseudonymous guest account identity and recovery
 
 The backend creates guest accounts using a randomly generated account ID and issues a signed bearer token. Authenticated multiplayer/trade/ranked systems use the account ID as the server identity.
 
-Purpose: account/session authentication, multiplayer integrity, inventory ownership, trade protection and ranked progression.
+Purpose: account/session authentication, multiplayer integrity, inventory ownership, trade protection, ranked progression and recovery after reinstall/device change.
 
-Orbuff exposes an in-app **Delete guest account** control under System & Support in every selectable language. The request requires the signed bearer token and explicit destructive confirmation.
+A newly created account also receives a high-entropy recovery key. The recovery key is shown to the player so it can be backed up. The backend stores only a cryptographic hash of the key, not the plaintext recovery key. The player can rotate the recovery key; after rotation the old key is no longer accepted.
+
+The recovery key is authentication data and must not be logged, committed to source control, included in analytics/crash telemetry or exposed to other players.
+
+Orbuff exposes in-app account backup/recovery controls under System & Support in every selectable language, plus **Delete guest account**. Deletion requires the signed bearer token and explicit destructive confirmation.
 
 On successful deletion the server removes account-linked rows from:
 
-- ranked profile/results (results cascade with the profile),
+- ranked profile/results,
 - authoritative Orbuff inventory and inventory migration state,
 - trade records involving the account,
 - acquisition/reward grants,
 - boss combat sessions,
 - leaderboard score rows that contain the authenticated guest account ID.
 
-The server then writes a persistent deleted-account tombstone. Deleted IDs are loaded into authentication revocation on server startup, and the just-deleted token is rejected immediately. The client removes the stored account token/ID and restarts after success.
+The server then writes a persistent deleted-account tombstone, removes/invalidates the account recovery credential and revokes the account identity. Deleted IDs are loaded into authentication revocation on server startup, and the just-deleted token is rejected immediately. The client removes stored account/recovery credentials and restarts after success.
 
-Local gameplay progress on the device is intentionally not erased by deleting the server guest account; the deletion UI states this clearly. Starting an online feature later may create a new, unrelated guest account.
+Local gameplay progress on the device is intentionally not erased by deleting the server guest account; the deletion UI states this clearly.
 
 ### 4. Multiplayer, ranked and trade data
 
@@ -64,24 +68,26 @@ Authoritative inventory rows and inventory-migration state are deleted with the 
 
 ### 6. Diamond wallet and in-app purchases
 
-The backend contains wallet and IAP endpoints. The purchase verification design uses a separate authenticated wallet plus store purchase payload and records transaction information such as transaction ID, wallet ID, platform, product ID, Diamond amount and provider verification/payment data needed for reconciliation and duplicate protection.
+The backend contains account-linked wallet and IAP endpoints. Paid-wallet records include a wallet ID, account link, balance and activation state. Purchase verification records may include transaction ID, wallet ID, platform, product ID, Diamond amount and provider verification/payment metadata needed for reconciliation and duplicate protection.
 
-Purpose: process in-app purchases, grant paid currency, restore/reconcile entitlements and prevent fraud/double-crediting.
+Purpose: process in-app purchases, grant paid currency, recover the same paid balance after account recovery, reconcile purchases and prevent fraud/double-crediting.
 
-Current launch state: real-money purchasing remains fail-closed until the native billing bridge and Apple/Google provider verification are implemented and tested.
+The native StoreKit/Google Play bridge and Apple/Google server verifier are implemented but real-money purchasing remains fail-closed until production credentials are configured and official sandbox/Internal testing passes.
 
-Important deletion boundary: the current Diamond wallet ID is not reliably mapped to the guest account ID. Therefore the guest-account deletion route does **not** claim to delete a separate Diamond wallet or store transaction ledger. This is acceptable only while real-money purchasing remains disabled. Before paid IAP is enabled, durable wallet/account recovery plus a compliant wallet/purchase deletion-retention policy must be finalized and reflected in the public privacy policy and store disclosures.
+The wallet is now mapped to the guest account. Recovering the same guest account reopens the same paid wallet and authoritative paid-Diamond balance. Real-money purchase UI requires the wallet to report that it is account-linked.
 
-Do not claim the app collects full payment-card details; Apple/Google store billing should handle payment credentials rather than Orbuff.
+On guest-account deletion, the account-to-wallet relationship is removed/deactivated so deleted account credentials and previously issued wallet credentials cannot continue spending or receiving paid Diamonds. Transaction and ledger records are retained separately where needed for transaction reconciliation, duplicate prevention, fraud/security investigations, refund handling and applicable accounting/legal obligations. The exact production retention period and legal basis still need to be finalized and reflected in the public privacy policy/store disclosures before live IAP is enabled.
+
+Do not claim the app collects full payment-card details; Apple/Google store billing handles payment credentials rather than Orbuff.
 
 ## Public privacy/deletion resources
 
-The release branch publishes:
+The release publishes:
 
 - Privacy Policy: `https://zycon123.github.io/Puffling/privacy.html`
 - Account deletion / privacy choices: `https://zycon123.github.io/Puffling/delete-account.html`
 
-Both are linked from System & Support inside Orbuff. The app also exposes a copyable guest Account ID so support requests can be matched more safely. These URLs become live production resources after the privacy branch is merged and GitHub Pages deploys `main`.
+Both are linked from System & Support inside Orbuff. The app also exposes a copyable guest Account ID and account recovery controls.
 
 ## Data not found in the current repository audit
 
@@ -92,11 +98,13 @@ This finding must be re-checked after adding native plugins, billing SDKs, crash
 ## Security/authentication notes
 
 - Account access uses signed bearer tokens rather than trusting a client-supplied account ID for protected systems.
+- Recovery keys are high-entropy credentials; only their hashes are stored on the server.
 - Deleted guest IDs are persistently tombstoned and loaded into token revocation at server startup.
 - Race/Trade protections use authenticated account identity and server-authoritative inventory/results.
-- Authenticated leaderboard submissions can now be tied to the guest account for later deletion.
-- Paid Diamonds remain blocked unless the server reports the provider verifier ready.
-- Purchase verification must validate platform, product and transaction identifiers and reject invalid/revoked/refunded outcomes before granting currency.
+- Authenticated leaderboard submissions can be tied to the guest account for later deletion.
+- Paid wallets are account-linked and disabled/unlinked when the account is deleted.
+- Paid Diamonds remain blocked unless the server reports the Apple/Google provider verifier ready.
+- Purchase verification validates platform, product and transaction identifiers and rejects invalid/revoked/refunded outcomes before granting currency.
 
 ## Store disclosure working map
 
@@ -104,15 +112,16 @@ The final Apple/Google answers should be based on the production build and backe
 
 | Data/category | Current use | Collected off-device? | Launch review |
 | --- | --- | --- | --- |
-| Player display name | Leaderboard | Yes, when submitted | Public visibility; linked rows deleted with account, legacy rows support-removable |
 | Gameplay score/height | Leaderboard | Yes, when submitted | 180-day presentation window + leaderboard purpose |
-| Pseudonymous guest account ID | Auth/multiplayer/linked leaderboard | Yes | In-app + external deletion routes implemented |
+| Pseudonymous guest account ID | Auth/multiplayer/linked leaderboard/wallet | Yes | In-app + external deletion routes implemented |
+| Account recovery-key hash | Account recovery | Yes, hash only | Credential/security data; plaintext key remains player-controlled |
 | Auth token | Session security | Sent to backend | Secure storage/expiry; revoked after deletion |
 | Ranked results/profile | Competitive multiplayer | Yes | Deleted with guest account |
 | Inventory/Orbuff ownership | Multiplayer/trade integrity | Yes where authoritative sync is enabled | Deleted with guest account |
 | Trade records | Duplicate/integrity protection | Yes | Account-involving records deleted with guest account |
 | Boss/reward grant records | Reward integrity | Yes | Deleted with guest account |
-| Diamond wallet balance/ledger | Virtual currency | Yes when wallet is used | Separate wallet; IAP must remain disabled until recovery/deletion policy is finalized |
+| Diamond wallet balance/account link | Virtual currency + recovery | Yes when wallet is used | Account-linked; wallet disabled/unlinked after deletion |
+| Wallet transaction/ledger records | IAP reconciliation/security/accounting | Yes once IAP is enabled | Retention period/legal basis must be finalized before live IAP |
 | Store transaction/product/platform data | IAP verification | Yes once IAP is enabled | Purchase-history/transaction disclosures and legal retention |
 | Language/settings/local save | Device gameplay | Primarily local | Re-check native backup behavior |
 
@@ -120,10 +129,10 @@ The final Apple/Google answers should be based on the production build and backe
 
 1. Minimum player age / target audience and whether children are in scope.
 2. Retention periods for server records when the player does not request deletion.
-3. Exact production retention and deletion/legal-retention policy for wallet/IAP records before real-money purchases are enabled.
+3. Exact production retention period/legal basis for wallet transaction and purchase-verification records after account deletion.
 4. Production hosting request/log retention.
 5. Whether crash reporting, analytics, ads, notifications or other SDKs will be added.
-6. Whether native OS/cloud backup can copy local save data off-device.
+6. Whether native OS/cloud backup can copy local save/recovery data off-device.
 7. Final Apple App Privacy and Google Play Data safety answers after the signed production build is frozen.
 
 ## Release rule
