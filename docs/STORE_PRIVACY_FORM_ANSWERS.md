@@ -13,8 +13,10 @@ This file is a **release working sheet**, not legal advice. It is scoped to the 
 - Privacy choices / account deletion: `https://zycon123.github.io/Puffling/delete-account.html`
 - Online API and multiplayer endpoints use HTTPS/WSS.
 - No advertising SDK or dedicated behavioral analytics SDK is present in the audited repository.
-- Real-money Diamond purchasing is **not enabled for this submitted build** unless the native store bridge and provider verification are later activated.
+- Real-money Diamond purchasing is **not enabled for this submitted build** unless production store credentials/provider mode are later activated.
 - Core local play works without creating an online guest identity; online/ranked/trade/leaderboard features may create or use a pseudonymous guest account.
+- Guest accounts support recovery after reinstall/device change. The player holds a recovery key; the server stores only its SHA-256 hash.
+- Paid-Diamond wallets are account-linkable/recoverable, but purchase-history disclosure remains out of scope while public paid IAP is disabled.
 - Player-entered display names remain local. Public leaderboard presentation uses server-generated `Orbuff-XXXXXX` aliases and does not publish the player's free-text local name.
 - The support button prepares an email containing diagnostics, but the user must choose to send it through their email app.
 
@@ -28,7 +30,7 @@ This file is a **release working sheet**, not legal advice. It is scoped to the 
 
 Recommended answer: **Yes**.
 
-Online features transmit pseudonymous account identifiers, gameplay/competitive state, leaderboard scores and security/integrity data to Orbuff servers. Support information may also be sent when the user explicitly sends a support email.
+Online features transmit pseudonymous account identifiers, gameplay/competitive state, leaderboard scores and security/integrity data to Orbuff servers. Guest-account recovery also stores a one-way hash of the recovery credential. Support information may be sent when the user explicitly sends a support email.
 
 ## Privacy URLs
 
@@ -41,14 +43,14 @@ Online features transmit pseudonymous account identifiers, gameplay/competitive 
 
 **Collected:** Yes, when protected online features are used.
 
-What: randomly generated pseudonymous guest account ID.
+What: randomly generated pseudonymous guest account ID. The account can be recovered with an Account ID + recovery key; the server stores only the recovery-key hash.
 
 **Purpose(s):**
 - App Functionality
 - Account Management
 - Fraud Prevention / Security / Compliance
 
-**Linked to the user:** Yes. It associates ranked, inventory, trade, boss/reward and account-linked leaderboard state.
+**Linked to the user:** Yes. It associates ranked, inventory, trade, boss/reward, account-linked leaderboard state and the recoverable Diamond-wallet relationship.
 
 **Used for tracking:** No. The audited build has no cross-company tracking behavior or advertising/tracking SDK.
 
@@ -127,7 +129,7 @@ This data is prepared locally and leaves the device only if the user sends the s
 
 ## Data types NOT currently expected
 
-Do **not** select these merely because they may exist in a future version:
+Do **not** select these merely because they may exist in a future production-paid build:
 
 - Name / player nickname — the player-entered local display name is not sent for public leaderboard submission in the audited build; public leaderboard aliases are system-generated.
 - Precise Location / Coarse Location — no intentional location collection found.
@@ -137,7 +139,7 @@ Do **not** select these merely because they may exist in a future version:
 - Health / Fitness — none found.
 - Advertising Data — no advertising SDK found.
 - Device ID / Advertising ID — no intentional advertising/device identifier collection found in audited app code.
-- Purchase History — **do not select for the current release while real-money purchases remain disabled**.
+- Purchase History — **do not select for the current release while public real-money purchases remain disabled**.
 - Payment Information — payment credentials should be handled by Apple/Google rather than Orbuff; Orbuff must not claim to receive card details.
 
 ## Apple tracking question
@@ -179,7 +181,7 @@ Recommended current answer: **No**, based on the audited build and provided infr
 
 **Collected:** Yes, optional relative to local/core play; required when the user chooses protected online features needing a guest identity.
 
-What: pseudonymous Orbuff guest account ID.
+What: pseudonymous Orbuff guest account ID. Guest-account recovery stores a one-way hash of the recovery key; the plaintext recovery key is kept by the player/device.
 
 **Shared:** No.
 
@@ -239,7 +241,7 @@ What: free-text support responses such as what happened, what the user did befor
 
 **Collected:** Optional, only when the user sends a support/privacy email from an identifiable address.
 
-The current guest account does not require an email address.
+The guest account does not require an email address.
 
 **Shared:** No.
 
@@ -270,9 +272,11 @@ Recommended entries:
 - **Does your app allow users to create an account?** Yes — a pseudonymous guest account can be created for online features.
 - **Can users request account deletion from within the app?** Yes.
 - **Account deletion web URL:** `https://zycon123.github.io/Puffling/delete-account.html`
-- **Does deletion also delete associated user data?** Yes for guest-account-linked Orbuff server data, subject to clearly disclosed minimal retention for security/legal reasons.
+- **Does deletion also delete associated user data?** Yes for guest-account-linked Orbuff server data, subject to clearly disclosed minimal retention for security/legal/accounting reasons.
 
-Current deletion covers authenticated ranked data, authoritative inventory/migration state, trade records involving the account, boss sessions, acquisition/reward grants, and account-linked leaderboard scores. A minimal deleted-ID tombstone is retained to prevent reuse of a deleted identity. Local-only save data is separately controllable on the device.
+Current deletion covers authenticated ranked data, authoritative inventory/migration state, trade records involving the account, boss sessions, acquisition/reward grants, account-linked leaderboard scores and the account recovery credential. A linked Diamond wallet is unlinked and disabled so old wallet tokens can no longer spend or receive purchases. A minimal deleted-ID tombstone is retained to prevent reuse of a deleted identity. Local-only save data is separately controllable on the device.
+
+If paid IAP is enabled later, some pseudonymized store transaction/wallet-ledger records may be retained for duplicate prevention, refunds, fraud prevention, accounting, disputes or legal obligations; the public policy must remain aligned with that retention.
 
 ## Target audience / Families
 
@@ -293,6 +297,6 @@ When real-money IAP becomes production-ready, reassess at minimum:
 - Financial info → Purchase history
 - whether purchase data is required/optional
 - purposes: App functionality and Fraud prevention/security/compliance
-- any native billing/provider data flows
+- native billing/provider data flows and retained transaction/ledger records
 
-Do not enable paid Diamonds until the public Privacy Policy, App Privacy answers and Data Safety answers have been updated to match the actual production billing flow.
+Do not enable paid Diamonds until the public Privacy Policy, App Privacy answers and Data Safety answers have been updated to match the actual production billing flow and retention policy.

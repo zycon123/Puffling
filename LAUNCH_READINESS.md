@@ -2,9 +2,9 @@
 
 ## Current validated state
 
-The current web beta is deployed from `main` and its build validation and GitHub Pages deployment are green. The beta includes the Orbuff rebrand, multilingual menus/game guide, the 100-Orbuff collection runtime, progression/evolution, OrbVault, Mystery Boxes/Diamonds, Boss Rush, Quick/Friend Race, ranked foundations, authoritative Trade protections, leaderboard/backend integration and save-recovery checks.
+The current web beta is deployed from `main` and its build validation, Race/server suite and GitHub Pages deployment are green. The beta includes the Orbuff rebrand, multilingual menus/game guide, the 100-Orbuff collection runtime, progression/evolution, OrbVault, Mystery Boxes/Diamonds, Boss Rush, Quick/Friend Race, ranked foundations, authoritative Trade protections, leaderboard/backend integration and save-recovery checks.
 
-The automated gameplay and backend suites cover the joined progression journey, Boss/Race systems, deterministic Race course generation, reconnect/resume, position integrity, attack limits/cooldowns, authoritative Race result settlement, inventory/trade protections, Diamond wallet/IAP fail-closed behavior and corrupted-save recovery.
+The automated gameplay and backend suites cover the joined progression journey, Boss/Race systems, deterministic Race course generation, reconnect/resume, position integrity, attack limits/cooldowns, authoritative Race result settlement, inventory/trade protections, recoverable guest identity, account-linked Diamond wallet behavior, provider-verified IAP fail-closed behavior and corrupted-save recovery.
 
 Multiplayer hardening requires signed account identity for Quick/Friend Race, prevents the same account from filling both Race slots, locks the selected Orbuff at ready time, verifies ownership against authoritative server inventory where available and canonicalizes Race attacks server-side.
 
@@ -32,18 +32,24 @@ The native pipeline:
 
 See `assets/README.md`, `docs/MOBILE_RELEASE_SETUP.md`, `docs/IAP_SETUP.md` and `docs/STORE_SIGNING_SETUP.md` for native commands, billing flow, credential handling and signing prerequisites.
 
-## Store-account and privacy compliance state
+## Account recovery, wallet and privacy state
 
-Guest accounts have an authenticated in-app deletion flow under System & Support in every selectable language. Successful deletion removes account-linked ranked, authoritative inventory, trade, boss-session, acquisition/reward and authenticated leaderboard data; writes a persistent deleted-account tombstone; revokes the deleted identity immediately; and reloads deleted IDs into revocation after server restart.
+Guest accounts now have a server-backed recovery flow. A recovery key is generated for the player, while the backend stores only its SHA-256 hash. The key can be rotated. A valid Account ID + recovery key can restore the same guest identity after reinstall/device change and issue a fresh signed account token. Deleted accounts are permanently blocked from recovery.
 
-Public leaderboard submissions no longer transmit the player's local free-text display name. The server exposes deterministic aliases such as `Orbuff-XXXXXX`, and legacy beta leaderboard names are anonymized during leaderboard-store initialization. Legacy anonymous score rows may remain non-account-linked until normal retention cleanup, but they no longer expose the old player-entered names publicly.
+Paid-Diamond wallets are account-linked for recoverable guest accounts. Restoring the guest account reconnects the same authoritative wallet and paid-Diamond balance. Live IAP additionally requires the wallet to report `accountLinked:true`, so a legacy device-only wallet cannot open a real-money purchase flow.
+
+Guest accounts have an authenticated in-app deletion flow under System & Support in every selectable language. Successful deletion removes account-linked ranked, authoritative inventory, trade, boss-session, acquisition/reward and authenticated leaderboard data; deletes the recovery credential; writes a persistent deleted-account tombstone; revokes the deleted identity immediately; and reloads deleted IDs into revocation after server restart.
+
+If an account has a linked Diamond wallet, account deletion removes the account-to-wallet link and disables that wallet so old wallet tokens can no longer spend or receive purchases. Store transaction and wallet-ledger records may be retained in pseudonymized form where needed for duplicate prevention, refunds, fraud prevention, accounting or legal obligations. Local gameplay progress on the device remains separate and is not automatically erased by server-account deletion.
+
+Public leaderboard submissions do not transmit the player's local free-text display name. The server exposes deterministic aliases such as `Orbuff-XXXXXX`, and legacy beta leaderboard names are anonymized during leaderboard-store initialization. Legacy anonymous score rows may remain non-account-linked until normal retention cleanup, but they no longer expose the old player-entered names publicly.
 
 The public privacy resources are deployed from `main` through GitHub Pages:
 
 - Privacy Policy: `https://zycon123.github.io/Puffling/privacy.html`
 - Account deletion / privacy choices: `https://zycon123.github.io/Puffling/delete-account.html`
 - In-app links to both resources under System & Support.
-- A copyable guest Account ID to make support/deletion requests easier to match safely.
+- A copyable guest Account ID plus backup/recovery controls for the recovery key.
 - A direct external deletion-request route that does not require reinstalling the app.
 
 The repository contains a release-specific working sheet for Apple App Privacy and Google Play Data Safety at `docs/STORE_PRIVACY_FORM_ANSWERS.md`. It separates the current submitted build from future paid-IAP disclosures so disabled purchases are not accidentally declared as live functionality.
@@ -62,8 +68,8 @@ The repository contains:
 
 - `docs/CONTENT_RATING_AUDIT.md` — production-content mapping for Apple age rating and Google Play/IARC questionnaire answers.
 - `docs/STORE_ASSET_SPEC.md` — required/recommended App Store and Google Play icon, feature-graphic and screenshot dimensions plus the exact Orbuff capture plan.
-- `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` — real Android/iPhone/iPad launch QA covering install, localization, Boss 10, endless mode, Boss Rush, Race, Trade, leaderboard privacy, deletion and network interruption.
-- `assets/README.md` + `scripts/apply-native-assets.mjs` — the canonical two-SVG native icon/splash source contract and generated-resource pipeline.
+- `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` — real Android/iPhone/iPad launch QA covering install, localization, Boss 10, endless mode, Boss Rush, Race, Trade, leaderboard privacy, account recovery/deletion and network interruption.
+- `assets/logo.svg` + `assets/logo-dark.svg` + `scripts/apply-native-assets.mjs` — the approved native icon/splash source contract and generated-resource pipeline.
 
 The content audit records fantasy/cartoon combat, competitive contests and the Mystery Box randomized-reward mechanic; it does not misclassify the game as casino gambling. Target audience remains a publisher decision because selecting child age groups in Google Play can trigger additional Families Policy obligations.
 
@@ -74,13 +80,12 @@ The Mystery Shop audit also removed the final stale Fusion Crystal reward. Its 2
 These gates must be completed before claiming a fully production-ready App Store / Google Play launch:
 
 1. **Production IAP configuration and store testing:** Configure Apple App ID/root certificates, Google Play service-account credentials and `PUFFLING_IAP_PROVIDER_MODE=apple_google` on the production backend. Confirm `/iap/status` only becomes `providerReady:true` after both providers are ready, then pass Apple sandbox/TestFlight and Google Play license/Internal tests for success, cancel, pending, retry, duplicate, network loss and revoked/refunded cases.
-2. **Durable paid wallet recovery/deletion policy:** Ensure paid balance recovers safely after reinstall/device changes and finalize how the separate wallet/transaction records map to account deletion and legally required purchase retention before enabling real-money purchases.
-3. **Production signing credentials:** Create and securely store the owner's Android upload key, add all four Android GitHub signing secrets, and configure the correct Apple Developer Team/App Store Connect signing. CI support is prepared, but no private production key is committed or assumed.
-4. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS archive from reviewed `main` using the approved Orbuff native artwork.
-5. **Store listing assets:** Produce the Google Play feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
-6. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
-7. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Repeat critical tests in Google Play Internal and TestFlight builds.
-8. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
+2. **Production signing credentials:** Create and securely store the owner's Android upload key, add all four Android GitHub signing secrets, and configure the correct Apple Developer Team/App Store Connect signing. CI support is prepared, but no private production key is committed or assumed.
+3. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS archive from reviewed `main` using the approved Orbuff native artwork.
+4. **Store listing assets:** Produce the Google Play feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
+5. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
+6. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Repeat critical tests in Google Play Internal and TestFlight builds, including recovery-key restore and account-linked paid-wallet behavior before live IAP is enabled.
+7. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
 
 See `docs/IAP_SETUP.md`, `docs/STORE_SUBMISSION_METADATA.md`, `docs/STORE_LISTING_COPY.md`, `docs/STORE_PRIVACY_FORM_ANSWERS.md`, `docs/CONTENT_RATING_AUDIT.md`, `docs/STORE_ASSET_SPEC.md`, `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` and `docs/STORE_SIGNING_SETUP.md` for the ready-to-use launch material.
 

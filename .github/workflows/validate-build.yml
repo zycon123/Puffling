@@ -51,6 +51,8 @@ jobs:
         run: node scripts/validate-mystery-box-vault.mjs
       - name: Validate Diamond wallet client
         run: node scripts/validate-diamond-wallet.mjs
+      - name: Validate recoverable account-linked wallet
+        run: node scripts/validate-account-wallet-recovery.mjs
       - name: Validate Diamond IAP scaffold
         run: node scripts/validate-diamond-iap.mjs
       - name: Validate native StoreKit / Google Play bridge
