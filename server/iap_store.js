@@ -119,6 +119,13 @@ module.exports=function createIapStore(opts={}){
     if(out.revoked===true||out.refunded===true)throw new Error('purchase_revoked');
     return {provider:String(out.provider||platform),platform,productId,transactionId,verifiedAt:new Date().toISOString(),environment:String(out.environment||''),originalTransactionId:cleanTransaction(out.originalTransactionId||''),purchaseTime:out.purchaseTime||null,rawRef:String(out.rawRef||'').slice(0,180)};
   }
+  async function knownTransaction(walletId,productId,transactionId,diamonds){
+    const dup=await pool.query('SELECT wallet_id,product_id,diamonds FROM puffling_iap_transactions WHERE transaction_id=$1',[transactionId]);
+    if(!dup.rowCount)return null;
+    if(dup.rows[0].wallet_id!==walletId||dup.rows[0].product_id!==productId||Number(dup.rows[0].diamonds)!==diamonds)throw new Error('transaction_conflict');
+    const bal=await pool.query('SELECT paid_diamonds FROM puffling_wallets WHERE wallet_id=$1',[walletId]);
+    return {ok:true,duplicate:true,walletId,productId,transactionId,diamonds,paidDiamondBalance:Number(bal.rows[0]?.paid_diamonds||0)};
+  }
   async function grantVerified(token,payload){
     if(!pool)throw new Error('database_unavailable');
     const walletId=verifyToken(token);if(!walletId)throw new Error('unauthorized');
@@ -127,6 +134,7 @@ module.exports=function createIapStore(opts={}){
     const platform=String(payload?.platform||'').toLowerCase();
     const diamonds=PRODUCT_DIAMONDS[productId];if(!diamonds)throw new Error('unknown_product');
     if(Number(payload?.expectedDiamonds)!==diamonds)throw new Error('amount_mismatch');
+    const prior=await knownTransaction(walletId,productId,transactionId,diamonds);if(prior)return prior;
     const verified=await verifyProviderPurchase({platform,productId,transactionId,verificationData:payload?.verificationData});
     const client=await pool.connect();
     try{
