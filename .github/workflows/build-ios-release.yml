@@ -1,0 +1,67 @@
+name: Validate Orbuff iOS Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'launch/**'
+    paths:
+      - 'package.json'
+      - 'capacitor.config.ts'
+      - 'scripts/prepare-mobile-web.mjs'
+      - 'scripts/validate-mobile-release.mjs'
+      - 'index.html'
+      - 'style.css'
+      - 'game.js'
+      - 'audio_theme.js'
+      - 'js/**'
+      - '.github/workflows/build-ios-release.yml'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'capacitor.config.ts'
+      - 'scripts/prepare-mobile-web.mjs'
+      - 'scripts/validate-mobile-release.mjs'
+      - 'index.html'
+      - 'style.css'
+      - 'game.js'
+      - 'audio_theme.js'
+      - 'js/**'
+      - '.github/workflows/build-ios-release.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  validate-ios:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Validate mobile web bundle
+        run: npm run mobile:validate
+
+      - name: Generate iOS project
+        run: npx cap add ios
+
+      - name: Sync iOS project
+        run: npx cap sync ios
+
+      - name: Build iOS simulator app without signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d ios/App/App.xcworkspace ]; then
+            xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build
+          else
+            xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build
+          fi

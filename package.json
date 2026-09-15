@@ -1,0 +1,28 @@
+{
+  "name": "orbuff-mobile",
+  "version": "5.27.107",
+  "private": true,
+  "type": "module",
+  "description": "Native mobile release wrapper for Orbuff.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "mobile:prepare": "node scripts/prepare-mobile-web.mjs",
+    "mobile:validate": "npm run mobile:prepare && node scripts/validate-mobile-release.mjs",
+    "mobile:sync": "npm run mobile:prepare && npx cap sync",
+    "mobile:add:android": "npm run mobile:prepare && npx cap add android",
+    "mobile:add:ios": "npm run mobile:prepare && npx cap add ios",
+    "mobile:open:android": "npm run mobile:sync && npx cap open android",
+    "mobile:open:ios": "npm run mobile:sync && npx cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.2",
+    "@capacitor/core": "8.5.2",
+    "@capacitor/ios": "8.5.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.2",
+    "typescript": "5.9.2"
+  }
+}
