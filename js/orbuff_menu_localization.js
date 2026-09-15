@@ -37,6 +37,7 @@
   [/Åpne én vanlig Mystery Box, eller kombiner 3 uåpnede (?:boxer|boxes) til ett garantert (?:Puffling|Orbuff)-egg\./g,'Open one regular Mystery Box, or combine 3 unopened boxes into one guaranteed Orbuff Egg.'],
   [/Starter (?:Pufflings|Orbuffs) og Vault-beskyttede kopier kan ikke trades\. XP\/evolution følger ikke den tradede kopien\./g,'Starter Orbuffs and Vault-protected copies cannot be traded. XP/evolution does not follow the traded copy.'],
   [/\bTrade-regler:/g,'Trade rules:'],[/\bSaldo:/g,'Balance:'],[/\bDu:/g,'You:'],[/\bMotspiller:/g,'Opponent:'],
+  [/Ingen reparasjoner registrert/g,'No repairs recorded'],[/Statusdetaljer/g,'Status details'],[/Siste runtime-feil/g,'Latest runtime error'],
   [/\bAktiv:\s*/g,'Active: '],[/\bOppdaget (\d+) \/ (\d+) Orbuffs • Trykk på en Orbuff for detaljer/g,'Discovered $1 / $2 Orbuffs • Tap an Orbuff for details'],
   [/\bIkke oppdaget\b/g,'Not discovered'],[/\bTrykk for detaljer\b/g,'Tap for details'],[/\bTrykk for evolution →\b/g,'Tap for evolution →'],[/\bTRYKK FOR Å SE\b/g,'TAP TO VIEW'],
   [/\bEier x/g,'Owned x'],[/\bEnergi:/g,'Energy:'],[/\bUTMATTET\b/g,'EXHAUSTED'],[/\bLÅST OPP ✓\b/g,'UNLOCKED ✓'],[/\bFORHÅNDSVISNING 🔒\b/g,'PREVIEW 🔒'],[/\bLÅSES OPP SENERE 🔒\b/g,'UNLOCKS LATER 🔒'],

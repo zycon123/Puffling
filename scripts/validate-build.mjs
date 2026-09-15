@@ -53,7 +53,7 @@ if(!/location\.replace\s*\(\s*['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(st
 if(/document\.(?:open|write|close)\s*\(/i.test(stable))fail('Stable loader must not rebuild the app with document.write');
 if(!/<title>Orbuff Beta<\/title>/i.test(stable))fail('Stable loader title must use Orbuff branding');
 if(!/href=['"]\.\/(?:index|orbuff-v[0-9]+)\.html\?/i.test(stable))fail('Stable loader must include a manual direct-link fallback');
-if(!/index\.html\?entry=beta42-v28/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
+if(!/index\.html\?entry=beta42-v29/.test(stable))fail('Stable beta entry is not pinned to the current active Orbuff build');
 if(!process.exitCode)ok('Stable direct-loader checks passed');
 
 const forbidden=['beta39.html','js/polished_puff_renderer.js','js/boss_puff_creator.js','js/auto_diagnostics.js','js/i18n_audio_core.js','js/fusion_crystal_runtime.js'];
