@@ -56,11 +56,11 @@ try{
   }),'track_update');
 
   await responseJson(await fetch(`${api}/edits/${encodeURIComponent(editId)}:validate`,{
-    method:'POST',headers:{...headers,'content-type':'application/json'},body:'{}'
+    method:'POST',headers
   }),'edit_validate');
 
   await responseJson(await fetch(`${api}/edits/${encodeURIComponent(editId)}:commit?changesInReviewBehavior=ERROR_IF_IN_REVIEW`,{
-    method:'POST',headers:{...headers,'content-type':'application/json'},body:'{}'
+    method:'POST',headers
   }),'edit_commit');
   committed=true;
   console.log(`Google Play Internal upload committed for ${PACKAGE_NAME} versionCode ${versionCode}.`);
