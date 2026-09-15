@@ -14,14 +14,15 @@ function readJson(req,limit=64*1024){
   return new Promise((resolve,reject)=>{let size=0,body='';req.setEncoding('utf8');req.on('data',chunk=>{size+=Buffer.byteLength(chunk);if(size>limit){reject(new Error('body_too_large'));req.destroy();return;}body+=chunk;});req.on('end',()=>{if(!body)return resolve({});try{resolve(JSON.parse(body));}catch{reject(new Error('invalid_json'));}});req.on('error',reject);});
 }
 function statusFor(code){
-  if(['unauthorized','wallet_key_mismatch'].includes(code))return 401;
+  if(['unauthorized','wallet_key_mismatch','invalid_recovery_credentials'].includes(code))return 401;
+  if(code==='wallet_disabled')return 410;
   if(['wallet_not_found','unknown_product'].includes(code))return 404;
   if(['insufficient_paid_diamonds','transaction_conflict','purchase_revoked','google_purchase_already_consumed'].includes(code))return 409;
-  if(['provider_not_configured','provider_verifier_not_implemented','database_unavailable','wallet_unavailable','apple_provider_not_configured','google_provider_not_configured','google_access_token_missing','google_fetch_unavailable'].includes(code)||code.startsWith('google_provider_http_'))return 503;
-  if(['invalid_json','body_too_large','invalid_wallet_credentials','invalid_amount','amount_mismatch','invalid_platform','invalid_purchase_payload','invalid_store_receipt','provider_platform_mismatch','provider_product_mismatch','provider_transaction_mismatch','apple_transaction_verification_failed','apple_environment_missing','apple_bundle_mismatch','apple_product_mismatch','apple_transaction_mismatch','google_purchase_not_purchased','google_transaction_mismatch','google_purchase_token_missing'].includes(code))return 400;
+  if(['provider_not_configured','provider_verifier_not_implemented','database_unavailable','wallet_unavailable','wallet_account_link_failed','apple_provider_not_configured','google_provider_not_configured','google_access_token_missing','google_fetch_unavailable'].includes(code)||code.startsWith('google_provider_http_'))return 503;
+  if(['invalid_json','body_too_large','invalid_wallet_credentials','invalid_account','invalid_amount','amount_mismatch','invalid_platform','invalid_purchase_payload','invalid_store_receipt','provider_platform_mismatch','provider_product_mismatch','provider_transaction_mismatch','apple_transaction_verification_failed','apple_environment_missing','apple_bundle_mismatch','apple_product_mismatch','apple_transaction_mismatch','google_purchase_not_purchased','google_transaction_mismatch','google_purchase_token_missing'].includes(code))return 400;
   return 500;
 }
-module.exports=function createIapHttp(store){
+module.exports=function createIapHttp(store,accountAuth){
   return async function handle(req,res){
     let path;try{path=new URL(req.url,'http://localhost').pathname;}catch{return false;}
     if(!path.startsWith('/wallet/')&&!path.startsWith('/iap/'))return false;
@@ -32,6 +33,11 @@ module.exports=function createIapHttp(store){
     }
     try{
       if(req.method==='GET'&&path==='/iap/status')return json(res,200,{ok:true,...store.status()},origin),true;
+      if(req.method==='POST'&&path==='/wallet/account-session'){
+        if(!accountAuth?.enabled?.())return json(res,503,{ok:false,error:'auth_unavailable'},origin),true;
+        const verified=accountAuth.verify(bearer(req));if(!verified.ok)return json(res,401,{ok:false,error:verified.error},origin),true;
+        const out=await store.issueAccountWallet(verified.accountId);json(res,200,{ok:true,...out},origin);return true;
+      }
       if(req.method==='POST'&&path==='/wallet/session'){
         const body=await readJson(req);const out=await store.issueWallet(body.walletId,body.clientKey);json(res,200,{ok:true,...out},origin);return true;
       }
