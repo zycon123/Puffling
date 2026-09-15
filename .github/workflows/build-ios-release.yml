@@ -9,9 +9,11 @@ on:
       - 'package.json'
       - 'release.config.json'
       - 'capacitor.config.ts'
+      - 'assets/**'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
       - 'scripts/configure-native-release.mjs'
+      - 'scripts/apply-native-assets.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -23,9 +25,11 @@ on:
       - 'package.json'
       - 'release.config.json'
       - 'capacitor.config.ts'
+      - 'assets/**'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
       - 'scripts/configure-native-release.mjs'
+      - 'scripts/apply-native-assets.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -59,6 +63,9 @@ jobs:
 
       - name: Sync iOS project
         run: npx cap sync ios
+
+      - name: Apply Orbuff native assets
+        run: npm run mobile:assets:ios:optional
 
       - name: Apply native release version
         run: npm run mobile:configure:ios

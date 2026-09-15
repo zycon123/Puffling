@@ -29,6 +29,37 @@ npm run mobile:validate
 
 The validation recreates `www/` from the current Orbuff web build and verifies the app name, safe-area viewport, localization runtime, game guide runtime, native package identity and release metadata.
 
+## Native Orbuff icon and splash pipeline
+
+The Android/iOS projects are generated from scratch, so native branding must be regenerated after the platform project exists. Orbuff uses `scripts/apply-native-assets.mjs`, pinned to `@capacitor/assets` 3.0.5.
+
+The final production source set belongs under `assets/`:
+
+```text
+assets/
+  icon-only.png
+  icon-foreground.png
+  icon-background.png
+  splash.png
+  splash-dark.png
+```
+
+Minimum source sizes:
+
+- each icon source: 1024×1024 PNG or larger;
+- each splash source: 2732×2732 PNG or larger.
+
+Until the approved production artwork is committed, unsigned/test CI is allowed to skip generation so development builds remain usable. A partial asset set fails validation. Android production signing is additionally blocked until all five production source images are present.
+
+Strict production checks/generation:
+
+```bash
+npm run mobile:assets:android
+npm run mobile:assets:ios
+```
+
+See `assets/README.md` and `docs/STORE_ASSET_SPEC.md` for the complete source/capture contract.
+
 ## Create/open Android
 
 ```bash
@@ -36,18 +67,24 @@ npm run mobile:add:android
 npm run mobile:open:android
 ```
 
-The commands apply the version from `release.config.json` to the generated Android project. For a later manual sync/build, run:
+The commands prepare the web bundle, generate/sync Android, apply Orbuff native assets when the full source set exists, and apply the version from `release.config.json`.
+
+For a production local build, require the branded assets explicitly before building/signing:
 
 ```bash
-npm run mobile:sync
+npm run mobile:add:android
+npm run mobile:assets:android
 npm run mobile:configure:android
-npx cap open android
+cd android
+./gradlew bundleRelease
 ```
 
-Repository CI generates a clean Android project and produces two artifacts:
+Repository CI generates a clean Android project and produces two artifacts while signing secrets are absent:
 
 - `orbuff-android-unsigned-aab`: release bundle used to prove the store build completes; it still requires the owner's Google Play upload signing before submission.
 - `orbuff-android-device-test-apk`: debug-signed APK intended only for direct physical-device testing before the store release.
+
+When all Android signing secrets are later configured, CI refuses to create the signed Play AAB unless all five production Orbuff asset sources are also present and valid.
 
 Never submit or market the debug APK as the production build.
 
@@ -60,15 +97,16 @@ npm run mobile:add:ios
 npm run mobile:open:ios
 ```
 
-For a later manual sync/build:
+For a production signed archive, require branded assets before opening/archiving:
 
 ```bash
-npm run mobile:sync
+npm run mobile:add:ios
+npm run mobile:assets:ios
 npm run mobile:configure:ios
-npx cap open ios
+npm run mobile:open:ios
 ```
 
-The iOS CI verifies that a clean generated project accepts the same `5.27.107 (107)` release metadata and builds for the simulator without code signing. The final iOS archive must be signed with the owner's Apple Developer team/certificates and uploaded through Xcode/App Store Connect.
+The iOS CI verifies that a clean generated project accepts the same `5.27.107 (107)` release metadata and builds for the simulator without code signing. The simulator path can remain usable before final artwork is committed. The final iOS archive must use the approved Orbuff asset set, be signed with the owner's Apple Developer team/certificates and be uploaded through Xcode/App Store Connect.
 
 ## Real-money purchases remain fail-closed
 
@@ -95,9 +133,9 @@ Do not register replacement IDs casually after store products have been created;
 
 - Add the actual native billing bridge and Apple/Google provider verification.
 - Add durable account/wallet recovery across reinstall/device changes.
-- Add production app icon, splash assets and store screenshots.
+- Produce/approve the five production native icon/splash source images and the final store screenshots. The generation/validation pipeline is already prepared.
 - Configure Android upload signing and Apple signing/team settings.
-- Complete privacy policy/store privacy declarations and age/content ratings.
+- Complete the reviewed privacy/content forms in App Store Connect and Play Console.
 - Run physical-device E2E on at least one supported iPhone and Android device, including startup, save recovery, Race, Friend Race, Boss Rush, purchases/restores and network interruption.
 - Release through TestFlight and Google Play Internal testing before production rollout.
 

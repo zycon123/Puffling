@@ -63,5 +63,7 @@ jobs:
         run: node scripts/validate-store-compliance.mjs
       - name: Validate store submission forms and signing docs
         run: node scripts/validate-store-submission-docs.mjs
+      - name: Validate native icon and splash asset pipeline
+        run: node scripts/validate-native-assets-pipeline.mjs
       - name: Validate launch readiness
         run: node scripts/validate-launch-readiness.mjs

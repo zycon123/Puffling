@@ -22,13 +22,15 @@ The native pipeline:
 - Rebuilds a clean `www/` directory from the validated Orbuff browser build.
 - Verifies Orbuff identity, safe-area support, localization, game-guide modules and release metadata.
 - Generates clean Android and iOS projects in CI.
+- Has a source-controlled Orbuff native-branding pipeline for icon/adaptive-icon/splash generation using five production PNG sources under `assets/` and a pinned `@capacitor/assets` generator.
+- Allows unsigned/test native builds to remain usable before final artwork is approved, but fails on partial artwork and blocks production-signed Android AAB generation until the complete branded source set exists.
 - Builds an unsigned Android release AAB and an installable debug-signed Android device-test APK.
 - Builds the iOS simulator target without signing.
 - Enforces Android compile/target SDK API 36 for the current Google Play launch requirement.
-- Has a fail-closed production Android signing path: all four upload-key GitHub secrets must be present before CI can create and verify `orbuff-android-play-signed-aab`.
+- Has a fail-closed production Android signing path: all four upload-key GitHub secrets and the complete Orbuff native asset set must be present before CI can create and verify `orbuff-android-play-signed-aab`.
 - Keeps real-money purchases fail-closed until native billing and provider verification are ready.
 
-See `docs/MOBILE_RELEASE_SETUP.md` and `docs/STORE_SIGNING_SETUP.md` for native commands, credential handling and signing prerequisites.
+See `assets/README.md`, `docs/MOBILE_RELEASE_SETUP.md` and `docs/STORE_SIGNING_SETUP.md` for native asset commands, credential handling and signing prerequisites.
 
 ## Store-account and privacy compliance state
 
@@ -48,11 +50,12 @@ The repository contains a release-specific working sheet for Apple App Privacy a
 
 ## Content rating and store-asset preparation
 
-The launch branch now contains:
+The repository contains:
 
 - `docs/CONTENT_RATING_AUDIT.md` — production-content mapping for Apple age rating and Google Play/IARC questionnaire answers.
 - `docs/STORE_ASSET_SPEC.md` — required/recommended App Store and Google Play icon, feature-graphic and screenshot dimensions plus the exact Orbuff capture plan.
 - `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` — real Android/iPhone/iPad launch QA covering install, localization, Boss 10, endless mode, Boss Rush, Race, Trade, leaderboard privacy, deletion and network interruption.
+- `assets/README.md` + `scripts/apply-native-assets.mjs` — the native icon/splash source contract and generated-resource pipeline used after clean Capacitor project creation.
 
 The content audit records fantasy/cartoon combat, competitive contests and the Mystery Box randomized-reward mechanic; it does not misclassify the game as casino gambling. Target audience remains a publisher decision because selecting child age groups in Google Play can trigger additional Families Policy obligations.
 
@@ -65,12 +68,13 @@ These gates must be completed before claiming a fully production-ready App Store
 1. **Native billing bridge:** Implement and test StoreKit / Google Play Billing integration that satisfies the existing `PufflingIAP` bridge contract.
 2. **Apple/Google server verification:** Activate provider-side transaction verification so `/iap/status` reports `providerReady: true`; keep paid Diamonds blocked until then.
 3. **Durable paid wallet recovery/deletion policy:** Ensure paid balance recovers safely after reinstall/device changes and finalize how the separate wallet/transaction records map to account deletion and legally required purchase retention before enabling real-money purchases.
-4. **Production signing credentials:** Create and securely store the owner's Android upload key, add all four Android GitHub signing secrets, and configure the correct Apple Developer Team/App Store Connect signing. CI support is prepared, but no private production key is committed or assumed.
-5. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS archive from reviewed `main`.
-6. **Store assets:** Produce the production icon, feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
-7. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
-8. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Repeat critical tests in Google Play Internal and TestFlight builds.
-9. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
+4. **Production native artwork:** Produce/approve all five source images under `assets/` (`icon-only`, adaptive foreground/background, light splash and dark splash). The generation, minimum-size validation and signed-build gate are prepared.
+5. **Production signing credentials:** Create and securely store the owner's Android upload key, add all four Android GitHub signing secrets, and configure the correct Apple Developer Team/App Store Connect signing. CI support is prepared, but no private production key is committed or assumed.
+6. **Signed store packages:** Produce and verify the first signed Android Play AAB and signed iOS archive from reviewed `main` using the approved Orbuff native artwork.
+7. **Store listing assets:** Produce the Google Play feature graphic and final phone/tablet screenshots using `docs/STORE_ASSET_SPEC.md`.
+8. **Store-form completion:** Enter the published privacy/deletion URLs and reviewed answers from `docs/STORE_PRIVACY_FORM_ANSWERS.md`, then complete the age/content questionnaire from `docs/CONTENT_RATING_AUDIT.md`. Target audience remains an explicit publisher decision.
+9. **Physical-device E2E:** Run `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` on real Android and iPhone hardware and on iPad if iPad remains enabled. Repeat critical tests in Google Play Internal and TestFlight builds.
+10. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
 
 See `docs/STORE_SUBMISSION_METADATA.md`, `docs/STORE_LISTING_COPY.md`, `docs/STORE_PRIVACY_FORM_ANSWERS.md`, `docs/CONTENT_RATING_AUDIT.md`, `docs/STORE_ASSET_SPEC.md`, `docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md` and `docs/STORE_SIGNING_SETUP.md` for the ready-to-use launch material.
 
