@@ -7,6 +7,7 @@ const pool={
   if(sql.startsWith('CREATE TABLE'))return{rowCount:0,rows:[]};
   if(sql.startsWith('SELECT client_key_hash,paid_diamonds')){const row=state.wallets.get(p[0]);return{rowCount:row?1:0,rows:row?[{client_key_hash:row.hash,paid_diamonds:row.paid}]:[]};}
   if(sql.startsWith('INSERT INTO puffling_wallets(wallet_id,client_key_hash)')){state.wallets.set(p[0],{hash:p[1],paid:0});return{rowCount:1,rows:[]};}
+  if(sql.startsWith('SELECT wallet_id,product_id,diamonds FROM puffling_iap_transactions')){const row=state.transactions.get(p[0]);return{rowCount:row?1:0,rows:row?[row]:[]};}
   if(sql.startsWith('SELECT paid_diamonds FROM puffling_wallets')){const row=state.wallets.get(p[0]);return{rowCount:row?1:0,rows:row?[{paid_diamonds:row.paid}]:[]};}
   throw new Error('unexpected pool query: '+sql);
  },
@@ -31,10 +32,11 @@ const pool={
  let wrong=false;try{await disabled.issueWallet('wallet_test_1','different-key-'+crypto.randomBytes(24).toString('hex'));}catch(e){wrong=e.message==='wallet_key_mismatch';}if(!wrong)fail('wallet key mismatch was not blocked');
  state.wallets.get('wallet_test_1').paid=100;const spent=await disabled.spend(session.walletToken,25,'mystery_box');if(spent.paidDiamondBalance!==75||state.ledger.at(-1)?.delta!==-25)fail('paid Diamond spend failed');
  let locked=false;try{await disabled.grantVerified(session.walletToken,{platform:'ios',productId:'puffling.diamonds.25',expectedDiamonds:25,transactionId:'tx_disabled',verificationData:'signed'});}catch(e){locked=e.message==='provider_not_configured';}if(!locked)fail('disabled IAP provider did not fail closed');
- const verifier=async input=>({valid:true,provider:input.platform,platform:input.platform,productId:input.productId,transactionId:input.transactionId,environment:'sandbox',rawRef:'verified'});
+ let verifierCalls=0;const verifier=async input=>{verifierCalls++;return{valid:true,provider:input.platform,platform:input.platform,productId:input.productId,transactionId:input.transactionId,environment:'sandbox',rawRef:'verified'};};
  const enabled=createIapStore({pool,walletSecret:secret,providerMode:'apple_google',providerVerifier:verifier});await enabled.init();if(!enabled.status().providerReady)fail('injected provider verifier did not report ready');
- const grant=await enabled.grantVerified(session.walletToken,{platform:'ios',productId:'puffling.diamonds.25',expectedDiamonds:25,transactionId:'tx_1',verificationData:'signed-transaction'});if(!grant.ok||grant.duplicate||grant.paidDiamondBalance!==100)fail('verified IAP grant failed');
- const duplicate=await enabled.grantVerified(session.walletToken,{platform:'ios',productId:'puffling.diamonds.25',expectedDiamonds:25,transactionId:'tx_1',verificationData:'signed-transaction'});if(!duplicate.ok||!duplicate.duplicate||duplicate.paidDiamondBalance!==100)fail('IAP transaction idempotency failed');
+ const grant=await enabled.grantVerified(session.walletToken,{platform:'ios',productId:'puffling.diamonds.25',expectedDiamonds:25,transactionId:'tx_1',verificationData:'signed-transaction'});if(!grant.ok||grant.duplicate||grant.paidDiamondBalance!==100||verifierCalls!==1)fail('verified IAP grant failed');
+ const duplicate=await enabled.grantVerified(session.walletToken,{platform:'ios',productId:'puffling.diamonds.25',expectedDiamonds:25,transactionId:'tx_1',verificationData:'already-finalized-proof'});if(!duplicate.ok||!duplicate.duplicate||duplicate.paidDiamondBalance!==100)fail('IAP transaction idempotency failed');
+ if(verifierCalls!==1)fail('known transaction unnecessarily re-contacted provider after finalization');
  const bad=createIapStore({pool,walletSecret:secret,providerMode:'apple_google',providerVerifier:async input=>({valid:true,platform:input.platform,productId:'wrong.product',transactionId:input.transactionId})});await bad.init();let mismatch=false;try{await bad.grantVerified(session.walletToken,{platform:'ios',productId:'puffling.diamonds.25',expectedDiamonds:25,transactionId:'tx_bad',verificationData:'signed'});}catch(e){mismatch=e.message==='provider_product_mismatch';}if(!mismatch)fail('provider product mismatch was not rejected');
- console.log('✅ Paid-Diamond wallet, provider readiness, verified grant and duplicate protection passed');
+ console.log('✅ Paid-Diamond wallet, provider readiness, verified grant, post-finalization idempotency and duplicate protection passed');
 })().catch(e=>{console.error('❌ IAP wallet check:',e);process.exit(1);});
