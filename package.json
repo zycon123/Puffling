@@ -8,6 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "postinstall": "node scripts/patch-native-purchases.mjs",
     "mobile:prepare": "node scripts/prepare-mobile-web.mjs",
     "mobile:validate": "npm run mobile:prepare && node scripts/validate-mobile-release.mjs",
     "mobile:configure:android": "node scripts/configure-native-release.mjs android",
