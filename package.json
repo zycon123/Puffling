@@ -12,11 +12,15 @@
     "mobile:validate": "npm run mobile:prepare && node scripts/validate-mobile-release.mjs",
     "mobile:configure:android": "node scripts/configure-native-release.mjs android",
     "mobile:configure:ios": "node scripts/configure-native-release.mjs ios",
+    "mobile:assets:android": "node scripts/apply-native-assets.mjs android",
+    "mobile:assets:ios": "node scripts/apply-native-assets.mjs ios",
+    "mobile:assets:android:optional": "node scripts/apply-native-assets.mjs android --allow-missing",
+    "mobile:assets:ios:optional": "node scripts/apply-native-assets.mjs ios --allow-missing",
     "mobile:sync": "npm run mobile:prepare && npx cap sync",
-    "mobile:add:android": "npm run mobile:prepare && npx cap add android && npm run mobile:configure:android",
-    "mobile:add:ios": "npm run mobile:prepare && npx cap add ios && npm run mobile:configure:ios",
-    "mobile:open:android": "npm run mobile:sync && npm run mobile:configure:android && npx cap open android",
-    "mobile:open:ios": "npm run mobile:sync && npm run mobile:configure:ios && npx cap open ios"
+    "mobile:add:android": "npm run mobile:prepare && npx cap add android && npx cap sync android && npm run mobile:assets:android:optional && npm run mobile:configure:android",
+    "mobile:add:ios": "npm run mobile:prepare && npx cap add ios && npx cap sync ios && npm run mobile:assets:ios:optional && npm run mobile:configure:ios",
+    "mobile:open:android": "npm run mobile:sync && npm run mobile:assets:android:optional && npm run mobile:configure:android && npx cap open android",
+    "mobile:open:ios": "npm run mobile:sync && npm run mobile:assets:ios:optional && npm run mobile:configure:ios && npx cap open ios"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",
