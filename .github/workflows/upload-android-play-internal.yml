@@ -1,0 +1,140 @@
+name: Upload Orbuff Android to Play Internal
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Successful Build Orbuff Android Release run ID from current main that contains orbuff-android-play-signed-aab'
+        required: true
+        type: string
+      confirm:
+        description: 'Type UPLOAD PLAY INTERNAL to authorize external upload'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: orbuff-play-internal-upload
+  cancel-in-progress: false
+
+jobs:
+  upload-play-internal:
+    runs-on: ubuntu-latest
+    env:
+      ORBUFF_PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.ORBUFF_PLAY_SERVICE_ACCOUNT_JSON }}
+    steps:
+      - name: Require explicit Play Internal confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.confirm }}" != 'UPLOAD PLAY INTERNAL' ]; then
+            echo 'Upload blocked: confirmation must exactly equal UPLOAD PLAY INTERNAL.'
+            exit 1
+          fi
+
+      - name: Validate Google Play upload secret
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${ORBUFF_PLAY_SERVICE_ACCOUNT_JSON:-}" ]; then
+            echo 'ORBUFF_PLAY_SERVICE_ACCOUNT_JSON is not configured.'
+            exit 1
+          fi
+          node -e 'const c=JSON.parse(process.env.ORBUFF_PLAY_SERVICE_ACCOUNT_JSON);if(c.type!=="service_account"||!c.client_email||!c.private_key)process.exit(1);console.log("Google Play service-account secret shape is valid.")'
+
+      - name: Validate source signed-build run
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo 'source_run_id must be a numeric GitHub Actions run ID.'
+            exit 1
+          fi
+
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID")"
+          workflow_path="$(jq -r '.path // ""' <<< "$run_json")"
+          head_branch="$(jq -r '.head_branch // ""' <<< "$run_json")"
+          head_sha="$(jq -r '.head_sha // ""' <<< "$run_json")"
+          conclusion="$(jq -r '.conclusion // ""' <<< "$run_json")"
+
+          if [ "$workflow_path" != '.github/workflows/build-android-release.yml' ]; then
+            echo "Upload blocked: source run is not the Orbuff Android release workflow ($workflow_path)."
+            exit 1
+          fi
+          if [ "$head_branch" != 'main' ] || [ "$conclusion" != 'success' ]; then
+            echo "Upload blocked: source run must be a successful main build. branch=$head_branch conclusion=$conclusion"
+            exit 1
+          fi
+
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$head_sha" != "$main_sha" ]; then
+            echo "Upload blocked: signed AAB is not from current main. source=$head_sha current=$main_sha"
+            exit 1
+          fi
+
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "Validated signed Android source run $SOURCE_RUN_ID at current main $head_sha."
+
+      - name: Download signed Google Play AAB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: orbuff-android-play-signed-aab
+          path: ${{ runner.temp }}/orbuff-play-internal
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Checkout uploader from current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: source
+
+      - name: Validate signed AAB before Google Play
+        id: aab
+        shell: bash
+        run: |
+          set -euo pipefail
+          AAB="$(find "$RUNNER_TEMP/orbuff-play-internal" -type f -name '*.aab' -print -quit)"
+          if [ -z "$AAB" ]; then
+            echo 'Signed Play AAB artifact is missing.'
+            exit 1
+          fi
+          jarsigner -verify -verbose -certs "$AAB" >/dev/null
+          test "$(node -p "require('./source/release.config.json').appId")" = 'com.zyconstudios.orbuff'
+          test "$(node -p "require('./source/release.config.json').version")" = '5.27.107'
+          test "$(node -p "require('./source/release.config.json').buildNumber")" = '107'
+          echo "aab=$AAB" >> "$GITHUB_OUTPUT"
+          echo 'Signed Orbuff AAB signature and current release metadata validated.'
+
+      - name: Install pinned Google auth client
+        working-directory: source
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund google-auth-library@11.0.2
+
+      - name: Upload AAB to Google Play Internal testing
+        working-directory: source
+        env:
+          ORBUFF_PLAY_AAB: ${{ steps.aab.outputs.aab }}
+        run: node scripts/upload-google-play-internal.mjs
+
+      - name: Cleanup downloaded release artifact
+        if: ${{ always() }}
+        shell: bash
+        run: rm -rf "$RUNNER_TEMP/orbuff-play-internal"
