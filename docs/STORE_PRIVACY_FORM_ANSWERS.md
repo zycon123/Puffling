@@ -2,9 +2,9 @@
 
 Reviewed against Orbuff 5.27.107 source on 2026-09-15.
 
-This file is a **release working sheet**, not legal advice. It is intentionally scoped to the build currently prepared for submission. Re-check every answer if SDKs, backend logging, analytics, ads, crash reporting, account behavior, or paid purchases change.
+This file is a **release working sheet**, not legal advice. It is scoped to the build currently prepared for submission. Re-check every answer if SDKs, backend logging, analytics, ads, crash reporting, account behavior, leaderboard presentation, or paid purchases change.
 
-## Release assumptions for these answers
+## Release assumptions
 
 - App: `Orbuff`
 - Developer/publisher: `Zycon Studios`
@@ -14,20 +14,21 @@ This file is a **release working sheet**, not legal advice. It is intentionally 
 - Online API and multiplayer endpoints use HTTPS/WSS.
 - No advertising SDK or dedicated behavioral analytics SDK is present in the audited repository.
 - Real-money Diamond purchasing is **not enabled for this submitted build** unless the native store bridge and provider verification are later activated.
-- The core local game can be played without creating an online guest identity; online/ranked/trade/leaderboard features may create or use a pseudonymous guest account.
+- Core local play works without creating an online guest identity; online/ranked/trade/leaderboard features may create or use a pseudonymous guest account.
+- Player-entered display names remain local. Public leaderboard presentation uses server-generated `Orbuff-XXXXXX` aliases and does not publish the player's free-text local name.
 - The support button prepares an email containing diagnostics, but the user must choose to send it through their email app.
 
 ---
 
 # Apple App Privacy — current submitted build
 
-## App Privacy top-level question
+## Top-level collection question
 
 **Does this app or its third-party partners collect data?**
 
-Recommended answer for the current build: **Yes**.
+Recommended answer: **Yes**.
 
-Reason: online features transmit pseudonymous account identifiers, gameplay/competitive state, leaderboard information, and related security/integrity data to Orbuff servers. Support information may also be sent when the user explicitly sends a support email.
+Online features transmit pseudonymous account identifiers, gameplay/competitive state, leaderboard scores and security/integrity data to Orbuff servers. Support information may also be sent when the user explicitly sends a support email.
 
 ## Privacy URLs
 
@@ -38,26 +39,24 @@ Reason: online features transmit pseudonymous account identifiers, gameplay/comp
 
 ### 1. Identifiers → User ID
 
-**Collected:** Yes, when online features are used.
+**Collected:** Yes, when protected online features are used.
 
-Examples in Orbuff:
-- randomly generated guest account ID;
-- player display/screen name used for leaderboard or multiplayer context where applicable.
+What: randomly generated pseudonymous guest account ID.
 
 **Purpose(s):**
 - App Functionality
 - Account Management
 - Fraud Prevention / Security / Compliance
 
-**Linked to the user:** Yes. The identifier is the pseudonymous account identity used to associate ranked, inventory, trade, boss/reward, and linked leaderboard state.
+**Linked to the user:** Yes. It associates ranked, inventory, trade, boss/reward and account-linked leaderboard state.
 
-**Used for tracking:** No, based on the audited build. Orbuff does not use the ID to track users across apps/websites owned by other companies and does not contain an advertising/tracking SDK.
+**Used for tracking:** No. The audited build has no cross-company tracking behavior or advertising/tracking SDK.
 
-### 2. User Content → Gameplay Content
+### 2. User Content / Gameplay Content
 
-**Collected:** Yes, when online game features are used.
+**Collected:** Yes, when online features are used.
 
-Examples in Orbuff:
+Examples:
 - race position/progress and results;
 - ranked rating/results;
 - server-authoritative Orbuff inventory/ownership state;
@@ -69,7 +68,7 @@ Examples in Orbuff:
 - App Functionality
 - Fraud Prevention / Security / Compliance
 
-**Linked to the user:** Yes for account-authenticated online records. Some legacy/anonymous leaderboard submissions may not contain a guest account ID.
+**Linked to the user:** Yes for authenticated online records.
 
 **Used for tracking:** No.
 
@@ -77,12 +76,13 @@ Examples in Orbuff:
 
 **Collected:** Optional / user initiated only.
 
-When: a user chooses **Send Bug Report** / privacy support and actually sends an email. The developer receives the sender address through the email service.
+When: a user chooses a support/privacy flow and actually sends an email. The developer receives the sender address through the mail service.
 
 **Purpose(s):**
 - App Functionality / Customer Support
+- Account Management when handling a privacy/deletion request
 
-**Linked to the user:** Potentially yes, because an email address can identify the sender. The game does not require an email address to create the current guest account.
+**Linked to the user:** Potentially yes.
 
 **Used for tracking:** No.
 
@@ -92,9 +92,9 @@ When: a user chooses **Send Bug Report** / privacy support and actually sends an
 
 Examples:
 - the user's description of what happened;
-- what they did before the issue;
+- steps leading to an issue;
 - height/boss/mode notes;
-- privacy or deletion requests sent to support.
+- privacy or deletion requests.
 
 **Purpose(s):**
 - App Functionality / Customer Support
@@ -119,25 +119,26 @@ This data is prepared locally and leaves the device only if the user sends the s
 
 **Purpose(s):**
 - App Functionality / troubleshooting
-- Fraud Prevention / Security / Compliance where anti-cheat/security diagnostics are included
+- Fraud Prevention / Security / Compliance where security diagnostics are included
 
 **Linked to the user:** Potentially yes when sent from an identifiable email address or with the Account ID.
 
 **Used for tracking:** No.
 
-## Data types NOT currently expected for the submitted build
+## Data types NOT currently expected
 
-Do **not** select these merely because they might exist in a future version:
+Do **not** select these merely because they may exist in a future version:
 
+- Name / player nickname — the player-entered local display name is not sent for public leaderboard submission in the audited build; public leaderboard aliases are system-generated.
 - Precise Location / Coarse Location — no intentional location collection found.
 - Contacts — none found.
 - Photos / Videos — none found.
 - Audio recordings — none found.
 - Health / Fitness — none found.
 - Advertising Data — no advertising SDK found.
-- Device ID / Advertising ID — no intentional advertising/device identifier collection found in the audited app code.
-- Purchase History — **do not select for the current release while real-money purchases remain disabled**. Revisit before enabling paid Diamonds.
-- Payment Information — payment credentials should be handled by Apple/Google rather than Orbuff; do not claim Orbuff receives card details.
+- Device ID / Advertising ID — no intentional advertising/device identifier collection found in audited app code.
+- Purchase History — **do not select for the current release while real-money purchases remain disabled**.
+- Payment Information — payment credentials should be handled by Apple/Google rather than Orbuff; Orbuff must not claim to receive card details.
 
 ## Apple tracking question
 
@@ -145,7 +146,7 @@ Recommended current answer: **No data is used for tracking**, provided the final
 
 ## Apple age rating
 
-**Owner decision required.** Complete Apple's current age-rating questionnaire from the actual production content. Do not infer a rating from this document.
+Complete Apple's current questionnaire from the production content using `docs/CONTENT_RATING_AUDIT.md` as the source checklist. Apple generates the final age rating from the submitted descriptors; do not manually guess a rating.
 
 ---
 
@@ -159,7 +160,7 @@ Recommended answer: **Yes**.
 
 ### Is all collected user data encrypted in transit?
 
-Recommended answer: **Yes**, provided the final production configuration continues to use HTTPS/WSS for every server data flow. Re-verify the signed binary and production endpoints before submitting the form.
+Recommended answer: **Yes**, provided the final production configuration continues to use HTTPS/WSS for every server data flow. Re-verify the signed binary and production endpoints before submitting.
 
 ### Does the app provide a way for users to request deletion?
 
@@ -170,26 +171,13 @@ Recommended answer: **Yes**.
 
 ### Is data shared with third parties?
 
-Recommended current answer: **No**, based on the audited build and provided infrastructure/email vendors are acting only as service providers processing data on Zycon Studios' behalf. Revisit this if ads, cross-company analytics, marketing SDKs, or another independent data recipient is added.
+Recommended current answer: **No**, based on the audited build and provided infrastructure/email vendors act only as service providers processing data on Zycon Studios' behalf. Revisit this if ads, cross-company analytics, marketing SDKs or another independent recipient is added.
 
 ## Data types
 
-### Personal info → Name
-
-**Collected:** Yes, optional.
-
-What: player-chosen display name / nickname for leaderboard or related online presentation.
-
-Why optional: the core game can be played without submitting a public leaderboard name.
-
-**Shared:** No, subject to the service-provider assumption above.
-
-**Purposes:**
-- App functionality
-
 ### Personal info → User IDs
 
-**Collected:** Yes, optional relative to core offline/local play; required when the user chooses protected online features that need a guest identity.
+**Collected:** Yes, optional relative to local/core play; required when the user chooses protected online features needing a guest identity.
 
 What: pseudonymous Orbuff guest account ID.
 
@@ -212,9 +200,9 @@ What:
 - boss/reward actions;
 - leaderboard scores/heights.
 
-Google's definition explicitly includes gameplay under **Other actions**.
+Google includes gameplay activity under **Other actions**.
 
-**Required or optional:** Optional for users who only use the local/core game; required when using the corresponding online feature.
+**Required or optional:** Optional for users who only use local/core play; required when using the corresponding online feature.
 
 **Shared:** No.
 
@@ -230,7 +218,7 @@ What: build/status information, last runtime error, service status, anti-cheat d
 
 The user must choose to send the email.
 
-**Shared:** No, subject to the service-provider/user-initiated-transfer rules.
+**Shared:** No, subject to service-provider/user-initiated-transfer rules.
 
 **Purposes:**
 - App functionality / troubleshooting
@@ -263,6 +251,7 @@ The current guest account does not require an email address.
 
 Do not select unless the final signed production build actually collects them:
 
+- Personal info → Name / local player nickname — not transmitted by the audited leaderboard flow.
 - Location
 - Contacts
 - Photos/videos
@@ -287,7 +276,7 @@ Current deletion covers authenticated ranked data, authoritative inventory/migra
 
 ## Target audience / Families
 
-**Owner decision required.** Do not select children/family audience options solely from the art style or game theme. Complete Play Console's target-audience/content questions based on the intended audience and production experience.
+**Owner decision required.** Do not select child age groups solely because Orbuff uses colorful/cartoon art. Any Google Play target-audience selection that includes children triggers Families Policy requirements and must match the intended audience and production experience.
 
 ---
 
@@ -297,13 +286,13 @@ When real-money IAP becomes production-ready, reassess at minimum:
 
 ## Apple
 - Purchases → Purchase History
-- any identifiers linked to purchase reconciliation
+- identifiers linked to purchase reconciliation
 - purposes for purchase processing, fraud prevention and account management
 
 ## Google Play
 - Financial info → Purchase history
 - whether purchase data is required/optional
 - purposes: App functionality and Fraud prevention/security/compliance
-- any store SDK/provider data flows introduced by the native billing implementation
+- any native billing/provider data flows
 
 Do not enable paid Diamonds until the public Privacy Policy, App Privacy answers and Data Safety answers have been updated to match the actual production billing flow.
