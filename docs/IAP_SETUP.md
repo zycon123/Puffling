@@ -26,7 +26,15 @@ The native Capacitor 8 bridge is implemented with `@capgo/native-purchases` and 
 
 Earned Diamonds and paid Diamonds remain separated. Paid balance is stored in `puffling_wallets.paid_diamonds`; verified purchases are recorded in `puffling_iap_transactions`; paid changes are recorded in `puffling_wallet_ledger`.
 
-The wallet identity is still device-local. Do not market paid Diamonds as automatically portable across reinstall/device changes until durable account-to-wallet recovery is finished.
+## Recoverable guest account and wallet
+
+Paid wallets are now linked to the signed guest account instead of being only device-local. A newly created guest account receives a high-entropy recovery key. The server stores only a cryptographic hash of that key. The player can back up the recovery key from System & Support, rotate it, and use it after reinstall/device change to recover the same guest account.
+
+After account recovery, Orbuff opens the account-linked Diamond wallet and returns the authoritative paid-Diamond balance. Native purchase buttons remain disabled unless the wallet reports `accountLinked:true`.
+
+Account deletion disables and unlinks the wallet from the guest account so old account/wallet credentials cannot continue spending or receiving paid Diamonds. Purchase transaction and wallet-ledger records are retained separately when required for transaction reconciliation, duplicate prevention, fraud/security handling and applicable legal/accounting obligations. Public privacy text and store disclosures must describe the production retention period before live IAP is enabled.
+
+Recovery keys are account credentials. They must never be logged, embedded in store metadata, committed to source control or sent to analytics/crash-reporting systems.
 
 ## Provider verification
 
@@ -65,17 +73,22 @@ Live purchase UI remains fail-closed unless all of these are true:
 - Apple configuration above is complete
 - Google configuration above is complete
 - database/wallet initialization succeeds
+- a signed/recoverable guest account is available
+- the paid wallet is linked to that account
 - native iOS/Android bridge is available
 
 Bootstrap only injects the provider verifier when both Apple and Google configurations are complete. Therefore `/iap/status` cannot report `providerReady: true` just because one store is configured.
 
-## Wallet / IAP endpoints
+## Wallet / account / IAP endpoints
 
-- `POST /wallet/session` — body `{ walletId, clientKey }`; returns signed `walletToken` + `paidDiamondBalance`.
-- `GET /wallet/balance` — bearer token required.
-- `POST /wallet/spend` — bearer token required; body `{ amount, reason }`.
+- `POST /api/account/guest` — creates a guest account, signed token and initial recovery key.
+- `POST /api/account/recover` — recovers the same account using account ID + recovery key and issues a fresh signed token.
+- `POST /api/account/recovery-key` — authenticated recovery-key rotation/backup flow.
+- `POST /wallet/session` — opens/creates the account-linked wallet and returns signed `walletToken` + authoritative `paidDiamondBalance`.
+- `GET /wallet/balance` — wallet bearer token required.
+- `POST /wallet/spend` — wallet bearer token required; body `{ amount, reason }`.
 - `GET /iap/status` — reports database/wallet/provider readiness without exposing secrets.
-- `POST /iap/verify` — bearer token + native purchase proof; credits only after provider verification.
+- `POST /iap/verify` — wallet bearer token + native purchase proof; credits only after provider verification.
 
 ## Verification request
 
@@ -111,8 +124,11 @@ A successful response includes the authoritative paid balance:
 - Set `PUFFLING_IAP_PROVIDER_MODE=apple_google` only after the credentials are confirmed.
 - Verify `/iap/status` remains `providerReady:false` before configuration and becomes true only after both stores are ready.
 - Test successful, cancelled, pending, duplicate, interrupted/recovered, consumed, refunded/revoked and network-loss cases in Apple's sandbox/TestFlight and Google Play license/Internal testing.
+- Test reinstall/device-change account recovery and confirm the same paid balance is restored.
+- Test recovery-key rotation and confirm the old key can no longer restore the account.
+- Test account deletion and confirm old account/wallet credentials can no longer access paid balance while retained purchase records remain non-usable and are handled according to the published retention policy.
 - Confirm no client-only result can credit Diamonds when provider verification fails.
-- Finish durable wallet recovery/deletion policy before marketing paid balance as cross-device/reinstall recoverable.
+- Publish the exact production purchase-record retention period/legal basis in the privacy policy and store disclosures before live IAP is enabled.
 - Keep Mystery Box odds visible before Diamonds are spent.
 
-No production real-money rollout should occur before these sandbox/internal-store tests pass. Paid Diamonds do not expire.
+No production real-money rollout should occur before these sandbox/internal-store tests pass. Paid Diamonds do not expire while an active recoverable account owns the wallet.
