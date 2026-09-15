@@ -87,7 +87,7 @@ Bootstrap only injects the provider verifier when both Apple and Google configur
 
 - `POST /api/account/guest` — creates a guest account and recovery key.
 - `POST /api/account/recover` — body `{ accountId, recoveryKey }`; issues a fresh signed account token for the same guest account.
-- `POST /api/account/recovery-key` — authenticated recovery-key rotation.
+- `POST /api/account/recovery` — authenticated recovery-key rotation.
 - `POST /wallet/account-session` — guest-account bearer token required; returns the account-linked wallet token and authoritative paid balance.
 - `POST /wallet/session` — legacy body `{ walletId, clientKey }`; retained for compatibility but does not make a wallet eligible for live paid IAP.
 - `GET /wallet/balance` — wallet bearer token required.
