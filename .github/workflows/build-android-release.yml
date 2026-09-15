@@ -7,9 +7,11 @@ on:
       - 'launch/**'
     paths:
       - 'package.json'
+      - 'release.config.json'
       - 'capacitor.config.ts'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
+      - 'scripts/configure-native-release.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -19,9 +21,11 @@ on:
   pull_request:
     paths:
       - 'package.json'
+      - 'release.config.json'
       - 'capacitor.config.ts'
       - 'scripts/prepare-mobile-web.mjs'
       - 'scripts/validate-mobile-release.mjs'
+      - 'scripts/configure-native-release.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -62,13 +66,23 @@ jobs:
       - name: Sync Android project
         run: npx cap sync android
 
-      - name: Build unsigned release AAB
-        working-directory: android
-        run: ./gradlew bundleRelease
+      - name: Apply native release version
+        run: npm run mobile:configure:android
 
-      - name: Upload unsigned AAB
+      - name: Build unsigned release AAB and debug APK
+        working-directory: android
+        run: ./gradlew bundleRelease assembleDebug
+
+      - name: Upload unsigned release AAB
         uses: actions/upload-artifact@v4
         with:
           name: orbuff-android-unsigned-aab
           path: android/app/build/outputs/bundle/release/*.aab
+          if-no-files-found: error
+
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbuff-android-device-test-apk
+          path: android/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
