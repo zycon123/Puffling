@@ -1,32 +1,37 @@
-# Puffling launch readiness — 5.26-beta.99
+# Orbuff launch readiness — 5.27 Beta 107
 
-## Automated audit status
+## Current validated state
 
-The beta.99 launch audit validates the complete modular browser build, runtime models, a joined gameplay journey, deterministic Race course generation, Race HUD/desktop behavior, ranked result handling, Mystery Box/Vault behavior, Diamond wallet/IAP scaffolding, duplicate ownership/Trade, the 100-Puffling catalog, all 97 evolvable non-starters, static launch invariants, and the Node multiplayer/backend integration suite.
+The current web beta is deployed from `main` and its latest build validation and GitHub Pages deployment are green. The beta includes the Orbuff rebrand, multilingual menus/game guide, the 100-Orbuff collection runtime, progression/evolution, OrbVault, Mystery Boxes/Diamonds, Boss Rush, Quick/Friend Race, ranked foundations, authoritative Trade protections, leaderboard/backend integration and save-recovery checks.
 
-The joined gameplay simulation covers catalog/traits → starter and duplicate ownership → Vault protection → Trade idempotency → XP/evolution → Nursery eggs → Mystery Boxes/diamond spending → Race abilities/finish → web IAP fail-closed behavior → corrupted-save recovery.
+The automated gameplay and backend suites cover the joined progression journey, Boss/Race systems, deterministic Race course generation, reconnect/resume, position integrity, attack limits/cooldowns, authoritative Race result settlement, inventory/trade protections, Diamond wallet/IAP fail-closed behavior and corrupted-save recovery.
 
-The multiplayer integration simulation covers Quick Race matchmaking, shared course seed, reconnect/resume, synchronized countdown, rejection of a direct 1500 m teleport, valid position relay, attack cooldown, a plausible 1500 m finish, authoritative result metadata/MMR relay, starter Trade lock, and two-party prepare/commit.
+Multiplayer hardening now requires signed account identity for Quick/Friend Race, prevents the same account from filling both Race slots, locks the selected Orbuff at ready time, can verify ownership against authoritative server inventory and canonicalizes Race attacks server-side.
 
-## Launch hardening added in beta.99
+## Mobile release foundation
 
-- Server-side Race height/x progression validation and integrity lockout.
-- Reconnect-safe Quick Race room IDs.
-- Persistent Neon-backed global leaderboard with validation and rate limiting.
-- Core save repair for malformed numbers, cosmetics and player names.
-- Explicit verified TLS for Neon database connections.
-- Production API enabled by default for the leaderboard.
-- Early first-paint Puffling branding and correct 1500 m Race copy.
-- Expanded System & Support launch codes.
+A Capacitor-based native release foundation is being validated on `launch/mobile-release-foundation` with app ID `com.zyconstudios.orbuff`.
 
-## Intentional launch gates still open
+The mobile pipeline:
 
-These are not hidden by diagnostics and must be completed before claiming a fully secure public mobile/competitive launch:
+- Rebuilds a clean `www/` directory from the validated Orbuff browser build.
+- Verifies Orbuff identity, safe-area support, localization and game-guide modules.
+- Generates a native Android project in CI from a clean checkout.
+- Builds an unsigned Android release AAB as a pre-signing launch check.
+- Keeps real-money purchases fail-closed until native billing and provider verification are ready.
 
-1. **Native purchases:** StoreKit 2 / Google Play Billing plus direct Apple/Google server receipt/token verification. The current purchase backend intentionally fails closed and cannot grant paid Diamonds without verification.
-2. **Account-backed ranked profile:** MMR/W/L is still a local beta profile. Public ranked play needs authenticated identity and server-only rank mutation.
-3. **Server-authoritative Trade inventory:** Puffling ownership is still client-local. Public trading needs authenticated canonical inventory/ownership on the server.
-4. **Physical-device E2E:** Race/Trade have automated two-client integration coverage, but still require real iPhone/Android/desktop two-device testing on production networking.
-5. **Native store release work:** signed Android/iOS packages, privacy/store metadata, billing products, restore-purchase behavior and store review checks.
+See `docs/MOBILE_RELEASE_SETUP.md` for native commands and release prerequisites.
 
-The web beta can be tested with the hardened systems above while these public/mobile release gates are completed.
+## Public launch gates still open
+
+These gates must be completed before claiming a fully production-ready App Store / Google Play launch:
+
+1. **Native billing bridge:** Implement and test StoreKit / Google Play Billing integration that satisfies the existing `PufflingIAP` bridge contract.
+2. **Apple/Google server verification:** Activate provider-side transaction verification so `/iap/status` reports `providerReady: true`; keep paid Diamonds blocked until then.
+3. **Durable account/wallet recovery:** Ensure paid balance and account identity recover safely after reinstall and device changes.
+4. **Signed store packages:** Configure the owner's Android upload key and Apple Developer signing/team, then produce signed release builds.
+5. **Store assets and compliance:** Production icon/splash, screenshots, privacy policy/URL, App Store privacy details, Google Play Data safety, age/content ratings and store listing metadata.
+6. **Physical-device E2E:** Test production networking on real iPhone and Android hardware, including startup, save recovery, Boss Rush, Quick/Friend Race, Trade, network interruption, purchases and restore/recovery paths.
+7. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
+
+The web beta can remain live while these native-only release gates are completed.
