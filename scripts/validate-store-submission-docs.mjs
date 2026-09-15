@@ -15,6 +15,8 @@ const mystery=read('js/diamond_mystery_shop.js');
 const leaderboardClient=read('js/leaderboard_submit.js');
 const leaderboardStore=read('server/leaderboard_store.js');
 const androidWorkflow=read('.github/workflows/build-android-release.yml');
+const iosWorkflow=read('.github/workflows/build-ios-release.yml');
+const iosSigningValidator=read('scripts/validate-ios-signing.mjs');
 const release=JSON.parse(read('release.config.json'));
 
 const identity=[release.appName,release.appId,release.version,String(release.buildNumber)];
@@ -68,20 +70,36 @@ for(const token of ['publicAlias(identityKey)',"return `Orbuff-${code}`","userGe
 }
 if(!process.exitCode)ok('Public leaderboard uses server-generated aliases instead of player-entered free text');
 
-const secrets=['ORBUFF_ANDROID_KEYSTORE_BASE64','ORBUFF_ANDROID_KEY_ALIAS','ORBUFF_ANDROID_STORE_PASSWORD','ORBUFF_ANDROID_KEY_PASSWORD'];
-for(const secret of secrets){
-  if(!signing.includes(secret))fail(`Signing guide is missing secret: ${secret}`);
+const androidSecrets=['ORBUFF_ANDROID_KEYSTORE_BASE64','ORBUFF_ANDROID_KEY_ALIAS','ORBUFF_ANDROID_STORE_PASSWORD','ORBUFF_ANDROID_KEY_PASSWORD'];
+for(const secret of androidSecrets){
+  if(!signing.includes(secret))fail(`Signing guide is missing Android secret: ${secret}`);
   if(!androidWorkflow.includes(secret))fail(`Android workflow is missing secret: ${secret}`);
 }
 if(!androidWorkflow.includes('Android production signing is partially configured'))fail('Android workflow does not fail closed on partial signing configuration');
 if(!androidWorkflow.includes('jarsigner -verify'))fail('Android signed bundle is not verified after signing');
+if(!signing.includes('assets/logo.svg')||!signing.includes('assets/logo-dark.svg'))fail('Signing guide must use canonical SVG native artwork');
 if(!process.exitCode)ok('Android production signing is documented and fail-closed in CI');
 
-for(const appleKey of ['ORBUFF_APPLE_TEAM_ID','ORBUFF_ASC_KEY_ID','ORBUFF_ASC_ISSUER_ID','ORBUFF_ASC_PRIVATE_KEY']){
-  if(!signing.includes(appleKey))fail(`iOS future signing guide is missing placeholder: ${appleKey}`);
+const iosSecrets=['ORBUFF_IOS_DISTRIBUTION_CERT_BASE64','ORBUFF_IOS_CERT_PASSWORD','ORBUFF_IOS_PROVISIONING_PROFILE_BASE64','ORBUFF_APPLE_TEAM_ID'];
+for(const secret of iosSecrets){
+  if(!signing.includes(secret))fail(`Signing guide is missing iOS secret: ${secret}`);
+  if(!iosWorkflow.includes(secret))fail(`iOS workflow is missing secret: ${secret}`);
+  if(!iosSigningValidator.includes(secret))fail(`iOS signing validator is missing secret: ${secret}`);
 }
-if(!signing.includes('Xcode')||!signing.includes('Product → Archive')||!signing.includes('TestFlight'))fail('iOS signing guide is incomplete');
-if(!process.exitCode)ok('iOS manual signing/TestFlight path is documented');
+for(const token of ['Xcode 26','iOS 26 SDK','Provisioning profile Team ID','com.zyconstudios.orbuff','orbuff-ios-app-store-ipa','orbuff-ios-app-store-xcarchive']){
+  if(!signing.includes(token))fail(`iOS signing guide is missing: ${token}`);
+}
+for(const token of ['Validate Apple toolchain','Validate production signing secret set','Production App Store signing material validated','xcodebuild -exportArchive','codesign --verify --deep --strict','app-store-connect']){
+  if(!iosWorkflow.includes(token))fail(`iOS workflow is missing production signing control: ${token}`);
+}
+if(!iosSigningValidator.includes('partially configured'))fail('iOS signing validator does not fail closed on partial secret configuration');
+if(!process.exitCode)ok('iOS App Store archive/IPA signing is documented and fail-closed in CI');
+
+for(const futureUploadKey of ['ORBUFF_ASC_KEY_ID','ORBUFF_ASC_ISSUER_ID','ORBUFF_ASC_PRIVATE_KEY']){
+  if(!signing.includes(futureUploadKey))fail(`Signing guide is missing future explicit TestFlight upload key: ${futureUploadKey}`);
+}
+if(!signing.includes('Product → Archive')||!signing.includes('TestFlight'))fail('iOS local signing/TestFlight path is incomplete');
+if(!process.exitCode)ok('Manual and future explicit TestFlight upload paths are documented');
 
 if(process.exitCode)process.exit(process.exitCode);
 console.log('Orbuff store submission documentation validation passed.');
