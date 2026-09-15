@@ -39,7 +39,8 @@ module.exports=function createAccountStore(opts={}){
       ['puffling_trade_results','account_a=$1 OR account_b=$1'],
       ['puffling_inventory_migrations','account_id=$1'],
       ['puffling_inventory','account_id=$1'],
-      ['puffling_rank_profiles','account_id=$1']
+      ['puffling_rank_profiles','account_id=$1'],
+      ['puffling_scores','account_id=$1']
     ];
     try{
       await client.query('BEGIN');
@@ -61,5 +62,5 @@ module.exports=function createAccountStore(opts={}){
     }finally{client.release();}
   }
 
-  return{init,deletedAccountIds,isDeleted,deleteAccount,status:()=>({ready,database:!!pool,tombstones:true}),cleanAccountId,version:1};
+  return{init,deletedAccountIds,isDeleted,deleteAccount,status:()=>({ready,database:!!pool,tombstones:true}),cleanAccountId,version:2};
 };
