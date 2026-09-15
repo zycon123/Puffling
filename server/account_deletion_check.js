@@ -11,16 +11,18 @@ const createAccountHttp=require('./account_http');
       statements.push({sql:String(sql),args});
       if(/to_regclass/.test(sql))return{rows:[{name:String(args[0]||'').replace(/^public\./,'')}],rowCount:1};
       if(/^DELETE /i.test(String(sql).trim()))return{rows:[],rowCount:1};
+      if(/^UPDATE puffling_wallets/i.test(String(sql).trim()))return{rows:[],rowCount:1};
       return{rows:[],rowCount:1};
     },
     release(){}
   };
   const pool={
-    async query(){return{rows:[],rowCount:0};},
+    async query(sql){if(/^CREATE TABLE/i.test(String(sql).trim()))return{rows:[],rowCount:0};return{rows:[],rowCount:0};},
     async connect(){return client;}
   };
   const store=createAccountStore({pool});
   assert.equal(await store.init(),true);
+  assert.equal(store.status().recovery,true);
   const auth=createAccountAuth({secret:'a'.repeat(64),ttlSeconds:3600});
   const accountId='guest_store_delete_test';
   const token=auth.issue(accountId,{kind:'guest'});
@@ -38,8 +40,10 @@ const createAccountHttp=require('./account_http');
   const after=auth.verify(token);
   assert.equal(after.ok,false);assert.equal(after.error,'account_deleted');
   const deletes=statements.filter(x=>/^DELETE /i.test(x.sql.trim()));
-  assert.equal(deletes.length,7);
+  assert.equal(deletes.length,8);
   assert(statements.some(x=>/^DELETE FROM puffling_scores/i.test(x.sql.trim())),'account-linked leaderboard deletion missing');
+  assert(statements.some(x=>/^DELETE FROM puffling_accounts/i.test(x.sql.trim())),'account recovery record deletion missing');
+  assert(statements.some(x=>/^UPDATE puffling_wallets SET account_id=NULL,active=false/i.test(x.sql.trim())),'account-linked wallet was not detached/disabled');
   assert(statements.some(x=>/puffling_deleted_accounts/.test(x.sql)&&/INSERT INTO/.test(x.sql)),'deleted-account tombstone missing');
   console.log('account deletion check ok');
 })().catch(err=>{console.error(err);process.exitCode=1;});
