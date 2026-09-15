@@ -2,13 +2,17 @@
 
 This document tracks the native iOS/Android release path for Orbuff 5.27 Beta 107.
 
-## Native identity
+## Native identity and version
 
 - App name: `Orbuff`
 - App ID / package ID: `com.zyconstudios.orbuff`
+- Native version: `5.27.107`
+- Native build number / Android versionCode: `107`
 - Web source: the same validated browser build used by the current beta
 - Native wrapper: Capacitor 8
 - Generated web directory: `www/` (not committed)
+
+`release.config.json` is the canonical native release metadata. `package.json` must use the same version. The mobile validation fails if these drift apart.
 
 ## Local prerequisites
 
@@ -23,7 +27,7 @@ npm install
 npm run mobile:validate
 ```
 
-The validation recreates `www/` from the current Orbuff web build and verifies the app name, safe-area viewport, localization runtime, game guide runtime and native package configuration.
+The validation recreates `www/` from the current Orbuff web build and verifies the app name, safe-area viewport, localization runtime, game guide runtime, native package identity and release metadata.
 
 ## Create/open Android
 
@@ -32,14 +36,20 @@ npm run mobile:add:android
 npm run mobile:open:android
 ```
 
-For later updates after the Android project exists:
+The commands apply the version from `release.config.json` to the generated Android project. For a later manual sync/build, run:
 
 ```bash
 npm run mobile:sync
+npm run mobile:configure:android
 npx cap open android
 ```
 
-The repository CI also generates a clean Android project and builds an unsigned release AAB. Signing must be added with the owner's Google Play upload key before store submission.
+Repository CI generates a clean Android project and produces two artifacts:
+
+- `orbuff-android-unsigned-aab`: release bundle used to prove the store build completes; it still requires the owner's Google Play upload signing before submission.
+- `orbuff-android-device-test-apk`: debug-signed APK intended only for direct physical-device testing before the store release.
+
+Never submit or market the debug APK as the production build.
 
 ## Create/open iOS
 
@@ -50,14 +60,15 @@ npm run mobile:add:ios
 npm run mobile:open:ios
 ```
 
-For later updates:
+For a later manual sync/build:
 
 ```bash
 npm run mobile:sync
+npm run mobile:configure:ios
 npx cap open ios
 ```
 
-The final iOS archive must be signed with the owner's Apple Developer team/certificates and uploaded through Xcode/App Store Connect.
+The iOS CI verifies that a clean generated project accepts the same `5.27.107 (107)` release metadata and builds for the simulator without code signing. The final iOS archive must be signed with the owner's Apple Developer team/certificates and uploaded through Xcode/App Store Connect.
 
 ## Real-money purchases remain fail-closed
 
