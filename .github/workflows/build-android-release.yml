@@ -14,6 +14,8 @@ on:
       - 'scripts/validate-mobile-release.mjs'
       - 'scripts/configure-native-release.mjs'
       - 'scripts/apply-native-assets.mjs'
+      - 'scripts/patch-native-purchases.mjs'
+      - 'scripts/validate-native-iap-bridge.mjs'
       - 'scripts/validate-android-store-target.mjs'
       - 'index.html'
       - 'style.css'
@@ -31,6 +33,8 @@ on:
       - 'scripts/validate-mobile-release.mjs'
       - 'scripts/configure-native-release.mjs'
       - 'scripts/apply-native-assets.mjs'
+      - 'scripts/patch-native-purchases.mjs'
+      - 'scripts/validate-native-iap-bridge.mjs'
       - 'scripts/validate-android-store-target.mjs'
       - 'index.html'
       - 'style.css'
@@ -68,6 +72,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+
+      - name: Verify native purchase safety patch
+        run: node scripts/patch-native-purchases.mjs --check
 
       - name: Validate mobile web bundle
         run: npm run mobile:validate

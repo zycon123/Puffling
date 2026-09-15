@@ -53,6 +53,8 @@ jobs:
         run: node scripts/validate-diamond-wallet.mjs
       - name: Validate Diamond IAP scaffold
         run: node scripts/validate-diamond-iap.mjs
+      - name: Validate native StoreKit / Google Play bridge
+        run: node scripts/validate-native-iap-bridge.mjs
       - name: Validate Orbuff duplicates and trading
         run: node scripts/validate-trading.mjs
       - name: Validate 100 Orbuffs and unique traits

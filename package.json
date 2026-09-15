@@ -8,6 +8,7 @@
     "node": ">=22"
   },
   "scripts": {
+    "postinstall": "node scripts/patch-native-purchases.mjs",
     "mobile:prepare": "node scripts/prepare-mobile-web.mjs",
     "mobile:validate": "npm run mobile:prepare && node scripts/validate-mobile-release.mjs",
     "mobile:configure:android": "node scripts/configure-native-release.mjs android",
@@ -25,7 +26,8 @@
   "dependencies": {
     "@capacitor/android": "8.5.2",
     "@capacitor/core": "8.5.2",
-    "@capacitor/ios": "8.5.2"
+    "@capacitor/ios": "8.5.2",
+    "@capgo/native-purchases": "8.7.0"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.2",
