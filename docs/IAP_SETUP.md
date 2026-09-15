@@ -1,6 +1,6 @@
-# Puffling Diamond IAP setup
+# Orbuff Diamond IAP setup
 
-The browser beta never grants paid Diamonds from a web payment. Native purchases require App Store / Google Play billing, a signed Puffling wallet session and server-side provider verification.
+The browser beta never grants paid Diamonds from a web payment. Native purchases require App Store / Google Play billing, a signed Diamond wallet session and server-side provider verification.
 
 ## Consumable products
 
@@ -11,73 +11,75 @@ The browser beta never grants paid Diamonds from a web payment. Native purchases
 | `puffling.diamonds.250` | 250 | €9 | 10 Mystery Boxes |
 | `puffling.diamonds.600` | 600 | €16 | 24 Mystery Boxes |
 
-The final user-facing price is always read from the App Store / Google Play `displayPrice`; EUR values are target price points only.
+The product IDs are intentionally preserved for store compatibility even though the game is branded Orbuff. The final user-facing price is always read from App Store / Google Play metadata; EUR values are target price points only.
 
-## Paid wallet architecture
+## Current release architecture
 
-Earned Diamonds and paid Diamonds are intentionally separated. Gameplay rewards remain in the existing earned-Diamond save for now. Paid Diamonds are stored in Postgres in `puffling_wallets.paid_diamonds`. Mystery Shop spends earned Diamonds first, then calls `/wallet/spend` for any remaining amount. Paid spends are atomic and recorded in `puffling_wallet_ledger`. Verified purchases are deduplicated by transaction ID in `puffling_iap_transactions`, and a purchase can never overwrite an existing earned-Diamond balance.
+The native Capacitor 8 bridge is implemented with `@capgo/native-purchases` and exposes the existing `window.PufflingIAP` contract. The bridge deliberately leaves purchases unfinished until the Orbuff server verifies and credits them:
 
-The client creates a random `walletId` plus a random `clientKey`. The server stores only a SHA-256 hash of the client key and issues a server-signed wallet token. Paid balance and spend endpoints require that bearer token.
+1. Native store returns an Apple signed StoreKit transaction or Google Play purchase token.
+2. Client posts the proof to `/iap/verify` with its signed wallet token.
+3. Server verifies the exact platform, product and transaction with Apple/Google.
+4. Server records the transaction and credits paid Diamonds atomically.
+5. Only after a successful server response does the native bridge finish the StoreKit transaction or consume the Google Play purchase.
+6. Interrupted purchases are retried; transaction IDs are idempotent and already-recorded transactions return their existing balance without requiring the store proof to remain unconsumed.
 
-Important launch limitation: this wallet identity is currently device-local. A reinstall or device move does not yet provide a full user-account recovery flow. Do not describe paid purchases as account-portable until durable account recovery is implemented.
+Earned Diamonds and paid Diamonds remain separated. Paid balance is stored in `puffling_wallets.paid_diamonds`; verified purchases are recorded in `puffling_iap_transactions`; paid changes are recorded in `puffling_wallet_ledger`.
 
-### Wallet / IAP endpoints
+The wallet identity is still device-local. Do not market paid Diamonds as automatically portable across reinstall/device changes until durable account-to-wallet recovery is finished.
+
+## Provider verification
+
+`server/iap_provider_verifier.js` contains the production verifier framework.
+
+### Apple
+
+Apple StoreKit 2 provides a signed JWS transaction. Orbuff verifies it with Apple's official `@apple/app-store-server-library`, Apple root CA certificates, the Orbuff bundle ID and the App Store Apple ID. The decoded product ID, transaction ID, bundle ID and environment must match. Revoked transactions are rejected.
+
+Required server configuration:
+
+- `ORBUFF_APPLE_APP_ID` — numeric Apple ID from App Store Connect.
+- `ORBUFF_APPLE_ROOT_CERTIFICATES_BASE64` — Apple root CA DER certificate(s), base64 encoded. Use either a JSON array of base64 strings or a comma/semicolon-separated list.
+- `ORBUFF_APPLE_BUNDLE_ID` — optional; defaults to `com.zyconstudios.orbuff`.
+- `ORBUFF_APPLE_ONLINE_CHECKS` — optional; defaults to `true` for certificate revocation/validity checks.
+
+Do not store Apple certificates/private credentials in source files. The root CA certificates are public trust anchors but are still configured outside the repo so certificate rotation does not require application code changes.
+
+### Google Play
+
+Orbuff authenticates to the Google Play Android Publisher API with a service account and checks the one-time product purchase using the package name, product ID and purchase token. A purchase must be in the purchased state and still unconsumed when first credited. The client consumes it only after server credit succeeds.
+
+Required server configuration:
+
+- `ORBUFF_GOOGLE_SERVICE_ACCOUNT_JSON` — complete service-account JSON stored as a server secret.
+- `ORBUFF_GOOGLE_PACKAGE_NAME` — optional; defaults to `com.zyconstudios.orbuff`.
+
+The service account must have the minimum Google Play Console/API access required to read purchase state for Orbuff. Never embed this JSON in the app or repository.
+
+### Global activation gate
+
+Live purchase UI remains fail-closed unless all of these are true:
+
+- `PUFFLING_IAP_PROVIDER_MODE=apple_google`
+- `PUFFLING_WALLET_SECRET` is configured
+- Apple configuration above is complete
+- Google configuration above is complete
+- database/wallet initialization succeeds
+- native iOS/Android bridge is available
+
+Bootstrap only injects the provider verifier when both Apple and Google configurations are complete. Therefore `/iap/status` cannot report `providerReady: true` just because one store is configured.
+
+## Wallet / IAP endpoints
 
 - `POST /wallet/session` — body `{ walletId, clientKey }`; returns signed `walletToken` + `paidDiamondBalance`.
 - `GET /wallet/balance` — bearer token required.
 - `POST /wallet/spend` — bearer token required; body `{ amount, reason }`.
-- `GET /iap/status` — reports database, wallet and provider-verifier readiness without secrets.
-- `POST /iap/verify` — bearer token + store purchase payload; grants only after provider verification succeeds.
-
-The native purchase UI stays disabled unless `/iap/status` reports `providerReady: true`. This prevents the app from opening a real-money store flow when the server cannot safely verify and credit the purchase.
-
-## Native billing bridge contract
-
-The iOS/Android wrapper must inject all of these methods before real-money purchase buttons can become active:
-
-```js
-window.PufflingIAP = {
-  platform: 'ios', // or 'android'
-  isAvailable: true,
-  async loadProducts(productIds) {
-    // [{ productId, displayPrice, currencyCode, title }]
-  },
-  async purchase(productId) {
-    // { status:'cancelled' }
-    // { status:'pending' }
-    // { status:'purchased', productId, transactionId, verificationData, purchaseToken? }
-  },
-  async getPendingPurchases() {
-    // Return unfinished/unacknowledged purchases so the web layer can re-verify them.
-    // [{ status:'purchased', productId, transactionId, verificationData, purchaseToken? }]
-  },
-  async finishTransaction(payload) {
-    // payload: { productId, platform, transactionId, purchaseToken, verificationData }
-    // Finish/acknowledge only after Puffling server verification succeeds.
-  }
-};
-```
-
-Never embed Apple or Google private credentials in browser/WebView JavaScript.
-
-## Purchase lifecycle
-
-1. App checks native bridge, signed wallet and `/iap/status`.
-2. Real purchase button is enabled only when the server reports `providerReady: true`.
-3. Native store returns a transaction / purchase token.
-4. Client sends the store proof to Puffling `/iap/verify`.
-5. Puffling server verifies the exact store transaction and product with the provider verifier.
-6. Server records the transaction and credits paid Diamonds atomically.
-7. Client receives the authoritative paid-Diamond balance.
-8. Only then does the native bridge finish / acknowledge the store transaction.
-9. On a later startup, `getPendingPurchases()` retries unfinished transactions. Server transaction-ID idempotency prevents double credit.
-
-This order is intended to protect against the dangerous case where the store charge succeeds but the app crashes or loses connection before the transaction is credited/finished.
+- `GET /iap/status` — reports database/wallet/provider readiness without exposing secrets.
+- `POST /iap/verify` — bearer token + native purchase proof; credits only after provider verification.
 
 ## Verification request
 
 `SKY_PUFF_IAP_VERIFY_URL` points to `https://puffling-race-server.onrender.com/iap/verify`.
-The client sends the signed wallet token as `Authorization: Bearer ...` and this JSON body:
 
 ```json
 {
@@ -90,7 +92,7 @@ The client sends the signed wallet token as `Authorization: Bearer ...` and this
 }
 ```
 
-Required successful response:
+A successful response includes the authoritative paid balance:
 
 ```json
 {
@@ -102,28 +104,15 @@ Required successful response:
 }
 ```
 
-The server verifier contract now rejects invalid proofs, product/platform/transaction mismatches and revoked/refunded outcomes. Transaction IDs remain idempotent and wallet credit + ledger entry remain one database transaction.
-
-## Server provider state
-
-The IAP store supports an injected trusted `providerVerifier`. Production readiness requires BOTH:
-
-- `PUFFLING_IAP_PROVIDER_MODE=apple_google`
-- a real Apple/Google verifier implementation injected on the server
-
-Without both, `/iap/status` reports `providerReady: false` and the client does not initiate a real-money purchase. This is intentional fail-closed behavior.
-
-The current Puffling repository does not yet contain the real Apple/Google verifier implementation or native StoreKit / Google Play Billing wrapper. Therefore real charging must remain disabled for now.
-
 ## Before enabling real purchases
 
-- Keep the existing Puffling database and wallet secret configured; do not add a paid service just for IAP.
-- Create the four consumables in the platform stores only when the required developer/store accounts are approved.
-- Implement the native iOS StoreKit bridge and Android Google Play Billing bridge, including `getPendingPurchases()` and finish/acknowledge behavior.
-- Implement the real server provider verifier using store credentials kept only on the server.
-- Enable provider mode only after `/iap/status` can truthfully return `providerReady: true`.
-- Test successful, cancelled, pending, duplicate, interrupted/recovered, refunded and revoked transactions in official sandbox/test environments.
-- Test app reinstall/device-change behavior before marketing paid Diamonds as recoverable across devices.
+- Register the four consumables in App Store Connect and Google Play Console using the existing product IDs.
+- Configure the Apple root CA/App ID and Google service-account secrets only in the production server environment.
+- Set `PUFFLING_IAP_PROVIDER_MODE=apple_google` only after the credentials are confirmed.
+- Verify `/iap/status` remains `providerReady:false` before configuration and becomes true only after both stores are ready.
+- Test successful, cancelled, pending, duplicate, interrupted/recovered, consumed, refunded/revoked and network-loss cases in Apple's sandbox/TestFlight and Google Play license/Internal testing.
+- Confirm no client-only result can credit Diamonds when provider verification fails.
+- Finish durable wallet recovery/deletion policy before marketing paid balance as cross-device/reinstall recoverable.
 - Keep Mystery Box odds visible before Diamonds are spent.
 
-No real-money purchase should be reachable until the native bridge and server provider verifier are both ready. Paid Diamonds do not expire.
+No production real-money rollout should occur before these sandbox/internal-store tests pass. Paid Diamonds do not expire.
