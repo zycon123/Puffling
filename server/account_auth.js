@@ -9,11 +9,16 @@ module.exports=function createAccountAuth(opts={}){
   const issuer=String(opts.issuer||'puffling-race');
   const audience=String(opts.audience||'puffling-game');
   const ttlSeconds=Math.max(300,Math.min(86400,Number(opts.ttlSeconds||3600)));
+  const revokedAccounts=new Set();
   function enabled(){return secret.length>=32;}
   function sign(payload){return crypto.createHmac('sha256',secret).update(payload).digest('base64url');}
+  function revoke(accountId){const id=cleanAccountId(accountId);if(id)revokedAccounts.add(id);return !!id;}
+  function isRevoked(accountId){const id=cleanAccountId(accountId);return !!id&&revokedAccounts.has(id);}
+  function loadRevoked(accountIds=[]){for(const id of accountIds)revoke(id);return revokedAccounts.size;}
   function issue(accountId,extra={}){
     if(!enabled())throw new Error('auth_unavailable');
     const sub=cleanAccountId(accountId);if(!sub)throw new Error('invalid_account');
+    if(isRevoked(sub))throw new Error('account_deleted');
     const now=Math.floor(Date.now()/1000);
     const claims={...extra,sub,iss:issuer,aud:audience,iat:now,exp:now+ttlSeconds,sid:crypto.randomBytes(12).toString('base64url')};
     const body=b64url(JSON.stringify(claims));
@@ -26,9 +31,10 @@ module.exports=function createAccountAuth(opts={}){
     let claims;try{claims=JSON.parse(Buffer.from(parts[0],'base64url').toString('utf8'));}catch{return {ok:false,error:'invalid_token'};}
     const now=Math.floor(Date.now()/1000),accountId=cleanAccountId(claims.sub);
     if(!accountId||claims.iss!==issuer||claims.aud!==audience)return {ok:false,error:'invalid_claims'};
+    if(isRevoked(accountId))return {ok:false,error:'account_deleted'};
     if(!Number.isFinite(Number(claims.iat))||Number(claims.iat)>now+60)return {ok:false,error:'invalid_claims'};
     if(!Number.isFinite(Number(claims.exp))||Number(claims.exp)<=now)return {ok:false,error:'expired_token'};
     return {ok:true,accountId,claims};
   }
-  return {enabled,issue,verify,cleanAccountId,issuer,audience,ttlSeconds};
+  return {enabled,issue,verify,revoke,isRevoked,loadRevoked,cleanAccountId,issuer,audience,ttlSeconds};
 };

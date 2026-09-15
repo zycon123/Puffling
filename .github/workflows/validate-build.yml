@@ -59,5 +59,7 @@ jobs:
         run: node scripts/validate-100-pufflings.mjs
       - name: Validate 97 evolvable Orbuffs
         run: node scripts/validate-evolution.mjs
+      - name: Validate store compliance gates
+        run: node scripts/validate-store-compliance.mjs
       - name: Validate launch readiness
         run: node scripts/validate-launch-readiness.mjs
