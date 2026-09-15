@@ -174,7 +174,7 @@ Paste only the resulting base64 strings into GitHub Actions secrets.
 - Xcode major version is at least 26;
 - the iPhoneOS SDK major version is at least 26;
 - `assets/logo.svg` and `assets/logo-dark.svg` are present;
-- the provisioning profile Team ID equals `ORBUFF_APPLE_TEAM_ID`;
+- **Provisioning profile Team ID** equals `ORBUFF_APPLE_TEAM_ID`;
 - the profile entitlement is exactly `${ORBUFF_APPLE_TEAM_ID}.com.zyconstudios.orbuff`;
 - the exported app has bundle ID `com.zyconstudios.orbuff`;
 - app version is `5.27.107` and build is `107`;
