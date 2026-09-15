@@ -1,0 +1,193 @@
+name: Upload Orbuff iOS to TestFlight
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: 'Successful Validate Orbuff iOS Build run ID from current main that contains orbuff-ios-app-store-ipa'
+        required: true
+        type: string
+      confirm:
+        description: 'Type UPLOAD TESTFLIGHT to authorize external upload'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: orbuff-testflight-upload
+  cancel-in-progress: false
+
+jobs:
+  upload-testflight:
+    runs-on: macos-latest
+    env:
+      ORBUFF_ASC_APPLE_ID: ${{ secrets.ORBUFF_ASC_APPLE_ID }}
+      ORBUFF_ASC_KEY_ID: ${{ secrets.ORBUFF_ASC_KEY_ID }}
+      ORBUFF_ASC_ISSUER_ID: ${{ secrets.ORBUFF_ASC_ISSUER_ID }}
+      ORBUFF_ASC_PRIVATE_KEY: ${{ secrets.ORBUFF_ASC_PRIVATE_KEY }}
+    steps:
+      - name: Require explicit TestFlight confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.confirm }}" != 'UPLOAD TESTFLIGHT' ]; then
+            echo 'Upload blocked: confirmation must exactly equal UPLOAD TESTFLIGHT.'
+            exit 1
+          fi
+
+      - name: Validate App Store Connect secret set
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in ORBUFF_ASC_APPLE_ID ORBUFF_ASC_KEY_ID ORBUFF_ASC_ISSUER_ID ORBUFF_ASC_PRIVATE_KEY; do
+            if [ -z "${!name:-}" ]; then missing+=("$name"); fi
+          done
+          if [ "${#missing[@]}" -ne 0 ]; then
+            echo "TestFlight upload secrets are incomplete. Missing: ${missing[*]}"
+            exit 1
+          fi
+          if ! [[ "$ORBUFF_ASC_KEY_ID" =~ ^[A-Z0-9]{8,16}$ ]]; then
+            echo 'ORBUFF_ASC_KEY_ID has an unexpected format.'
+            exit 1
+          fi
+          if ! [[ "$ORBUFF_ASC_ISSUER_ID" =~ ^[0-9A-Fa-f-]{20,64}$ ]]; then
+            echo 'ORBUFF_ASC_ISSUER_ID has an unexpected format.'
+            exit 1
+          fi
+          if ! grep -q 'BEGIN PRIVATE KEY' <<< "$ORBUFF_ASC_PRIVATE_KEY"; then
+            echo 'ORBUFF_ASC_PRIVATE_KEY does not look like an App Store Connect .p8 private key.'
+            exit 1
+          fi
+          echo 'App Store Connect upload secret set is complete.'
+
+      - name: Validate source signed-build run
+        id: source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+        run: |
+          set -euo pipefail
+          if ! [[ "$SOURCE_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo 'source_run_id must be a numeric GitHub Actions run ID.'
+            exit 1
+          fi
+
+          run_json="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN_ID")"
+          workflow_path="$(jq -r '.path // ""' <<< "$run_json")"
+          head_branch="$(jq -r '.head_branch // ""' <<< "$run_json")"
+          head_sha="$(jq -r '.head_sha // ""' <<< "$run_json")"
+          conclusion="$(jq -r '.conclusion // ""' <<< "$run_json")"
+
+          if [ "$workflow_path" != '.github/workflows/build-ios-release.yml' ]; then
+            echo "Upload blocked: source run is not the Orbuff iOS build workflow ($workflow_path)."
+            exit 1
+          fi
+          if [ "$head_branch" != 'main' ] || [ "$conclusion" != 'success' ]; then
+            echo "Upload blocked: source run must be a successful main build. branch=$head_branch conclusion=$conclusion"
+            exit 1
+          fi
+
+          main_sha="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$head_sha" != "$main_sha" ]; then
+            echo "Upload blocked: signed IPA is not from current main. source=$head_sha current=$main_sha"
+            exit 1
+          fi
+
+          echo "head_sha=$head_sha" >> "$GITHUB_OUTPUT"
+          echo "Validated signed-build source run $SOURCE_RUN_ID at current main $head_sha."
+
+      - name: Download signed App Store IPA artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: orbuff-ios-app-store-ipa
+          path: ${{ runner.temp }}/orbuff-testflight
+          run-id: ${{ inputs.source_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Validate IPA identity before upload
+        id: ipa
+        shell: bash
+        run: |
+          set -euo pipefail
+          IPA="$(find "$RUNNER_TEMP/orbuff-testflight" -type f -name '*.ipa' -print -quit)"
+          if [ -z "$IPA" ]; then
+            echo 'Signed IPA artifact is missing.'
+            exit 1
+          fi
+
+          INSPECT="$RUNNER_TEMP/orbuff-ipa-inspect"
+          rm -rf "$INSPECT"
+          mkdir -p "$INSPECT"
+          unzip -q "$IPA" -d "$INSPECT"
+          APP="$(find "$INSPECT/Payload" -maxdepth 1 -type d -name '*.app' -print -quit)"
+          test -n "$APP"
+
+          bundle="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")"
+          version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Info.plist")"
+          build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP/Info.plist")"
+          test "$bundle" = 'com.zyconstudios.orbuff'
+          test "$version" = '5.27.107'
+          test "$build" = '107'
+          codesign --verify --deep --strict "$APP"
+
+          echo "ipa=$IPA" >> "$GITHUB_OUTPUT"
+          echo "Validated TestFlight IPA identity: $bundle $version ($build)."
+
+      - name: Install temporary App Store Connect API key
+        id: asc_key
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          KEY_DIR="$HOME/.appstoreconnect/private_keys"
+          KEY_PATH="$KEY_DIR/AuthKey_${ORBUFF_ASC_KEY_ID}.p8"
+          mkdir -p "$KEY_DIR"
+          printf '%s\n' "$ORBUFF_ASC_PRIVATE_KEY" > "$KEY_PATH"
+          chmod 600 "$KEY_PATH"
+          echo "key_path=$KEY_PATH" >> "$GITHUB_OUTPUT"
+          echo 'Temporary App Store Connect API key installed.'
+
+      - name: Validate IPA with App Store Connect
+        shell: bash
+        env:
+          IPA: ${{ steps.ipa.outputs.ipa }}
+        run: |
+          set -euo pipefail
+          xcrun altool --help >/dev/null
+          xcrun altool \
+            --validate-app \
+            --file "$IPA" \
+            --type ios \
+            --username "$ORBUFF_ASC_APPLE_ID" \
+            --apiKey "$ORBUFF_ASC_KEY_ID" \
+            --apiIssuer "$ORBUFF_ASC_ISSUER_ID"
+
+      - name: Upload IPA to App Store Connect / TestFlight
+        shell: bash
+        env:
+          IPA: ${{ steps.ipa.outputs.ipa }}
+        run: |
+          set -euo pipefail
+          xcrun altool \
+            --upload-app \
+            --file "$IPA" \
+            --type ios \
+            --username "$ORBUFF_ASC_APPLE_ID" \
+            --apiKey "$ORBUFF_ASC_KEY_ID" \
+            --apiIssuer "$ORBUFF_ASC_ISSUER_ID"
+          echo 'Orbuff IPA accepted for App Store Connect upload. Apple processing happens after upload.'
+
+      - name: Remove App Store Connect API key
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set +e
+          if [ -n "${ORBUFF_ASC_KEY_ID:-}" ]; then
+            rm -f "$HOME/.appstoreconnect/private_keys/AuthKey_${ORBUFF_ASC_KEY_ID}.p8"
+          fi
+          rm -rf "$RUNNER_TEMP/orbuff-ipa-inspect" "$RUNNER_TEMP/orbuff-testflight"
