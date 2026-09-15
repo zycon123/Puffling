@@ -11,10 +11,13 @@ const listing=read('docs/STORE_LISTING_COPY.md');
 const rating=read('docs/CONTENT_RATING_AUDIT.md');
 const assets=read('docs/STORE_ASSET_SPEC.md');
 const deviceChecklist=read('docs/PHYSICAL_DEVICE_RELEASE_CHECKLIST.md');
+const playUploadDoc=read('docs/PLAY_INTERNAL_UPLOAD_SETUP.md');
 const mystery=read('js/diamond_mystery_shop.js');
 const leaderboardClient=read('js/leaderboard_submit.js');
 const leaderboardStore=read('server/leaderboard_store.js');
 const androidWorkflow=read('.github/workflows/build-android-release.yml');
+const playUploadWorkflow=read('.github/workflows/upload-android-play-internal.yml');
+const playUploader=read('scripts/upload-google-play-internal.mjs');
 const iosWorkflow=read('.github/workflows/build-ios-release.yml');
 const testflightWorkflow=read('.github/workflows/upload-ios-testflight.yml');
 const iosSigningValidator=read('scripts/validate-ios-signing.mjs');
@@ -80,6 +83,18 @@ if(!androidWorkflow.includes('Android production signing is partially configured
 if(!androidWorkflow.includes('jarsigner -verify'))fail('Android signed bundle is not verified after signing');
 if(!signing.includes('assets/logo.svg')||!signing.includes('assets/logo-dark.svg'))fail('Signing guide must use canonical SVG native artwork');
 if(!process.exitCode)ok('Android production signing is documented and fail-closed in CI');
+
+for(const token of ['ORBUFF_PLAY_SERVICE_ACCOUNT_JSON','UPLOAD PLAY INTERNAL','orbuff-android-play-signed-aab','current `main`','ERROR_IF_IN_REVIEW','versionCode `107`']){
+  if(!playUploadDoc.includes(token))fail(`Play Internal setup doc is missing: ${token}`);
+}
+for(const token of ['workflow_dispatch','source_run_id','UPLOAD PLAY INTERNAL',"workflow_path\" != '.github/workflows/build-android-release.yml'",'orbuff-android-play-signed-aab','jarsigner -verify','Checkout uploader from signed-build commit','Reconfirm current main before external upload','ORBUFF_PLAY_SERVICE_ACCOUNT_JSON']){
+  if(!playUploadWorkflow.includes(token))fail(`Play Internal workflow is missing safety control: ${token}`);
+}
+if(/\bpush\s*:|\bpull_request\s*:/.test(playUploadWorkflow))fail('Play Internal upload workflow must not be triggerable by push or pull_request');
+for(const token of ['https://www.googleapis.com/auth/androidpublisher','/edits','uploadType=media','/tracks/internal',"status:'completed'",':validate','ERROR_IF_IN_REVIEW','EXPECTED_VERSION_CODE=\'107\'','method:\'DELETE\'']){
+  if(!playUploader.includes(token))fail(`Google Play uploader is missing API/safety control: ${token}`);
+}
+if(!process.exitCode)ok('Google Play Internal upload is explicit, current-main-only, signed-artifact-only and review-safe');
 
 const iosSecrets=['ORBUFF_IOS_DISTRIBUTION_CERT_BASE64','ORBUFF_IOS_CERT_PASSWORD','ORBUFF_IOS_PROVISIONING_PROFILE_BASE64','ORBUFF_APPLE_TEAM_ID'];
 for(const secret of iosSecrets){
