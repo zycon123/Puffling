@@ -28,7 +28,7 @@ async function submitOnlineScore(height){
    const r=await fetch(API_BASE+'/score',{
      method:'POST',
      headers,
-     body:JSON.stringify({name,height:Math.floor(height),runSignature:anti.signature,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'beta'})
+     body:JSON.stringify({height:Math.floor(height),runSignature:anti.signature,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'beta'})
    });
    if(!r.ok)throw new Error('HTTP '+r.status);
  }catch(e){
