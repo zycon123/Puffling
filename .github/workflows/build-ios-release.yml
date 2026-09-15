@@ -16,6 +16,7 @@ on:
       - 'scripts/apply-native-assets.mjs'
       - 'scripts/patch-native-purchases.mjs'
       - 'scripts/validate-native-iap-bridge.mjs'
+      - 'scripts/validate-ios-signing.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -34,6 +35,7 @@ on:
       - 'scripts/apply-native-assets.mjs'
       - 'scripts/patch-native-purchases.mjs'
       - 'scripts/validate-native-iap-bridge.mjs'
+      - 'scripts/validate-ios-signing.mjs'
       - 'index.html'
       - 'style.css'
       - 'game.js'
@@ -43,6 +45,12 @@ on:
 
 permissions:
   contents: read
+
+env:
+  ORBUFF_IOS_DISTRIBUTION_CERT_BASE64: ${{ secrets.ORBUFF_IOS_DISTRIBUTION_CERT_BASE64 }}
+  ORBUFF_IOS_CERT_PASSWORD: ${{ secrets.ORBUFF_IOS_CERT_PASSWORD }}
+  ORBUFF_IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.ORBUFF_IOS_PROVISIONING_PROFILE_BASE64 }}
+  ORBUFF_APPLE_TEAM_ID: ${{ secrets.ORBUFF_APPLE_TEAM_ID }}
 
 jobs:
   validate-ios:
@@ -65,6 +73,25 @@ jobs:
       - name: Validate mobile web bundle
         run: npm run mobile:validate
 
+      - name: Validate Apple toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          major="$(xcodebuild -version | awk '/^Xcode /{split($2,v,"."); print v[1]}')"
+          test -n "$major"
+          if [ "$major" -lt 26 ]; then
+            echo "App Store Connect requires Orbuff iOS uploads to be built with Xcode 26 or later."
+            exit 1
+          fi
+          sdk="$(xcrun --sdk iphoneos --show-sdk-version)"
+          sdk_major="${sdk%%.*}"
+          if [ "$sdk_major" -lt 26 ]; then
+            echo "Orbuff App Store builds require the iOS 26 SDK or later. Found: $sdk"
+            exit 1
+          fi
+          echo "Apple store toolchain ready: Xcode major=$major, iOS SDK=$sdk"
+
       - name: Generate iOS project
         run: npx cap add ios
 
@@ -77,6 +104,9 @@ jobs:
       - name: Apply native release version
         run: npm run mobile:configure:ios
 
+      - name: Validate production signing secret set
+        run: node scripts/validate-ios-signing.mjs
+
       - name: Build iOS simulator app without signing
         shell: bash
         run: |
@@ -86,3 +116,135 @@ jobs:
           else
             xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug -sdk iphonesimulator CODE_SIGNING_ALLOWED=NO build
           fi
+
+      - name: Install App Store signing certificate and profile
+        id: ios_signing
+        if: ${{ env.ORBUFF_IOS_DISTRIBUTION_CERT_BASE64 != '' && env.ORBUFF_IOS_CERT_PASSWORD != '' && env.ORBUFF_IOS_PROVISIONING_PROFILE_BASE64 != '' && env.ORBUFF_APPLE_TEAM_ID != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          CERT_PATH="$RUNNER_TEMP/orbuff-distribution.p12"
+          PROFILE_PATH="$RUNNER_TEMP/orbuff.mobileprovision"
+          PROFILE_PLIST="$RUNNER_TEMP/orbuff-profile.plist"
+          KEYCHAIN_PATH="$RUNNER_TEMP/orbuff-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -hex 24)"
+
+          printf '%s' "$ORBUFF_IOS_DISTRIBUTION_CERT_BASE64" | base64 -D > "$CERT_PATH"
+          printf '%s' "$ORBUFF_IOS_PROVISIONING_PROFILE_BASE64" | base64 -D > "$PROFILE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERT_PATH" -P "$ORBUFF_IOS_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+
+          security cms -D -i "$PROFILE_PATH" > "$PROFILE_PLIST"
+          PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_PLIST")"
+          PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_PLIST")"
+          PROFILE_TEAM="$(/usr/libexec/PlistBuddy -c 'Print :TeamIdentifier:0' "$PROFILE_PLIST")"
+          APP_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :Entitlements:application-identifier' "$PROFILE_PLIST")"
+
+          if [ "$PROFILE_TEAM" != "$ORBUFF_APPLE_TEAM_ID" ]; then
+            echo "Provisioning profile Team ID does not match ORBUFF_APPLE_TEAM_ID."
+            exit 1
+          fi
+          if [ "$APP_IDENTIFIER" != "$ORBUFF_APPLE_TEAM_ID.com.zyconstudios.orbuff" ]; then
+            echo "Provisioning profile is not for com.zyconstudios.orbuff."
+            exit 1
+          fi
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          cp "$PROFILE_PATH" "$HOME/Library/MobileDevice/Provisioning Profiles/$PROFILE_UUID.mobileprovision"
+
+          echo "profile_name=$PROFILE_NAME" >> "$GITHUB_OUTPUT"
+          echo "profile_uuid=$PROFILE_UUID" >> "$GITHUB_OUTPUT"
+          echo "keychain_path=$KEYCHAIN_PATH" >> "$GITHUB_OUTPUT"
+          echo "Production App Store signing material validated and installed."
+
+      - name: Create signed App Store archive and IPA
+        if: ${{ env.ORBUFF_IOS_DISTRIBUTION_CERT_BASE64 != '' && env.ORBUFF_IOS_CERT_PASSWORD != '' && env.ORBUFF_IOS_PROVISIONING_PROFILE_BASE64 != '' && env.ORBUFF_APPLE_TEAM_ID != '' }}
+        shell: bash
+        env:
+          PROFILE_NAME: ${{ steps.ios_signing.outputs.profile_name }}
+        run: |
+          set -euo pipefail
+          ARCHIVE_PATH="$RUNNER_TEMP/Orbuff.xcarchive"
+          EXPORT_PATH="$RUNNER_TEMP/orbuff-export"
+          EXPORT_OPTIONS="$RUNNER_TEMP/ExportOptions.plist"
+
+          if [ -d ios/App/App.xcworkspace ]; then
+            XCODE_CONTAINER=(-workspace ios/App/App.xcworkspace)
+          else
+            XCODE_CONTAINER=(-project ios/App/App.xcodeproj)
+          fi
+
+          xcodebuild "${XCODE_CONTAINER[@]}" \
+            -scheme App \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$ARCHIVE_PATH" \
+            DEVELOPMENT_TEAM="$ORBUFF_APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY='Apple Distribution' \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
+            archive
+
+          cat > "$EXPORT_OPTIONS" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>teamID</key><string>${ORBUFF_APPLE_TEAM_ID}</string>
+            <key>stripSwiftSymbols</key><true/>
+            <key>uploadSymbols</key><true/>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.zyconstudios.orbuff</key><string>${PROFILE_NAME}</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportPath "$EXPORT_PATH" \
+            -exportOptionsPlist "$EXPORT_OPTIONS"
+
+          IPA="$(find "$EXPORT_PATH" -maxdepth 1 -type f -name '*.ipa' | head -n 1)"
+          test -n "$IPA"
+          cp "$IPA" "$RUNNER_TEMP/orbuff-5.27.107-107-app-store.ipa"
+
+          APP_PATH="$ARCHIVE_PATH/Products/Applications/App.app"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")" = 'com.zyconstudios.orbuff'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Info.plist")" = '5.27.107'
+          test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$APP_PATH/Info.plist")" = '107'
+          codesign --verify --deep --strict "$APP_PATH"
+          echo "Signed Orbuff App Store archive and IPA verified."
+
+      - name: Upload signed App Store IPA
+        if: ${{ env.ORBUFF_IOS_DISTRIBUTION_CERT_BASE64 != '' && env.ORBUFF_IOS_CERT_PASSWORD != '' && env.ORBUFF_IOS_PROVISIONING_PROFILE_BASE64 != '' && env.ORBUFF_APPLE_TEAM_ID != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbuff-ios-app-store-ipa
+          path: ${{ runner.temp }}/orbuff-5.27.107-107-app-store.ipa
+          if-no-files-found: error
+
+      - name: Upload signed iOS archive
+        if: ${{ env.ORBUFF_IOS_DISTRIBUTION_CERT_BASE64 != '' && env.ORBUFF_IOS_CERT_PASSWORD != '' && env.ORBUFF_IOS_PROVISIONING_PROFILE_BASE64 != '' && env.ORBUFF_APPLE_TEAM_ID != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbuff-ios-app-store-xcarchive
+          path: ${{ runner.temp }}/Orbuff.xcarchive
+          if-no-files-found: error
+
+      - name: Cleanup iOS signing material
+        if: ${{ always() && env.ORBUFF_IOS_DISTRIBUTION_CERT_BASE64 != '' && env.ORBUFF_IOS_CERT_PASSWORD != '' && env.ORBUFF_IOS_PROVISIONING_PROFILE_BASE64 != '' && env.ORBUFF_APPLE_TEAM_ID != '' }}
+        shell: bash
+        run: |
+          set +e
+          security delete-keychain "$RUNNER_TEMP/orbuff-signing.keychain-db"
+          rm -f "$RUNNER_TEMP/orbuff-distribution.p12" "$RUNNER_TEMP/orbuff.mobileprovision" "$RUNNER_TEMP/orbuff-profile.plist" "$RUNNER_TEMP/ExportOptions.plist"
