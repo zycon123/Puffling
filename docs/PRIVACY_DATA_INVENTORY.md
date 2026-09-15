@@ -21,7 +21,9 @@ The leaderboard client can submit a cleaned player display name, height/score, r
 
 Purpose: public/competitive leaderboard functionality and anti-cheat validation.
 
-The current leaderboard schema does not store the guest account ID, so leaderboard rows cannot currently be identified by guest account ID during account deletion. Before production submission, document public visibility, the 180-day score retention behavior and a separate removal/contact route for display-name leaderboard entries.
+New submissions now attach the signed guest account token when one is available. The server verifies that token and stores the authenticated guest account ID with the score row. Those account-linked rows are removed automatically when that guest account is deleted.
+
+Older leaderboard rows created before this linkage may not contain an account ID. The public deletion page therefore also provides a support route for requesting removal by display name. Leaderboard presentation uses a 180-day recent-results window and the backend periodically removes older score rows.
 
 ### 3. Pseudonymous guest account identity
 
@@ -29,7 +31,7 @@ The backend creates guest accounts using a randomly generated account ID and iss
 
 Purpose: account/session authentication, multiplayer integrity, inventory ownership, trade protection and ranked progression.
 
-Orbuff now exposes an in-app **Delete guest account** control under System & Support in every selectable language. The request requires the signed bearer token and explicit destructive confirmation.
+Orbuff exposes an in-app **Delete guest account** control under System & Support in every selectable language. The request requires the signed bearer token and explicit destructive confirmation.
 
 On successful deletion the server removes account-linked rows from:
 
@@ -37,7 +39,8 @@ On successful deletion the server removes account-linked rows from:
 - authoritative Orbuff inventory and inventory migration state,
 - trade records involving the account,
 - acquisition/reward grants,
-- boss combat sessions.
+- boss combat sessions,
+- leaderboard score rows that contain the authenticated guest account ID.
 
 The server then writes a persistent deleted-account tombstone. Deleted IDs are loaded into authentication revocation on server startup, and the just-deleted token is rejected immediately. The client removes the stored account token/ID and restarts after success.
 
@@ -49,7 +52,7 @@ Server-authoritative Race/Trade systems can process identifiers and gameplay sta
 
 Purpose: multiplayer gameplay, matchmaking/ranking, fraud/cheat prevention and inventory integrity.
 
-Account-linked ranked, trade and inventory records are now covered by the authenticated guest-account deletion route. Production retention periods for records that are not deleted by the user still need to be documented.
+Account-linked ranked, trade and inventory records are covered by the authenticated guest-account deletion route. Production retention periods for records that are not deleted by the user still need to be documented.
 
 ### 5. Authoritative inventory/progression
 
@@ -71,6 +74,15 @@ Important deletion boundary: the current Diamond wallet ID is not reliably mappe
 
 Do not claim the app collects full payment-card details; Apple/Google store billing should handle payment credentials rather than Orbuff.
 
+## Public privacy/deletion resources
+
+The release branch publishes:
+
+- Privacy Policy: `https://zycon123.github.io/Puffling/privacy.html`
+- Account deletion / privacy choices: `https://zycon123.github.io/Puffling/delete-account.html`
+
+Both are linked from System & Support inside Orbuff. The app also exposes a copyable guest Account ID so support requests can be matched more safely. These URLs become live production resources after the privacy branch is merged and GitHub Pages deploys `main`.
+
 ## Data not found in the current repository audit
 
 No dedicated analytics SDK or advertising SDK was identified by the 2026-09-15 repository search. No code was identified that intentionally collects precise location, contacts, photos, microphone data, health data or advertising identifiers.
@@ -82,6 +94,7 @@ This finding must be re-checked after adding native plugins, billing SDKs, crash
 - Account access uses signed bearer tokens rather than trusting a client-supplied account ID for protected systems.
 - Deleted guest IDs are persistently tombstoned and loaded into token revocation at server startup.
 - Race/Trade protections use authenticated account identity and server-authoritative inventory/results.
+- Authenticated leaderboard submissions can now be tied to the guest account for later deletion.
 - Paid Diamonds remain blocked unless the server reports the provider verifier ready.
 - Purchase verification must validate platform, product and transaction identifiers and reject invalid/revoked/refunded outcomes before granting currency.
 
@@ -91,9 +104,9 @@ The final Apple/Google answers should be based on the production build and backe
 
 | Data/category | Current use | Collected off-device? | Launch review |
 | --- | --- | --- | --- |
-| Player display name | Leaderboard | Yes, when submitted | Public visibility + separate removal route |
-| Gameplay score/height | Leaderboard | Yes, when submitted | 180-day behavior + leaderboard purpose |
-| Pseudonymous guest account ID | Auth/multiplayer | Yes | In-app deletion implemented |
+| Player display name | Leaderboard | Yes, when submitted | Public visibility; linked rows deleted with account, legacy rows support-removable |
+| Gameplay score/height | Leaderboard | Yes, when submitted | 180-day presentation window + leaderboard purpose |
+| Pseudonymous guest account ID | Auth/multiplayer/linked leaderboard | Yes | In-app + external deletion routes implemented |
 | Auth token | Session security | Sent to backend | Secure storage/expiry; revoked after deletion |
 | Ranked results/profile | Competitive multiplayer | Yes | Deleted with guest account |
 | Inventory/Orbuff ownership | Multiplayer/trade integrity | Yes where authoritative sync is enabled | Deleted with guest account |
@@ -105,16 +118,14 @@ The final Apple/Google answers should be based on the production build and backe
 
 ## Must be decided before production submission
 
-1. Public privacy-policy URL and publisher/contact identity.
-2. Minimum player age / target audience and whether children are in scope.
-3. Retention periods for server records when the player does not request deletion.
-4. Separate leaderboard display-name removal/contact process.
-5. Exact production retention and deletion/legal-retention policy for wallet/IAP records before real-money purchases are enabled.
-6. Production hosting request/log retention.
-7. Whether crash reporting, analytics, ads, notifications or other SDKs will be added.
-8. Whether native OS/cloud backup can copy local save data off-device.
-9. Final Apple App Privacy and Google Play Data safety answers after the signed production build is frozen.
+1. Minimum player age / target audience and whether children are in scope.
+2. Retention periods for server records when the player does not request deletion.
+3. Exact production retention and deletion/legal-retention policy for wallet/IAP records before real-money purchases are enabled.
+4. Production hosting request/log retention.
+5. Whether crash reporting, analytics, ads, notifications or other SDKs will be added.
+6. Whether native OS/cloud backup can copy local save data off-device.
+7. Final Apple App Privacy and Google Play Data safety answers after the signed production build is frozen.
 
 ## Release rule
 
-Do not copy this file verbatim into the public privacy policy. First freeze the production SDK list, hosting/logging configuration, billing integration, retention periods and support/removal process; then generate the public policy and store disclosures from that verified state.
+Do not copy this file verbatim into the public privacy policy. Freeze the production SDK list, hosting/logging configuration, billing integration, retention periods and support/removal process before final store submission, then ensure the public policy and store disclosures match the production build.
