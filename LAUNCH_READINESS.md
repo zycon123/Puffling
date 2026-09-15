@@ -29,11 +29,21 @@ The native pipeline:
 
 See `docs/MOBILE_RELEASE_SETUP.md` for native commands and release prerequisites.
 
-## Store-account compliance state
+## Store-account and privacy compliance state
 
-Guest accounts now have an authenticated in-app deletion flow under System & Support in every selectable language. Successful deletion removes account-linked ranked, authoritative inventory, trade, boss-session and acquisition/reward data; writes a persistent deleted-account tombstone; revokes the deleted identity immediately; and reloads deleted IDs into revocation after server restart.
+Guest accounts have an authenticated in-app deletion flow under System & Support in every selectable language. Successful deletion removes account-linked ranked, authoritative inventory, trade, boss-session, acquisition/reward and newly authenticated leaderboard data; writes a persistent deleted-account tombstone; revokes the deleted identity immediately; and reloads deleted IDs into revocation after server restart.
 
-Local gameplay progress remains on-device and is explicitly described as not being removed by guest-account deletion. Leaderboard display-name rows are not currently linked to guest account IDs and therefore still need a separate public removal/contact process.
+New leaderboard submissions use the signed guest identity when available so those score rows can be removed with the guest account. Older leaderboard rows that were submitted before account linkage may still require display-name support removal.
+
+The launch privacy work also provides:
+
+- Public Privacy Policy: `https://zycon123.github.io/Puffling/privacy.html`
+- Public account deletion / privacy choices page: `https://zycon123.github.io/Puffling/delete-account.html`
+- In-app links to both resources under System & Support.
+- A copyable guest Account ID to make support/deletion requests easier to match safely.
+- A direct external deletion-request route that does not require reinstalling the app.
+
+These URLs become production-ready after this privacy branch is merged and the GitHub Pages deployment for `main` completes successfully.
 
 ## Public launch gates still open
 
@@ -44,8 +54,10 @@ These gates must be completed before claiming a fully production-ready App Store
 3. **Durable paid wallet recovery/deletion policy:** Ensure paid balance recovers safely after reinstall/device changes and finalize how the separate wallet/transaction records map to account deletion and legally required purchase retention before enabling real-money purchases.
 4. **Signed store packages:** Configure the owner's Android upload key and Apple Developer signing/team, then produce signed release builds.
 5. **Store assets:** Add a production app icon, splash assets and final phone/tablet screenshots.
-6. **Privacy/compliance publication:** Publish the privacy-policy URL, finish App Store privacy details and Google Play Data safety, document retention periods and leaderboard-removal contact flow, and complete age/content/target-audience declarations.
-7. **Physical-device E2E:** Test production networking on real iPhone and Android hardware, including startup, save recovery, Boss Rush, Quick/Friend Race, Trade, account deletion, network interruption and — once enabled — purchase/restore/recovery paths.
+6. **Store-form completion:** Enter the published privacy/deletion URLs in App Store Connect and Play Console, finish App Privacy/Data safety answers, document final production retention periods, and complete age/content/target-audience declarations.
+7. **Physical-device E2E:** Test production networking on real iPhone and Android hardware, including startup, save recovery, Boss Rush, Quick/Friend Race, Trade, leaderboard account linkage, account deletion, network interruption and — once enabled — purchase/restore/recovery paths.
 8. **Pre-production distribution:** Complete TestFlight and Google Play Internal testing before production rollout.
+
+See `docs/STORE_SUBMISSION_METADATA.md` for the ready-to-copy identifiers, URLs and remaining store fields.
 
 The web beta can remain live while these native-only/public-store gates are completed.
