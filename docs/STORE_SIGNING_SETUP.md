@@ -215,17 +215,35 @@ In Xcode:
 
 Apple can automatically manage the distribution provisioning profile in Xcode, but the repository CI deliberately uses an explicit App Store provisioning profile so the automated archive is deterministic and fail-closed.
 
-## Optional future TestFlight upload automation
+## Explicit TestFlight upload workflow
 
-The current CI stops after producing and validating the signed IPA. This avoids uploading builds merely because signing secrets exist.
+`.github/workflows/upload-ios-testflight.yml` is **workflow_dispatch only**. Normal pushes and pull requests cannot upload a build to Apple.
 
-If explicit TestFlight upload automation is added later, use a separate manually-triggered workflow and App Store Connect API-key secrets such as:
+The upload workflow requires these additional GitHub Actions secrets:
 
-- `ORBUFF_ASC_KEY_ID`
-- `ORBUFF_ASC_ISSUER_ID`
-- `ORBUFF_ASC_PRIVATE_KEY`
+- `ORBUFF_ASC_APPLE_ID` — Apple Account used by `altool` with the App Store Connect API key.
+- `ORBUFF_ASC_KEY_ID` — App Store Connect API key ID.
+- `ORBUFF_ASC_ISSUER_ID` — App Store Connect API issuer ID.
+- `ORBUFF_ASC_PRIVATE_KEY` — complete `.p8` App Store Connect API private key, stored as a multiline GitHub secret.
 
-Do not make every branch/PR build upload to App Store Connect.
+Apple documents App Store Connect API keys/JWTs for automated uploads, and `altool` can authenticate using the API key ID and issuer while locating the matching `AuthKey_<KEY_ID>.p8` file in its private-key search path.
+
+The workflow deliberately separates **signing** from **uploading**:
+
+1. From reviewed current `main`, manually run **Validate Orbuff iOS Build** after all four iOS signing secrets are configured.
+2. Confirm that run succeeds and contains artifact `orbuff-ios-app-store-ipa`.
+3. Copy that GitHub Actions run ID.
+4. Manually run **Upload Orbuff iOS to TestFlight**.
+5. Enter the signed-build run ID as `source_run_id`.
+6. Type exactly `UPLOAD TESTFLIGHT` in the confirmation input.
+7. The workflow rejects a source run unless it came from `.github/workflows/build-ios-release.yml`, succeeded on `main`, and its commit is still the current `main` commit.
+8. It downloads only `orbuff-ios-app-store-ipa`, unpacks it and re-checks bundle ID `com.zyconstudios.orbuff`, version `5.27.107`, build `107`, and code signature.
+9. It writes the `.p8` key only to the runner's temporary App Store Connect key path, validates the IPA with Apple, then uploads it with `xcrun altool`.
+10. The private key and temporary IPA extraction are removed in an `always()` cleanup step.
+
+A successful upload means Apple accepted the binary transfer. App Store Connect processing still occurs afterward before the build becomes visible/usable in TestFlight.
+
+The App Store Connect API key should have only the role/permissions needed for Orbuff build upload/TestFlight operations. Revoke and replace the key immediately if the private key is ever exposed.
 
 ---
 
@@ -235,6 +253,7 @@ Do not make every branch/PR build upload to App Store Connect.
 - Never commit the Android `.jks`, Apple `.p12`, provisioning profile, certificate private key, or App Store Connect private key.
 - Never include plaintext passwords in workflow YAML.
 - Never production-sign a native build that still uses Capacitor/default artwork.
+- Never make normal push/PR workflows upload builds to App Store Connect.
 - Keep encrypted backups of production signing credentials under the owner's control.
 - Build production releases from a clean, reviewed `main` commit.
 - Verify package/bundle ID, version and build before upload.

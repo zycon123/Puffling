@@ -16,6 +16,7 @@ const leaderboardClient=read('js/leaderboard_submit.js');
 const leaderboardStore=read('server/leaderboard_store.js');
 const androidWorkflow=read('.github/workflows/build-android-release.yml');
 const iosWorkflow=read('.github/workflows/build-ios-release.yml');
+const testflightWorkflow=read('.github/workflows/upload-ios-testflight.yml');
 const iosSigningValidator=read('scripts/validate-ios-signing.mjs');
 const release=JSON.parse(read('release.config.json'));
 
@@ -95,11 +96,18 @@ for(const token of ['Validate Apple toolchain','Validate production signing secr
 if(!iosSigningValidator.includes('partially configured'))fail('iOS signing validator does not fail closed on partial secret configuration');
 if(!process.exitCode)ok('iOS App Store archive/IPA signing is documented and fail-closed in CI');
 
-for(const futureUploadKey of ['ORBUFF_ASC_KEY_ID','ORBUFF_ASC_ISSUER_ID','ORBUFF_ASC_PRIVATE_KEY']){
-  if(!signing.includes(futureUploadKey))fail(`Signing guide is missing future explicit TestFlight upload key: ${futureUploadKey}`);
+const testflightSecrets=['ORBUFF_ASC_APPLE_ID','ORBUFF_ASC_KEY_ID','ORBUFF_ASC_ISSUER_ID','ORBUFF_ASC_PRIVATE_KEY'];
+for(const secret of testflightSecrets){
+  if(!signing.includes(secret))fail(`Signing guide is missing TestFlight upload secret: ${secret}`);
+  if(!testflightWorkflow.includes(secret))fail(`TestFlight workflow is missing secret: ${secret}`);
 }
+for(const token of ['workflow_dispatch','source_run_id','UPLOAD TESTFLIGHT',"workflow_path\" != '.github/workflows/build-ios-release.yml'",'head_branch','current main','orbuff-ios-app-store-ipa','CFBundleIdentifier','codesign --verify --deep --strict','--validate-app','--upload-app','--apiKey','--apiIssuer','Remove App Store Connect API key']){
+  if(!testflightWorkflow.includes(token))fail(`TestFlight upload workflow is missing safety control: ${token}`);
+}
+if(/\bpush\s*:|\bpull_request\s*:/.test(testflightWorkflow))fail('TestFlight upload workflow must not be triggerable by push or pull_request');
+if(!signing.includes('workflow_dispatch only')||!signing.includes('current `main`'))fail('Signing guide must document the explicit current-main TestFlight upload gate');
 if(!signing.includes('Product → Archive')||!signing.includes('TestFlight'))fail('iOS local signing/TestFlight path is incomplete');
-if(!process.exitCode)ok('Manual and future explicit TestFlight upload paths are documented');
+if(!process.exitCode)ok('TestFlight upload is explicit, current-main-only, API-key authenticated and not reachable from push/PR');
 
 if(process.exitCode)process.exit(process.exitCode);
 console.log('Orbuff store submission documentation validation passed.');
