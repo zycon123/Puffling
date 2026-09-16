@@ -71,5 +71,7 @@ jobs:
         run: node scripts/validate-native-assets-pipeline.mjs
       - name: Validate generated store graphics
         run: node scripts/validate-store-assets.mjs
+      - name: Validate Render production security contract
+        run: node scripts/validate-render-blueprint.mjs
       - name: Validate launch readiness
         run: node scripts/validate-launch-readiness.mjs

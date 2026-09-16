@@ -8,6 +8,8 @@ The automated gameplay and backend suites cover the joined progression journey, 
 
 Multiplayer hardening requires signed account identity for Quick/Friend Race, prevents the same account from filling both Race slots, locks the selected Orbuff at ready time, verifies ownership against authoritative server inventory where available and canonicalizes Race attacks server-side.
 
+The production Render service was verified on 2026-09-15 with `raceAuth:true`, `rankAuth:true`, authoritative inventory/rank stores ready, account deletion/recovery ready and IAP still fail-closed. `render.yaml` declares database, account-auth and wallet secrets as external `sync: false` values and uses the checks-pass deploy gate; CI prevents this contract from regressing.
+
 ## Native mobile release state
 
 The Capacitor 8 native release foundation is merged into `main` with app ID `com.zyconstudios.orbuff`.
