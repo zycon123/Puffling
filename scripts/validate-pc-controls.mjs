@@ -25,6 +25,7 @@ function harness(saved=null,{storageFails=false}={}){
     dispatchEvent(e){for(const fn of events.get(e.type)||[])fn(e)},
     doBoost(){ctx.boosts=(ctx.boosts||0)+1},pauseGame(){ctx.paused=true},resumeGame(){ctx.paused=false},
     OrbuffPcSettings:{isOpen:()=>settings,close:()=>{settings=false},refresh(){}},
+    SkyPuffRaceUI:{useAttack(){ctx.attacks=(ctx.attacks||0)+1}},
   };
   ctx.window=ctx;
   ctx.document={hidden:false,activeElement:null,head:{appendChild(el){elements.set(el.id,el)}},
@@ -50,6 +51,7 @@ h.key('keydown','KeyJ');h.frame();assert.ok(ctx.pointerX<ctx.player.x,'rebound m
 h.key('keyup','KeyJ');h.frame();assert.equal(ctx.pointerX,ctx.player.x,'release stops movement');
 h.key('keydown','KeyA');h.frame();assert.equal(ctx.pointerX,ctx.player.x,'old binding no longer moves');
 h.key('keydown','KeyK');h.key('keydown','KeyK',{repeat:true});assert.equal(ctx.boosts,1,'held boost fires once');
+h.key('keydown','KeyE');h.key('keydown','KeyE',{repeat:true});assert.equal(ctx.attacks,1,'E attacks once, ignores held repeat');
 h.key('keydown','KeyP');assert.equal(ctx.paused,true);
 h.settings(true);h.key('keydown','Escape');assert.equal(h.isOpen(),false);assert.equal(ctx.paused,true,'close settings never resumes game');
 c.beginCapture('right',0);h.key('keydown','Space');assert.equal(c.captureActive(),true,'conflict keeps capture open');
@@ -57,6 +59,18 @@ h.key('keydown','KeyL');assert.equal(c.captureActive(),false);assert.equal(c.sna
 c.beginCapture('boost',0);h.key('keydown','Escape');assert.equal(c.captureActive(),false);assert.equal(ctx.paused,true,'cancel never resumes');
 const restored=harness(h.storage.get('orbuffPcControlsV1'));assert.equal(restored.controls.bindingLabel('right'),'L / →');
 for(const saved of ['{','null',JSON.stringify({version:2}),JSON.stringify({version:1,keys:{left:['KeyA'],right:['KeyA'],boost:['Space'],pause:['KeyP']}})])assert.equal(harness(saved).controls.bindingLabel('left'),'A / ←','invalid storage falls back safely');
+{
+ // Saved configs from before "Attack" existed must not be wiped back to full
+ // defaults -- only the missing action should be filled in.
+ const legacy=harness(JSON.stringify({version:1,keys:{left:['KeyJ'],right:['KeyL'],boost:['Space'],pause:['KeyP']}}));
+ assert.equal(legacy.controls.bindingLabel('left'),'J','pre-existing custom rebind survives an unrelated new action');
+ assert.equal(legacy.controls.bindingLabel('attack'),'E','missing action gets its default key filled in');
+ // If the player's old custom layout happens to already use the new action's
+ // default key elsewhere, the new action must not silently double-bind it.
+ const clash=harness(JSON.stringify({version:1,keys:{left:['KeyA'],right:['KeyD'],boost:['KeyE'],pause:['KeyP']}}));
+ assert.equal(clash.controls.bindingLabel('boost'),'E','existing custom binding of the default attack key is preserved');
+ assert.equal(clash.controls.snapshot().keys.attack.length,0,'attack is left unbound rather than colliding with boost');
+}
 assert.equal(harness(null,{storageFails:true}).controls.bindKey('left',0,'KeyJ').saved,false,'storage failure is surfaced');
 c.resetControls();assert.equal(c.bindingLabel('left'),'A / ←');
 const pad={id:'Xbox',index:0,mapping:'standard',connected:true,axes:[0,0],buttons:Array.from({length:16},()=>({pressed:false}))};

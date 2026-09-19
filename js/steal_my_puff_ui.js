@@ -92,7 +92,7 @@
     const secs=s.finishedAt&&s.startedAt?((s.finishedAt-s.startedAt)/1000).toFixed(1):'—';
     document.getElementById('raceResultBody').innerHTML=`Time: <b>${secs}s</b><br>You: <b>${Math.floor(s.youHeight||0)}m</b> · Ghost: <b>${Math.floor(s.rivalHeight||0)}m</b><br>Attacks used: <b>${s.attacksUsed||0}/${window.SkyPuffRace?.MAX_ATTACKS||3}</b> · Falls: <b>${s.falls||0}</b>`;
   }
-  window.SkyPuffRaceUI={ensure,show,hide,render,showResult,hideResult,liveHudHeights,hideLegacyHud};
+  window.SkyPuffRaceUI={ensure,show,hide,render,showResult,hideResult,liveHudHeights,hideLegacyHud,useAttack};
   window.SkyPuffStealUI={show:()=>{}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensure);else ensure();
 })();
