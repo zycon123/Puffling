@@ -86,7 +86,9 @@ function run(context,relativePath){
  if(ai.repairs!==0||localStorage.getItem('skyPuffAutoRepairLog')!==null)fail('Legacy false repair count was not cleared');
  ai.runCheck();if(restored!==0||ai.repairs!==0)fail('Visible dynamic overlay was incorrectly replaced by main menu');
  otherOverlay.style.display='none';ai.runCheck();if(restored!==1||ai.repairs!==1)fail('Missing-menu recovery no longer works');
- ok('AI diagnostics dynamic overlay detection and legacy log migration');
+ context.multiplayerMode=true;ai.runCheck();if(restored!==1||ai.repairs!==1)fail('Connecting/waiting multiplayer race was incorrectly kicked back to the main menu');
+ context.multiplayerMode=false;ai.runCheck();if(restored!==2||ai.repairs!==2)fail('Missing-menu recovery stopped working after a multiplayer race ended');
+ ok('AI diagnostics dynamic overlay detection, legacy log migration and multiplayer-in-progress guard');
 }
 
 {
