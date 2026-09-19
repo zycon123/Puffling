@@ -1,4 +1,4 @@
-/* Orbuff — desktop keyboard/gamepad controls v1.0 */
+/* Orbuff — desktop keyboard/gamepad controls v1.1 */
 (function(){
   const DEADZONE=.22;
   const DRIVE_DISTANCE=260;
@@ -10,15 +10,28 @@
   let lastAxisNav=0;
 
   const COPY={
-    no:'PC: A/D eller ←/→ • Space: Rainbow Boost • Esc/P: Pause',
-    en:'PC: A/D or ←/→ • Space: Rainbow Boost • Esc/P: Pause',
-    de:'PC: A/D oder ←/→ • Leertaste: Rainbow Boost • Esc/P: Pause',
-    es:'PC: A/D o ←/→ • Espacio: Rainbow Boost • Esc/P: Pausa',
-    fr:'PC : A/D ou ←/→ • Espace : Rainbow Boost • Esc/P : Pause'
+    no:{or:'eller',boost:'Rainbow Boost',pause:'Pause'},
+    en:{or:'or',boost:'Rainbow Boost',pause:'Pause'},
+    de:{or:'oder',boost:'Rainbow Boost',pause:'Pause'},
+    es:{or:'o',boost:'Rainbow Boost',pause:'Pausa'},
+    fr:{or:'ou',boost:'Rainbow Boost',pause:'Pause'}
   };
 
+  function settings(){return window.OrbuffControlSettings||null}
   function currentLanguage(){
     try{return typeof lang==='string'?lang:(localStorage.getItem('skyPuffLang')||'en')}catch(e){return 'en'}
+  }
+  function keyMatches(action,code){
+    const s=settings();
+    if(s?.keyMatches)return s.keyMatches(action,code);
+    const defaults={left:'KeyA',right:'KeyD',boost:'Space',pause:'KeyP'};
+    return defaults[action]===code;
+  }
+  function keyLabel(action,fallback){
+    try{return settings()?.keyLabel?.(action)||fallback}catch(e){return fallback}
+  }
+  function padButton(action,fallback){
+    try{const n=settings()?.gamepad?.(action);return Number.isInteger(n)?n:fallback}catch(e){return fallback}
   }
   function editableTarget(target){
     if(!target)return false;
@@ -79,6 +92,8 @@
     if(gameplayActive()){
       try{pauseGame();return}catch(e){}
     }
+    const controlsMenu=document.getElementById('orbuffControlsMenu');
+    if(isVisible(controlsMenu)&&window.OrbuffControlSettings?.close){window.OrbuffControlSettings.close();return;}
     const hub=document.getElementById('spMenuHub');
     if(isVisible(hub)&&window.SkyPuffMenuCleanup?.closeHub){window.SkyPuffMenuCleanup.closeHub();return;}
     const overlays=visibleOverlays().filter(el=>el.id!=='start');
@@ -106,6 +121,11 @@
   function shouldUseDesktopHint(){
     try{return !!window.skyPuffPlatform?.desktop||matchMedia('(pointer:fine)').matches||[...navigator.getGamepads?.()||[]].some(Boolean)}catch(e){return false}
   }
+  function controlHint(){
+    const t=COPY[currentLanguage()]||COPY.en;
+    const left=keyLabel('left','A'),right=keyLabel('right','D'),boostKey=keyLabel('boost','SPACE'),pauseKey=keyLabel('pause','P');
+    return `PC: ${left}/${right} ${t.or} ←/→ • ${boostKey}: ${t.boost} • Esc/${pauseKey}: ${t.pause}`;
+  }
   function ensureHint(){
     let hint=document.getElementById('orbuffPcControlHint');
     if(!hint){
@@ -117,7 +137,7 @@
       hint.style.cssText='margin-top:8px;font-size:10px;line-height:1.35;opacity:.72';
       card.appendChild(hint);
     }
-    hint.textContent=COPY[currentLanguage()]||COPY.en;
+    hint.textContent=controlHint();
     hint.style.display=shouldUseDesktopHint()?'block':'none';
   }
   function ensureFocusStyle(){
@@ -133,39 +153,35 @@
       if(event.key==='Escape'){event.target.blur();event.preventDefault();}
       return;
     }
-    switch(event.code){
-      case 'KeyA':
-      case 'ArrowLeft':
-        if(gameplayActive()){keyState.left=true;event.preventDefault();}
-        else if(!event.repeat){navigateFocus(-1);event.preventDefault();}
-        break;
-      case 'KeyD':
-      case 'ArrowRight':
-        if(gameplayActive()){keyState.right=true;event.preventDefault();}
-        else if(!event.repeat){navigateFocus(1);event.preventDefault();}
-        break;
-      case 'ArrowUp':
-        if(!gameplayActive()&&!event.repeat){navigateFocus(-1);event.preventDefault();}
-        break;
-      case 'ArrowDown':
-        if(!gameplayActive()&&!event.repeat){navigateFocus(1);event.preventDefault();}
-        break;
-      case 'Space':
-        if(gameplayActive()&&!event.repeat){boost();event.preventDefault();}
-        else if(!event.repeat){activateFocused();event.preventDefault();}
-        break;
-      case 'Escape':
-        if(!event.repeat){backAction();event.preventDefault();}
-        break;
-      case 'KeyP':
-        if(!event.repeat){togglePause();event.preventDefault();}
-        break;
+    const code=event.code;
+    const inGame=gameplayActive();
+
+    if(inGame){
+      if(code==='ArrowLeft'||keyMatches('left',code)){keyState.left=true;event.preventDefault();return;}
+      if(code==='ArrowRight'||keyMatches('right',code)){keyState.right=true;event.preventDefault();return;}
+      if(keyMatches('boost',code)&&!event.repeat){boost();event.preventDefault();return;}
+      if(code==='Escape'&&!event.repeat){backAction();event.preventDefault();return;}
+      if(keyMatches('pause',code)&&!event.repeat){togglePause();event.preventDefault();return;}
+      return;
     }
+
+    if(pausedGame()){
+      if(code==='Escape'&&!event.repeat){backAction();event.preventDefault();return;}
+      if(keyMatches('pause',code)&&!event.repeat){togglePause();event.preventDefault();return;}
+    }
+
+    if((code==='ArrowLeft'||code==='ArrowUp')&&!event.repeat){navigateFocus(-1);event.preventDefault();return;}
+    if((code==='ArrowRight'||code==='ArrowDown')&&!event.repeat){navigateFocus(1);event.preventDefault();return;}
+    if((code==='Space'||code==='Enter')&&!event.repeat){activateFocused();event.preventDefault();return;}
+    if(code==='Escape'&&!event.repeat){backAction();event.preventDefault();}
   });
+
   addEventListener('keyup',event=>{
-    if(event.code==='KeyA'||event.code==='ArrowLeft')keyState.left=false;
-    if(event.code==='KeyD'||event.code==='ArrowRight')keyState.right=false;
+    const code=event.code;
+    if(code==='ArrowLeft'||keyMatches('left',code))keyState.left=false;
+    if(code==='ArrowRight'||keyMatches('right',code))keyState.right=false;
   });
+  addEventListener('orbuff:control-bindings',()=>{keyState.left=false;keyState.right=false;driveWasActive=false;ensureHint();});
   addEventListener('blur',()=>{keyState.left=false;keyState.right=false;driveWasActive=false;});
   addEventListener('gamepadconnected',()=>{ensureHint();try{showToast('Controller connected 🎮')}catch(e){}});
   addEventListener('gamepaddisconnected',ensureHint);
@@ -188,9 +204,12 @@
       if(pad.buttons?.[14]?.pressed)padDir=-1;
       if(pad.buttons?.[15]?.pressed)padDir=1;
 
-      if(pressedEdge(pad,0)){inGame?boost():activateFocused();}
-      if(pressedEdge(pad,1))backAction();
-      if(pressedEdge(pad,9))togglePause();
+      const boostButton=padButton('boost',0);
+      const backButton=padButton('back',1);
+      const pauseButton=padButton('pause',9);
+      if(pressedEdge(pad,boostButton)){inGame?boost():activateFocused();}
+      if(pressedEdge(pad,backButton))backAction();
+      if(pressedEdge(pad,pauseButton))togglePause();
 
       const now=performance.now();
       if(!inGame){
@@ -235,6 +254,7 @@
     activateFocused,
     backAction,
     boost,
-    gamepadSupported:()=>typeof navigator.getGamepads==='function'
+    gamepadSupported:()=>typeof navigator.getGamepads==='function',
+    controlHint
   };
 })();
