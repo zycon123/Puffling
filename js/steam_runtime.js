@@ -5,6 +5,7 @@
   const ACHIEVEMENT_KEYS=['achSkyLegend','achCloudBreaker','achSkyImmortal','achEventMaster','achBossHunter','achBossVeteran','achTreasureHunter'];
   let steamStatus={active:false,configured:false,error:'bridge_unavailable'};
   let saveTimer=null;
+  let statTimer=null;
   let restoring=false;
 
   function isPackagedPc(){
@@ -81,7 +82,13 @@
       await bridge.setStat('TOTAL_HEIGHT',Number(save?.total||0));
       await bridge.setStat('BOSS_WINS',Number(save?.bossWins||0));
       await bridge.setStat('TREASURES',Number(save?.treasuresCollected||0));
+      window.dispatchEvent(new CustomEvent('orbuff:steam-progress-synced',{detail:{at:Date.now()}}));
     }catch(e){}
+  }
+  function scheduleSteamProgressSync(){
+    if(!bridge||!isPackagedPc()||!steamStatus.active)return;
+    clearTimeout(statTimer);
+    statTimer=setTimeout(()=>syncAchievements(),900);
   }
   async function unlockAchievement(key){
     if(!bridge||!steamStatus.active)return {ok:false,reason:'steam_inactive'};
@@ -95,7 +102,8 @@
       if(this===localStorage&&allowedKey(key)&&key!=='__orbuffSteamCloudAppliedAt')scheduleCloudSave();
     };
     addEventListener('beforeunload',()=>{try{saveCloudNow()}catch(e){}});
-    addEventListener('orbuff:achievement-unlocked',event=>unlockAchievement(event?.detail?.key));
+    addEventListener('orbuff:achievement-unlocked',event=>{unlockAchievement(event?.detail?.key);scheduleSteamProgressSync();});
+    addEventListener('orbuff:persist',()=>{scheduleCloudSave();scheduleSteamProgressSync();});
     addEventListener('sky-puff-ready',()=>{refreshStatus().then(syncAchievements);scheduleCloudSave();});
   }
 
@@ -115,6 +123,7 @@
     refreshStatus,
     saveCloudNow,
     syncAchievements,
+    scheduleSteamProgressSync,
     unlockAchievement,
     openOverlay:(section='achievements')=>bridge?.openOverlay?.(section),
     configured:()=>!!steamStatus.configured,
