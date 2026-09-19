@@ -18,5 +18,10 @@ Object.assign(i18n.en,{scoreSavedLocalAntiCheat:'Score saved locally • anti-ch
 Object.assign(i18n.de,{scoreSavedLocalAntiCheat:'Ergebnis lokal gespeichert • Anti-Cheat-Prüfung'});
 Object.assign(i18n.es,{scoreSavedLocalAntiCheat:'Resultado guardado localmente • revisión anti-trampas'});
 Object.assign(i18n.fr,{scoreSavedLocalAntiCheat:'Score enregistré localement • vérification anti-triche'});
+Object.assign(i18n.no,{raceNoOrbuffReady:'Ingen Orbuff er klar til Race. Gjenoppliv en utmattet Orbuff eller ta en Orbuff ut av OrbVault.',raceSwitchedOrbuff:'Race byttet til en Orbuff som er klar til bruk 🏁',raceLossEnergy:'Race-tap: Orbuff mistet 1 energi • ❤️ {energy}/{max}'});
+Object.assign(i18n.en,{raceNoOrbuffReady:'No Orbuff is ready for Race. Revive an exhausted Orbuff or take one out of OrbVault.',raceSwitchedOrbuff:'Race switched to an Orbuff that is ready to use 🏁',raceLossEnergy:'Race loss: Orbuff lost 1 energy • ❤️ {energy}/{max}'});
+Object.assign(i18n.de,{raceNoOrbuffReady:'Kein Orbuff ist bereit fürs Rennen. Belebe einen erschöpften Orbuff wieder oder hole einen aus dem OrbVault.',raceSwitchedOrbuff:'Rennen zu einem einsatzbereiten Orbuff gewechselt 🏁',raceLossEnergy:'Rennverlust: Orbuff hat 1 Energie verloren • ❤️ {energy}/{max}'});
+Object.assign(i18n.es,{raceNoOrbuffReady:'Ningún Orbuff está listo para la carrera. Revive un Orbuff agotado o saca uno del OrbVault.',raceSwitchedOrbuff:'Carrera cambiada a un Orbuff listo para usar 🏁',raceLossEnergy:'Derrota en la carrera: el Orbuff perdió 1 de energía • ❤️ {energy}/{max}'});
+Object.assign(i18n.fr,{raceNoOrbuffReady:'Aucun Orbuff n’est prêt pour la course. Ranimez un Orbuff épuisé ou sortez-en un de l’OrbVault.',raceSwitchedOrbuff:'Course basculée sur un Orbuff prêt à l’emploi 🏁',raceLossEnergy:'Défaite en course : l’Orbuff a perdu 1 point d’énergie • ❤️ {energy}/{max}'});
 let lang=localStorage.skyPuffLang||'no';
 function tr(key,vars={}){const t=(i18n[lang]&&i18n[lang][key])||i18n.no[key]||key;return Object.entries(vars).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',v),t);}
