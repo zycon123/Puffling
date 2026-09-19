@@ -51,10 +51,14 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 2. Add user-configurable keyboard/gamepad rebinding and complete packaged-hardware QA across Xbox, PlayStation and generic XInput-compatible controllers.
 3. Decide whether Steam achievements, cloud saves, leaderboards and overlay support are required for v1.
 4. Integrate Steamworks only after the standalone PC build is stable.
-5. Replace or adapt mobile-only real-money/IAP surfaces for the Steam SKU.
+5. Integrate a future Steamworks purchase bridge only if paid Diamonds are desired on Steam; the packaged PC SKU now explicitly hides and blocks the current Apple/Google mobile IAP surface.
 6. Run a real packaged Windows smoke test on multiple resolutions, DPI scales and fresh user profiles.
 7. Create Steam depot/build scripts after a Steam App ID exists.
 8. Perform final legal, privacy, crash-handling and save-migration checks for the PC SKU.
+
+## PC store policy
+
+The packaged Electron PC build does not expose Apple App Store / Google Play Diamond purchases. The existing Diamond balance, earned Diamonds and Mystery Shop spending remain available. This prevents accidental mobile billing UX on Steam while leaving a clean adapter point for a future Steamworks commerce implementation.
 
 ## Release strategy
 
