@@ -19,7 +19,7 @@ async function submitOnlineScore(height){
  if(!anti.ok){
    if(window.skyPuffAntiCheat)window.skyPuffAntiCheat.noteBlockedSubmission();
    console.warn('Online score blocked by anti-cheat',anti);
-   showToast('Score lagret lokalt • anti-cheat review');
+   showToast(tr('scoreSavedLocalAntiCheat'));
    return;
  }
  if(!API_BASE)return;

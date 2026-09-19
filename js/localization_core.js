@@ -13,5 +13,10 @@ Object.assign(i18n.fr,{multiplayerIntro:'Le premier à atteindre 1500 m gagne. A
 Object.assign(i18n.de,{hint:'Zehn einzigartige Bosse warten während des Aufstiegs. Fülle die Anzeige und nutze Rainbow Boost.',skinsLabel:'Orbuff-Kosmetik'});
 Object.assign(i18n.es,{hint:'Diez jefes únicos te esperan mientras subes. Llena el medidor y usa Rainbow Boost.',skinsLabel:'Cosméticos de Orbuff'});
 Object.assign(i18n.fr,{hint:'Dix boss uniques vous attendent pendant l’ascension. Remplissez la jauge et utilisez Rainbow Boost.',skinsLabel:'Cosmétiques Orbuff'});
+Object.assign(i18n.no,{scoreSavedLocalAntiCheat:'Resultat lagret lokalt • sikkerhetskontroll'});
+Object.assign(i18n.en,{scoreSavedLocalAntiCheat:'Score saved locally • anti-cheat review'});
+Object.assign(i18n.de,{scoreSavedLocalAntiCheat:'Ergebnis lokal gespeichert • Anti-Cheat-Prüfung'});
+Object.assign(i18n.es,{scoreSavedLocalAntiCheat:'Resultado guardado localmente • revisión anti-trampas'});
+Object.assign(i18n.fr,{scoreSavedLocalAntiCheat:'Score enregistré localement • vérification anti-triche'});
 let lang=localStorage.skyPuffLang||'no';
 function tr(key,vars={}){const t=(i18n[lang]&&i18n[lang][key])||i18n.no[key]||key;return Object.entries(vars).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',v),t);}

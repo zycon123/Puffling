@@ -42,7 +42,13 @@ const depotBuild = fs.readFileSync(path.join(root, 'steam/depot_build_windows.vd
 const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
 const steamPrepare = fs.readFileSync(path.join(root, 'scripts/prepare-steam-build.mjs'), 'utf8');
 const steamReleaseValidator = fs.readFileSync(path.join(root, 'scripts/validate-steam-release.mjs'), 'utf8');
+const style = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+
+const hudZIndexMatch = style.match(/#hud\{[^}]*z-index:(\d+)/);
+const canvasZIndexMatch = presentation.match(/\bcanvas\{[^}]*z-index:(\d+)/);
+const hudZIndex = hudZIndexMatch ? Number(hudZIndexMatch[1]) : NaN;
+const canvasZIndex = canvasZIndexMatch ? Number(canvasZIndexMatch[1]) : NaN;
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
 const controlsPos=game.indexOf("'js/desktop_controls.js'");
@@ -74,6 +80,7 @@ const checks = [
   ['menu focus navigation', controls.includes('function navigateFocus')&&controls.includes('focus({preventScroll:false})')],
   ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
   ['620px gameplay balance preserved', desktopWidth.includes('MAX_DESKTOP_WIDTH=620')],
+  ['HUD stacks above widescreen canvas', Number.isFinite(hudZIndex)&&Number.isFinite(canvasZIndex)&&hudZIndex>canvasZIndex],
   ['PC store policy loaded after mobile Diamond store', diamondStorePos>=0&&storePolicyPos>diamondStorePos],
   ['Steam renderer loaded after PC store policy', steamRendererPos>storePolicyPos],
   ['Steam renderer loaded before later menu cleanup', menuCleanupPos>=0&&steamRendererPos<menuCleanupPos],
