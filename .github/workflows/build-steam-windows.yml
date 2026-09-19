@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths:
       - 'desktop/**'
+      - 'game.js'
+      - 'js/desktop_controls.js'
       - 'electron-builder.yml'
       - 'package.json'
       - 'scripts/validate-desktop-release.mjs'
