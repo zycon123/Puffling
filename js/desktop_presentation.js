@@ -21,7 +21,7 @@
       .orbuffDesktopRail{position:absolute;top:50%;transform:translateY(-50%);width:230px;box-sizing:border-box;padding:18px;border:1px solid rgba(255,255,255,.18);border-radius:24px;background:linear-gradient(180deg,rgba(20,37,72,.80),rgba(23,61,91,.68));box-shadow:0 20px 55px rgba(5,25,50,.24),inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(14px);color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.22)}
       .orbuffDesktopRail.left{left:26px}.orbuffDesktopRail.right{right:26px}
       .orbuffDesktopBrand{font-size:30px;font-weight:1000;letter-spacing:-1px;background:linear-gradient(90deg,#fff,#9bdcff,#d3b9ff);-webkit-background-clip:text;background-clip:text;color:transparent}
-      .orbuffDesktopBuild{font-size:10px;font-weight:900;letter-spacing:2px;opacity:.58;margin-top:2px}
+      .orbuffDesktopBuild{font-size:10px;font-weight:900;letter-spacing:2px;opacity:.58;margin-top:2px}#orbuffDesktopSteamStatus{display:none;margin-top:8px;padding:7px 9px;border-radius:10px;background:rgba(87,170,255,.16);border:1px solid rgba(150,210,255,.18);font-size:9px;font-weight:1000;letter-spacing:.8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .orbuffDesktopSectionTitle{margin:20px 0 9px;font-size:10px;font-weight:1000;letter-spacing:1.8px;opacity:.58}
       .orbuffDesktopStat{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:7px 0;padding:10px 11px;border-radius:13px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08)}
       .orbuffDesktopStat span{font-size:10px;font-weight:900;letter-spacing:.8px;opacity:.65}.orbuffDesktopStat b{font-size:15px}
@@ -47,6 +47,7 @@
       <aside class="orbuffDesktopRail left">
         <div class="orbuffDesktopBrand">ORBUFF</div>
         <div id="orbuffDesktopBuild" class="orbuffDesktopBuild">PC BUILD</div>
+        <div id="orbuffDesktopSteamStatus"></div>
         <div id="orbuffDesktopRunTitle" class="orbuffDesktopSectionTitle">RUN STATUS</div>
         <div class="orbuffDesktopStat"><span id="orbuffDesktopHeightLabel">HEIGHT</span><b><span id="orbuffDesktopHeight">0</span> m</b></div>
         <div class="orbuffDesktopStat"><span id="orbuffDesktopCoinsLabel">COINS</span><b>🪙 <span id="orbuffDesktopCoins">0</span></b></div>
@@ -66,7 +67,18 @@
     document.body.appendChild(frame);
     return frame;
   }
+  let steamState={active:false};
   function setText(id,value){const el=document.getElementById(id);if(el)el.textContent=value}
+  function updateSteamStatus(status){
+    steamState=status&&typeof status==='object'?status:{active:false};
+    const el=document.getElementById('orbuffDesktopSteamStatus');
+    if(!el)return;
+    if(!steamState.active){el.style.display='none';el.textContent='';return;}
+    const prefix=steamState.steamDeck?'STEAM DECK':'STEAM';
+    const user=String(steamState.user||'').trim();
+    el.textContent=user?`${prefix} • ${user}`:prefix;
+    el.style.display='block';
+  }
   function applyCopy(){
     const t=copy();
     setText('orbuffDesktopBuild',t.pc);
@@ -110,7 +122,9 @@
   document.getElementById('languageSelect')?.addEventListener('change',()=>setTimeout(()=>{applyCopy();update();},0));
   addEventListener('gamepadconnected',update);
   addEventListener('gamepaddisconnected',update);
+  addEventListener('orbuff:steam-status',event=>updateSteamStatus(event?.detail));
+  setTimeout(()=>updateSteamStatus(window.OrbuffSteamRuntime?.status?.()),350);
   setInterval(update,180);
 
-  window.OrbuffDesktopPresentation={update,applyCopy};
+  window.OrbuffDesktopPresentation={update,applyCopy,updateSteamStatus};
 })();
