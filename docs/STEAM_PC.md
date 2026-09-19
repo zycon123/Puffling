@@ -15,6 +15,7 @@ This branch introduces the first native desktop packaging layer for the existing
 - Native keyboard gameplay: A/D or Left/Right to steer, Space for Rainbow Boost, Esc/P for pause/back.
 - Gamepad API support: left stick/D-pad steering, A/Cross action, B/Circle back and Start pause.
 - Keyboard/controller focus navigation for player-facing menus without requiring a mouse.
+- Widescreen PC presentation keeps the validated 620px gameplay field intact while using side space for live height, coins, health, mode and control reference on large desktop displays.
 
 ## Local commands
 
