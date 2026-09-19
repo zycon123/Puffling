@@ -7,6 +7,7 @@ const requiredFiles = [
   'style.css',
   'game.js',
   'js/desktop_controls.js',
+  'js/desktop_presentation.js',
   'desktop/main.cjs',
   'electron-builder.yml'
 ];
@@ -20,10 +21,12 @@ const main = fs.readFileSync(path.join(root, 'desktop/main.cjs'), 'utf8');
 const config = fs.readFileSync(path.join(root, 'electron-builder.yml'), 'utf8');
 const game = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
 const controls = fs.readFileSync(path.join(root, 'js/desktop_controls.js'), 'utf8');
+const presentation = fs.readFileSync(path.join(root, 'js/desktop_presentation.js'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
 const controlsPos=game.indexOf("'js/desktop_controls.js'");
+const presentationPos=game.indexOf("'js/desktop_presentation.js'");
 const gameplayPos=game.indexOf("'js/gameplay_update.js'");
 
 const checks = [
@@ -37,6 +40,8 @@ const checks = [
   ['packaged stylesheet', /style\.css/.test(config)],
   ['desktop controls loaded after base input', inputPos>=0&&controlsPos>inputPos],
   ['desktop controls loaded before gameplay loop', gameplayPos>=0&&controlsPos<gameplayPos],
+  ['desktop presentation loaded after controls', presentationPos>controlsPos],
+  ['desktop presentation loaded before gameplay loop', presentationPos<gameplayPos],
   ['keyboard A/D support', controls.includes("case 'KeyA'")&&controls.includes("case 'KeyD'")],
   ['keyboard arrows support', controls.includes("case 'ArrowLeft'")&&controls.includes("case 'ArrowRight'")],
   ['Rainbow Boost keyboard action', controls.includes("case 'Space'")&&controls.includes('doBoost()')],
@@ -44,6 +49,10 @@ const checks = [
   ['Gamepad API support', controls.includes('navigator.getGamepads')&&controls.includes('gamepadconnected')],
   ['gamepad action/back/start buttons', controls.includes('pressedEdge(pad,0)')&&controls.includes('pressedEdge(pad,1)')&&controls.includes('pressedEdge(pad,9)')],
   ['menu focus navigation', controls.includes('function navigateFocus')&&controls.includes('focus({preventScroll:false})')],
+  ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
+  ['desktop live run status', presentation.includes('orbuffDesktopHeight')&&presentation.includes('orbuffDesktopCoins')&&presentation.includes('orbuffDesktopHealth')],
+  ['desktop mode status', presentation.includes('function currentMode')&&presentation.includes('bossArena')&&presentation.includes('multiplayerMode')],
+  ['620px gameplay balance preserved', presentation.includes('620px')===false],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
