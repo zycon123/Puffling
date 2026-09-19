@@ -49,11 +49,11 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 
 1. Add final Windows icon assets and Steam capsule/library artwork.
 2. Add user-configurable keyboard/gamepad rebinding and complete packaged-hardware QA across Xbox, PlayStation and generic XInput-compatible controllers.
-3. Decide whether Steam achievements, cloud saves, leaderboards and overlay support are required for v1.
-4. Integrate Steamworks only after the standalone PC build is stable.
+3. Finish Steam achievements/Cloud/overlay validation against the real App ID; the runtime hooks and mappings are already implemented.
+4. Install and pin the selected Steamworks native Node binding after the real App ID is available; the safe main-process IPC adapter is already implemented.
 5. Integrate a future Steamworks purchase bridge only if paid Diamonds are desired on Steam; the packaged PC SKU now explicitly hides and blocks the current Apple/Google mobile IAP surface.
 6. Run a real packaged Windows smoke test on multiple resolutions, DPI scales and fresh user profiles.
-7. Create Steam depot/build scripts after a Steam App ID exists.
+7. Replace SteamPipe App/Depot placeholders using `npm run steam:prepare` after the real IDs exist; templates and generator are already implemented.
 8. Perform final legal, privacy, crash-handling and save-migration checks for the PC SKU.
 
 ## PC store policy
