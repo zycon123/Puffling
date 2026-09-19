@@ -6,7 +6,8 @@ const requiredFiles = [
   'index.html',
   'style.css',
   'game.js',
-  'js/desktop_controls.js',\n  'js/desktop_presentation.js',
+  'js/desktop_controls.js',
+  'js/desktop_presentation.js',
   'desktop/main.cjs',
   'electron-builder.yml'
 ];
@@ -41,9 +42,6 @@ const checks = [
   ['desktop controls loaded before gameplay loop', gameplayPos>=0&&controlsPos<gameplayPos],
   ['desktop presentation loaded after controls', presentationPos>controlsPos],
   ['desktop presentation loaded before gameplay loop', presentationPos<gameplayPos],
-  ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
-  ['desktop live run status', presentation.includes('orbuffDesktopHeight')&&presentation.includes('orbuffDesktopCoins')&&presentation.includes('orbuffDesktopHealth')],
-  ['desktop mode status', presentation.includes('function currentMode')&&presentation.includes('bossArena')&&presentation.includes('multiplayerMode')],
   ['keyboard A/D support', controls.includes("case 'KeyA'")&&controls.includes("case 'KeyD'")],
   ['keyboard arrows support', controls.includes("case 'ArrowLeft'")&&controls.includes("case 'ArrowRight'")],
   ['Rainbow Boost keyboard action', controls.includes("case 'Space'")&&controls.includes('doBoost()')],
@@ -51,6 +49,10 @@ const checks = [
   ['Gamepad API support', controls.includes('navigator.getGamepads')&&controls.includes('gamepadconnected')],
   ['gamepad action/back/start buttons', controls.includes('pressedEdge(pad,0)')&&controls.includes('pressedEdge(pad,1)')&&controls.includes('pressedEdge(pad,9)')],
   ['menu focus navigation', controls.includes('function navigateFocus')&&controls.includes('focus({preventScroll:false})')],
+  ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
+  ['desktop live run status', presentation.includes('orbuffDesktopHeight')&&presentation.includes('orbuffDesktopCoins')&&presentation.includes('orbuffDesktopHealth')],
+  ['desktop mode status', presentation.includes('function currentMode')&&presentation.includes('bossArena')&&presentation.includes('multiplayerMode')],
+  ['620px gameplay balance preserved', presentation.includes('620px')===false],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
