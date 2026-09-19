@@ -6,6 +6,7 @@ const requiredFiles = [
   'index.html',
   'style.css',
   'game.js',
+  'js/desktop_control_settings.js',
   'js/desktop_controls.js',
   'js/desktop_presentation.js',
   'js/desktop_store_policy.js',
@@ -28,6 +29,7 @@ const preload = fs.readFileSync(path.join(root, 'desktop/preload.cjs'), 'utf8');
 const steamMain = fs.readFileSync(path.join(root, 'desktop/steam_runtime.cjs'), 'utf8');
 const config = fs.readFileSync(path.join(root, 'electron-builder.yml'), 'utf8');
 const game = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
+const controlSettings = fs.readFileSync(path.join(root, 'js/desktop_control_settings.js'), 'utf8');
 const controls = fs.readFileSync(path.join(root, 'js/desktop_controls.js'), 'utf8');
 const presentation = fs.readFileSync(path.join(root, 'js/desktop_presentation.js'), 'utf8');
 const storePolicy = fs.readFileSync(path.join(root, 'js/desktop_store_policy.js'), 'utf8');
@@ -42,6 +44,7 @@ const steamPrepare = fs.readFileSync(path.join(root, 'scripts/prepare-steam-buil
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
+const controlSettingsPos=game.indexOf("'js/desktop_control_settings.js'");
 const controlsPos=game.indexOf("'js/desktop_controls.js'");
 const presentationPos=game.indexOf("'js/desktop_presentation.js'");
 const gameplayPos=game.indexOf("'js/gameplay_update.js'");
@@ -59,14 +62,20 @@ const checks = [
   ['fullscreen keyboard support', /F11/.test(main) && /Escape/.test(main)],
   ['Steam-safe Windows app id', /com\.zyconstudios\.orbuff/.test(config)],
   ['packaged Steam bridge files', /desktop\/preload\.cjs/.test(config) && /desktop\/steam_runtime\.cjs/.test(config) && /steam\/\*\*/.test(config)],
+  ['control settings loaded after base input', inputPos>=0&&controlSettingsPos>inputPos],
+  ['control settings loaded before desktop controls', controlsPos>controlSettingsPos],
   ['desktop controls loaded after base input', inputPos>=0&&controlsPos>inputPos],
   ['desktop controls loaded before gameplay loop', gameplayPos>=0&&controlsPos<gameplayPos],
   ['desktop presentation loaded after controls', presentationPos>controlsPos],
   ['desktop presentation loaded before gameplay loop', presentationPos<gameplayPos],
-  ['keyboard A/D support', controls.includes("case 'KeyA'")&&controls.includes("case 'KeyD'")],
-  ['keyboard arrows support', controls.includes("case 'ArrowLeft'")&&controls.includes("case 'ArrowRight'")],
-  ['Rainbow Boost keyboard action', controls.includes("case 'Space'")&&controls.includes('doBoost()')],
-  ['pause/back keyboard actions', controls.includes("case 'Escape'")&&controls.includes("case 'KeyP'")],
+  ['persistent keyboard bindings', controlSettings.includes("STORAGE_KEY='orbuffPcBindingsV1'")&&controlSettings.includes("keyboard:{left:'KeyA',right:'KeyD',boost:'Space',pause:'KeyP'}")],
+  ['persistent gamepad bindings', controlSettings.includes("gamepad:{boost:0,back:1,pause:9}")&&controlSettings.includes('swapGamepad')],
+  ['safe arrow/Escape fallbacks reserved', controlSettings.includes("'Escape','F11','Tab','Enter','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'")],
+  ['controls menu exists', controlSettings.includes("trigger.id='pcControlsBtn'")&&controlSettings.includes("menu.id='orbuffControlsMenu'")],
+  ['desktop controls use dynamic keyboard bindings', controls.includes("keyMatches('left',code)")&&controls.includes("keyMatches('boost',code)")&&controls.includes("keyMatches('pause',code)")],
+  ['keyboard arrows support', controls.includes("code==='ArrowLeft'")&&controls.includes("code==='ArrowRight'")],
+  ['Rainbow Boost action', controls.includes('doBoost()')],
+  ['pause/back actions', controls.includes("code==='Escape'")&&controls.includes('togglePause()')],
   ['Gamepad API support', controls.includes('navigator.getGamepads')&&controls.includes('gamepadconnected')],
   ['menu focus navigation', controls.includes('function navigateFocus')&&controls.includes('focus({preventScroll:false})')],
   ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
@@ -93,6 +102,7 @@ const checks = [
   ['Steam save/stat sync listens to persist', steamRenderer.includes("addEventListener('orbuff:persist'")&&steamRenderer.includes('scheduleSteamProgressSync')],
   ['Steam stats are debounced', steamRenderer.includes('statTimer')&&steamRenderer.includes('setTimeout(()=>syncAchievements(),900)')],
   ['desktop Steam identity is active-only', presentation.includes('orbuffDesktopSteamStatus')&&presentation.includes("if(!steamState.active)")&&presentation.includes("'orbuff:steam-status'")],
+  ['desktop panel reflects custom bindings', presentation.includes('orbuffDesktopSteerKeys')&&presentation.includes('updateBindingLabels')&&presentation.includes("'orbuff:control-bindings'")],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
