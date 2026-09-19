@@ -12,7 +12,10 @@ files:
   - audio_theme.js
   - assets/**/*
   - js/**/*
-  - desktop/main.cjs\n  - desktop/preload.cjs\n  - desktop/steam_runtime.cjs\n  - steam/**
+  - desktop/main.cjs
+  - desktop/preload.cjs
+  - desktop/steam_runtime.cjs
+  - steam/**
   - "!**/*.map"
   - "!dist/**/*"
   - "!mobile-web/**/*"
