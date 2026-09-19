@@ -9,7 +9,7 @@
  const GROUPS={
   pufflings:[['puffdexBtn','☁️','Puffdex'],['nurseryVaultBtn','🥚','Nursery & Vault'],['mysteryShopBtn','💎','Mystery Shop']],
   modes:[['multiplayerBtn','⚔️','Multiplayer'],['bossRushBtn','👑','Boss Rush'],['leaderboardBtn','🏆','Highscore']],
-  more:[['dailyBtn','🎁','Daglig belønning'],['shopBtn','🎨','Cosmetics'],['upgradeBtn','⬆️','Oppgraderinger'],['achievementsBtn','🏅','Achievements'],['gameGuideBtn','📖','Spillguide'],['audioSettingsBtn','🔊','Lyd'],['diagnosticsBtn','🛠️','System & Support']]
+  more:[['dailyBtn','🎁','Daglig belønning'],['shopBtn','🎨','Cosmetics'],['upgradeBtn','⬆️','Oppgraderinger'],['achievementsBtn','🏅','Achievements'],['gameGuideBtn','📖','Spillguide'],['audioSettingsBtn','🔊','Lyd'],['pcControlsBtn','🎮','PC Controls'],['diagnosticsBtn','🛠️','System & Support']]
  };
  let currentGroup='';
  function copy(){try{return COPY[typeof lang!=='undefined'?lang:'no']||COPY.en}catch(e){return COPY.en}}
