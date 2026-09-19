@@ -60,6 +60,12 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 
 The packaged Electron PC build does not expose Apple App Store / Google Play Diamond purchases. The existing Diamond balance, earned Diamonds and Mystery Shop spending remain available. This prevents accidental mobile billing UX on Steam while leaving a clean adapter point for a future Steamworks commerce implementation.
 
+## Steamworks foundation
+
+The desktop build now contains an isolated Steam bridge, local Cloud Save mirror, achievement/stat synchronization hooks, and SteamPipe VDF templates. Steam activation remains optional until a real App ID and native Steamworks binding are supplied. See `steam/README.md`.
+
+The bridge intentionally keeps Steam native code in Electron's main process. Renderer security remains context-isolated, sandboxed, and without Node integration.
+
 ## Release strategy
 
 Keep browser/mobile and Steam as one gameplay codebase, with thin platform adapters. The desktop shell should remain small. Steam-specific APIs should be isolated behind a platform bridge so the browser and mobile builds continue to work without Steam.
