@@ -6,6 +6,7 @@ const requiredFiles = [
   'index.html',
   'style.css',
   'game.js',
+  'js/desktop_controls.js',
   'desktop/main.cjs',
   'electron-builder.yml'
 ];
@@ -17,7 +18,13 @@ if (missing.length) {
 
 const main = fs.readFileSync(path.join(root, 'desktop/main.cjs'), 'utf8');
 const config = fs.readFileSync(path.join(root, 'electron-builder.yml'), 'utf8');
+const game = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
+const controls = fs.readFileSync(path.join(root, 'js/desktop_controls.js'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
+
+const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
+const controlsPos=game.indexOf("'js/desktop_controls.js'");
+const gameplayPos=game.indexOf("'js/gameplay_update.js'");
 
 const checks = [
   ['contextIsolation enabled', /contextIsolation:\s*true/.test(main)],
@@ -28,6 +35,15 @@ const checks = [
   ['Steam-safe Windows app id', /com\.zyconstudios\.orbuff/.test(config)],
   ['packaged game entry', /index\.html/.test(config)],
   ['packaged stylesheet', /style\.css/.test(config)],
+  ['desktop controls loaded after base input', inputPos>=0&&controlsPos>inputPos],
+  ['desktop controls loaded before gameplay loop', gameplayPos>=0&&controlsPos<gameplayPos],
+  ['keyboard A/D support', controls.includes("case 'KeyA'")&&controls.includes("case 'KeyD'")],
+  ['keyboard arrows support', controls.includes("case 'ArrowLeft'")&&controls.includes("case 'ArrowRight'")],
+  ['Rainbow Boost keyboard action', controls.includes("case 'Space'")&&controls.includes('doBoost()')],
+  ['pause/back keyboard actions', controls.includes("case 'Escape'")&&controls.includes("case 'KeyP'")],
+  ['Gamepad API support', controls.includes('navigator.getGamepads')&&controls.includes('gamepadconnected')],
+  ['gamepad action/back/start buttons', controls.includes('pressedEdge(pad,0)')&&controls.includes('pressedEdge(pad,1)')&&controls.includes('pressedEdge(pad,9)')],
+  ['menu focus navigation', controls.includes('function navigateFocus')&&controls.includes('focus({preventScroll:false})')],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
