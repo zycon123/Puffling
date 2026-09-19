@@ -44,6 +44,16 @@ try{
   assert.equal(await page.evaluate(()=>W),620,'desktop width unchanged');
   assert.deepEqual(errors,[],'full game loads without page errors');
   await context.close();
+  // Exercise the Electron-only store policy on file:// as well as the web SKU.
+  const packaged=await browser.newContext({viewport:{width:1280,height:900},userAgent:'Mozilla/5.0 Electron/44.4.2'});
+  await packaged.route('**/*',route=>route.request().url().startsWith('file:')?route.continue():route.abort());
+  const packagedPage=await packaged.newPage();
+  await packagedPage.goto(pathToFileURL(path.join(root,'index.html')).href);
+  await packagedPage.locator('[data-starter-puffling="starterpuff"]').click({timeout:30000});
+  await packagedPage.locator('#start [data-pc-settings-open]').click();
+  assert.equal(await packagedPage.getByRole('dialog').isVisible(),true,'packaged store policy must not freeze settings');
+  assert.equal(await packagedPage.evaluate(()=>OrbuffDesktopStorePolicy.active),true);
+  await packaged.close();
   const mobile=await browser.newContext({...devices['iPhone 13']});
   await mobile.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
   const phone=await mobile.newPage();await phone.goto(url);await phone.waitForFunction(()=>!!window.OrbuffPcSettings);assert.equal(await phone.locator('#start [data-pc-settings-open]').isVisible(),false,'PC settings do not alter touch menu');

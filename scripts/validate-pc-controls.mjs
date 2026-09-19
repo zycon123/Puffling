@@ -72,3 +72,19 @@ const outside=h.element('outside');outside.focus();c.activateFocused();assert.eq
 h.settings(true);const input=h.element('slider','INPUT');input.type='range';input.value='50';input.min='0';input.max='100';input.step='5';modal.children.push(input);input.focus();h.key('keydown','Tab');assert.equal(ctx.document.activeElement,one,'Tab stays inside settings from editable input');
 input.focus();pad.buttons.forEach(b=>b.pressed=false);pad.axes=[1,0];h.setPad(pad);h.frame();assert.equal(Number(input.value),55);h.frame(16);assert.equal(Number(input.value),55,'controller slider respects repeat delay');pad.axes=[0,1];h.frame();assert.equal(ctx.document.activeElement,one,'vertical stick exits slider');
 console.log('PASS PC controls: persistence, validation, keyboard capture, movement, pause, focus trap, controller mapping, deadzone, edges, disconnect, sliders and repeat.');
+
+// The packaged PC billing notice is observed for DOM insertions. Rewriting the
+// same text queues the observer forever and freezes the entire Electron window.
+{
+ let value='',writes=0;
+ const notice={get textContent(){return value},set textContent(text){value=text;writes++}};
+ const context={lang:'en',location:{protocol:'file:'},navigator:{userAgent:'Electron/44.4.2'},
+  document:{documentElement:{dataset:{}},getElementById:id=>id==='orbuffPcStoreNotice'?notice:id==='mysteryShopMenu'?{}:null},
+  MutationObserver:class{observe(){}},setTimeout(){},addEventListener(){}};
+ context.window=context;vm.createContext(context);vm.runInContext(fs.readFileSync('js/desktop_store_policy.js','utf8'),context);
+ context.OrbuffDesktopStorePolicy.apply();context.OrbuffDesktopStorePolicy.apply();
+ assert.equal(writes,1,'packaged store notice observer converges');
+ context.lang='no';context.OrbuffDesktopStorePolicy.apply();context.OrbuffDesktopStorePolicy.apply();
+ assert.equal(writes,2,'language change updates notice exactly once');
+ console.log('PASS packaged PC store observer settles without starving input.');
+}

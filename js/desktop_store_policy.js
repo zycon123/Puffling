@@ -37,7 +37,8 @@
         if(bundles)bundles.insertAdjacentElement('beforebegin',notice);
         else mystery.querySelector('.card')?.appendChild(notice);
       }
-      notice.textContent=message();
+      const text=message();
+      if(notice.textContent!==text)notice.textContent=text;
     }
   }
   function blockStoreApi(){
