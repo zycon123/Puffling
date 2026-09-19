@@ -1,0 +1,39 @@
+appId: com.zyconstudios.orbuff
+productName: Orbuff
+electronVersion: 44.4.2
+
+directories:
+  output: dist/desktop
+
+files:
+  - index.html
+  - style.css
+  - game.js
+  - audio_theme.js
+  - assets/**/*
+  - js/**/*
+  - desktop/main.cjs
+  - "!**/*.map"
+  - "!dist/**/*"
+  - "!mobile-web/**/*"
+  - "!node_modules/**/*"
+
+extraMetadata:
+  main: desktop/main.cjs
+
+asar: true
+compression: maximum
+
+win:
+  target:
+    - nsis
+    - portable
+  artifactName: "Orbuff-${version}-${arch}.${ext}"
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Orbuff

@@ -3,7 +3,7 @@
   "version": "5.27.107",
   "private": true,
   "type": "module",
-  "description": "Native mobile release wrapper for Orbuff.",
+  "description": "Native mobile and Steam/desktop release wrapper for Orbuff.",
   "engines": {
     "node": ">=22"
   },
@@ -22,6 +22,10 @@
     "mobile:add:ios": "npm run mobile:prepare && npx cap add ios && npx cap sync ios && npm run mobile:assets:ios:optional && npm run mobile:configure:ios",
     "mobile:open:android": "npm run mobile:sync && npm run mobile:assets:android:optional && npm run mobile:configure:android && npx cap open android",
     "mobile:open:ios": "npm run mobile:sync && npm run mobile:assets:ios:optional && npm run mobile:configure:ios && npx cap open ios",
+    "desktop:validate": "node scripts/validate-desktop-release.mjs",
+    "desktop:start": "npx --yes electron@44.4.2 desktop/main.cjs",
+    "desktop:pack": "npm run desktop:validate && npx --yes electron-builder@26.15.3 --config electron-builder.yml --dir",
+    "desktop:dist:win": "npm run desktop:validate && npx --yes electron-builder@26.15.3 --config electron-builder.yml --win nsis portable",
     "store:capture:prepare": "node scripts/prepare-store-capture.mjs",
     "store:generate": "node scripts/generate-store-assets.mjs",
     "store:validate": "node scripts/validate-store-assets.mjs"
