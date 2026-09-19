@@ -20,11 +20,14 @@ files:
   - "!dist/**/*"
   - "!mobile-web/**/*"
   - "!node_modules/**/*"
+  - node_modules/steamworks.js/**/*
 
 extraMetadata:
   main: desktop/main.cjs
 
 asar: true
+asarUnpack:
+  - node_modules/steamworks.js/**/*
 compression: maximum
 
 win:
