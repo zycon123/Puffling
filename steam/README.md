@@ -44,6 +44,14 @@ The desktop runtime mirrors Orbuff localStorage data into:
 
 Configure Steam Auto-Cloud for this file after the Steam App ID exists. The local mirror works even when Steam is unavailable, so the standalone Windows build remains testable.
 
+Cloud restore is conflict-aware. Each real Orbuff persist records a local progress timestamp. A remote snapshot only replaces local data when it is demonstrably newer. Existing unversioned local progress is preserved rather than overwritten by an ambiguous cloud snapshot.
+
+## Release gate
+
+Run `npm run steam:readiness` at any time. It validates the Steam structure while allowing missing App/Depot IDs and missing native Steamworks binding.
+
+Run `npm run steam:release:validate` only for a real Steam release. Strict mode requires the real App ID, Depot ID, generated SteamPipe config, Windows package, installed `steamworks.js`, and a packaging configuration that actually includes the native binding.
+
 ## SteamPipe templates
 
 `app_build.vdf` and `depot_build_windows.vdf` contain placeholders:
