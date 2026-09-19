@@ -16,7 +16,9 @@ const context={
   window:{SkyPuffNurseryVault:{addEgg(t,c=1){eggs[t]=(eggs[t]||0)+c;}}}
 };
 context.window.window=context.window;
-vm.createContext(context);vm.runInContext(source,context,{filename:'diamond_mystery_shop.js'});
+vm.createContext(context);
+vm.runInContext(fs.readFileSync('js/localization_core.js','utf8'),context,{filename:'js/localization_core.js'});
+vm.runInContext(source,context,{filename:'diamond_mystery_shop.js'});
 const D=context.window.SkyPuffDiamonds,M=context.window.SkyPuffMysteryShop;
 const fail=msg=>{throw new Error(msg)};
 if(!D||!M)fail('Mystery Shop APIs missing');

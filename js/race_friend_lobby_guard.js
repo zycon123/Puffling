@@ -35,7 +35,7 @@
      if(!multiplayerMode||T.snapshot?.().state!=='local')return;
      const menu=el('multiplayerMenu'),panel=el('raceFriendLobbyPanel'),hud=el('multiplayerHud');
      if(menu)menu.style.display='none';if(panel)panel.style.display='none';if(hud)hud.style.display='block';
-     if(typeof showToast==='function')showToast('Online-server ikke tilkoblet — starter test-ghost.');
+     if(typeof showToast==='function')showToast(tr('raceServerOffline'));
     }catch(e){}
    },30);
   });

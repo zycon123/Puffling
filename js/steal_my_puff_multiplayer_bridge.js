@@ -72,7 +72,7 @@
     const until=Number(deadline)||Date.now()+11000;
     const render=()=>{const sec=Math.max(0,Math.ceil((until-Date.now())/1000));setCountdownText(ownConnection?`↻\n${sec}s`:`⏳\n${sec}s`);};
     render();reconnectDisplayTimer=setInterval(render,100);
-    if(multiplayerStatusEl)multiplayerStatusEl.textContent=ownConnection?'Tilkoblingen falt ut — prøver å koble til igjen…':'Motstanderen mistet forbindelsen — racet er midlertidig satt på pause.';
+    if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr(ownConnection?'raceReconnectingSelf':'raceOpponentPausedConnection');
   }
   function failOnlineStart(reason='connection_failed'){
     hideCountdown();awaitingServerStart=false;reconnecting=false;onlineMode=false;onlineOpponent=null;serverResult=null;
@@ -81,7 +81,7 @@
     if(multiplayerHudEl)multiplayerHudEl.style.display='none';
     try{window.SkyPuffRaceTransport?.disconnect?.();}catch(e){}
     if(typeof multiplayerMenuEl!=='undefined'&&multiplayerMenuEl)multiplayerMenuEl.style.display='flex';
-    const msg=reason==='race_auth_failed'||reason==='race_auth_required'||reason==='rank_auth_required'?'Kunne ikke bekrefte spillerkontoen. Prøv igjen.':'Kunne ikke koble til Race-serveren. Prøv igjen når forbindelsen er tilbake.';
+    const msg=tr(reason==='race_auth_failed'||reason==='race_auth_required'||reason==='rank_auth_required'?'raceAuthFailed':'raceConnectFailed');
     if(typeof multiplayerStatusEl!=='undefined'&&multiplayerStatusEl)multiplayerStatusEl.textContent=msg;
     if(typeof showToast==='function')showToast('⚠️ '+msg);
     window.dispatchEvent?.(new CustomEvent('race:connectionFailed',{detail:{reason}}));
@@ -99,7 +99,7 @@
     hideCountdown();reconnecting=false;awaitingServerStart=false;
     const R=window.SkyPuffRace,T=window.SkyPuffRaceTransport;let s=R?.snapshot?.()||{};s.active=false;s.finishedAt=Date.now();s.winner='rival';s.disconnectLoss=true;
     multiplayerMode=false;multiplayerState='finished';running=false;paused=false;if(multiplayerInterval){clearInterval(multiplayerInterval);multiplayerInterval=null;}if(multiplayerHudEl)multiplayerHudEl.style.display='none';
-    T?.disconnect?.();onlineMode=false;onlineOpponent=null;if(typeof showToast==='function')showToast('Forbindelsen kom ikke tilbake i tide.');window.SkyPuffRaceUI?.showResult?.(s);
+    T?.disconnect?.();onlineMode=false;onlineOpponent=null;if(typeof showToast==='function')showToast(tr('raceConnectionNotRestored'));window.SkyPuffRaceUI?.showResult?.(s);
   }
   function bindTransport(){
     if(transportBound)return;transportBound=true;const T=window.SkyPuffRaceTransport;if(!T)return;
@@ -109,14 +109,14 @@
       if(m?.state==='reconnect_failed'){onlineMode=false;if(multiplayerMode)loseByDisconnect();return;}
       if(['connect_failed','server_rejected','race_auth_failed'].includes(m?.state)&&multiplayerMode)failOnlineStart(m?.code||m?.state);
     });
-    T.on('race:matched',m=>{if(m?.room)multiplayerRoom=m.room;reconnecting=false;if(typeof showToast==='function')showToast(m?.mode==='quick'?'🔎 Motstander funnet!':'👥 Race room ready');if(multiplayerStatusEl)multiplayerStatusEl.textContent='Begge spillere må være klare før nedtellingen starter.';});
+    T.on('race:matched',m=>{if(m?.room)multiplayerRoom=m.room;reconnecting=false;if(typeof showToast==='function')showToast(tr(m?.mode==='quick'?'raceOpponentFound':'raceRoomReady'));if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr('raceBothPlayersReady');});
     T.on('race:start',m=>{onlineMode=true;scheduleServerCountdown(m?.serverStartAt);});
     T.on('race:notStarted',m=>{if(m?.serverStartAt)scheduleServerCountdown(m.serverStartAt);});
     T.on('race:paused',()=>{if(multiplayerMode&&!reconnecting)showReconnectWait(opponentReconnectDeadline||Date.now()+11000,false);});
-    T.on('race:resumed',m=>{if(m?.room)multiplayerRoom=m.room;applyOpponentFromPlayers(m?.players);reconnecting=true;onlineMode=true;if(multiplayerStatusEl)multiplayerStatusEl.textContent='Tilkoblet igjen — synkroniserer racet…';if(m?.winnerId){serverResult={...m,finishedAt:Date.now()};finishMultiplayerRace();}});
-    T.on('race:resume',m=>{reconnecting=false;opponentReconnectDeadline=0;onlineMode=true;applyOpponentFromPlayers(m?.players);if(multiplayerStatusEl)multiplayerStatusEl.textContent='Begge er tilbake — fortsetter racet…';scheduleServerCountdown(m?.serverResumeAt||Date.now()+1000);});
-    T.on('race:opponentDisconnected',m=>{if(!multiplayerMode)return;opponentReconnectDeadline=Number(m?.reconnectDeadline)||Date.now()+12000;showReconnectWait(opponentReconnectDeadline,false);if(typeof showToast==='function')showToast('Motstanderen mistet nettet — racet er pauset.');});
-    T.on('race:opponentReconnected',()=>{if(typeof showToast==='function')showToast('Motstanderen er tilbake!');if(multiplayerStatusEl)multiplayerStatusEl.textContent='Motstanderen er tilbake — synkroniserer…';});
+    T.on('race:resumed',m=>{if(m?.room)multiplayerRoom=m.room;applyOpponentFromPlayers(m?.players);reconnecting=true;onlineMode=true;if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr('raceReconnectedSyncing');if(m?.winnerId){serverResult={...m,finishedAt:Date.now()};finishMultiplayerRace();}});
+    T.on('race:resume',m=>{reconnecting=false;opponentReconnectDeadline=0;onlineMode=true;applyOpponentFromPlayers(m?.players);if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr('raceBothBackContinuing');scheduleServerCountdown(m?.serverResumeAt||Date.now()+1000);});
+    T.on('race:opponentDisconnected',m=>{if(!multiplayerMode)return;opponentReconnectDeadline=Number(m?.reconnectDeadline)||Date.now()+12000;showReconnectWait(opponentReconnectDeadline,false);if(typeof showToast==='function')showToast(tr('raceOpponentLostConnection'));});
+    T.on('race:opponentReconnected',()=>{if(typeof showToast==='function')showToast(tr('raceOpponentBack'));if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr('raceOpponentBackSyncing');});
     T.on('race:position',m=>{
       if(!m||m.playerId===T.snapshot().playerId)return;
       onlineOpponent=opponentSnapshot(m,m.state||'jumping');multiplayerOpponentScore=Math.max(0,onlineOpponent.height);window.dispatchEvent(new CustomEvent('race:ghost',{detail:onlineOpponent}));
@@ -125,7 +125,7 @@
     T.on('race:attackRejected',m=>{if(typeof showToast==='function')showToast(m?.reason==='cooldown'?'⏳ Attack on cooldown':'⚠️ Attack rejected');});
     T.on('race:error',m=>{if(reconnecting&&(m?.code==='resume_expired'||m?.code==='room_full'))loseByDisconnect();else if(multiplayerMode&&['race_auth_required','rank_auth_required','unsupported_protocol','race_inventory_unavailable','puffling_not_owned'].includes(m?.code))failOnlineStart(m.code);});
     T.on('race:result',m=>{if(!m?.winnerId)return;serverResult=m;if(multiplayerMode)finishMultiplayerRace();});
-    T.on('race:opponentLeft',()=>{if(multiplayerMode&&typeof showToast==='function')showToast('Motstanderen forlot racet.');});
+    T.on('race:opponentLeft',()=>{if(multiplayerMode&&typeof showToast==='function')showToast(tr('raceOpponentLeft'));});
   }
   function connectTransport(type){
     bindTransport();const T=window.SkyPuffRaceTransport;if(!T){failOnlineStart('transport_missing');return;}
@@ -133,7 +133,7 @@
       onlineMode=info?.mode==='online';
       if(!onlineMode){failOnlineStart(info?.error||info?.mode||'connection_failed');return;}
       awaitingServerStart=true;multiplayerState='waiting_start';running=false;T.sendReady({...visualProfile(),mode:type});
-      if(typeof showToast==='function')showToast('🌐 Live Race connection ready');if(multiplayerStatusEl)multiplayerStatusEl.textContent='Venter på motstander…';setCountdownText('…');
+      if(typeof showToast==='function')showToast(tr('raceLiveConnectionReady'));if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr('raceWaitingForOpponent');setCountdownText('…');
     }).catch(e=>failOnlineStart(String(e?.message||e||'connection_failed')));
   }
 
@@ -141,7 +141,7 @@
     baseStart(type);if(!multiplayerMode)return;multiplayerRaceSeconds=9999;multiplayerEndAt=Date.now()+multiplayerRaceSeconds*1000;
     onlineOpponent=null;onlineMode=false;lastLocalHeight=0;serverResult=null;awaitingServerStart=true;serverStartAt=0;reconnecting=false;opponentReconnectDeadline=0;
     const R=window.SkyPuffRace;R?.start?.({selectedPufflingId:currentPufflingId()});window.SkyPuffRaceUI?.show?.();running=false;multiplayerState='connecting';connectTransport(type);
-    if(mpTimerEl)mpTimerEl.textContent='1500m';if(multiplayerStatusEl)multiplayerStatusEl.textContent='Kobler til Race My Orbuff…';if(typeof showToast==='function')showToast('🏁 RACE MY ORBUFF — FIRST TO 1500m!');
+    if(mpTimerEl)mpTimerEl.textContent='1500m';if(multiplayerStatusEl)multiplayerStatusEl.textContent=tr('raceConnectingToRace');if(typeof showToast==='function')showToast(tr('raceStartBanner'));
   };
 
   multiplayerTick=function(){
@@ -160,7 +160,7 @@
     if(mpYouEl)mpYouEl.textContent=you+'m';if(mpRivalEl)mpRivalEl.textContent=rival+'m';if(mpTimerEl)mpTimerEl.textContent='🏁1500m';
     const next=R.updateHeights?.(you,rival);window.SkyPuffRaceUI?.render?.();
     if(you>=1500&&lastLocalHeight<1500)T?.sendFinish?.({height:you,...visualProfile()});lastLocalHeight=you;
-    if(next&&!next.active){if(onlineMode&&!serverResult){if(typeof showToast==='function')showToast('🏁 Venter på serverresultat…');return;}finishMultiplayerRace();}
+    if(next&&!next.active){if(onlineMode&&!serverResult){if(typeof showToast==='function')showToast(tr('raceWaitingServerResult'));return;}finishMultiplayerRace();}
   };
 
   finishMultiplayerRace=function(){

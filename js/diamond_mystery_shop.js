@@ -48,21 +48,21 @@
  function result(text){const out=document.getElementById('diamondBoxResult');if(out)out.textContent=text||'';}
  async function buyBoxes(count){
   if(buyBusy)return false;const bundle=bundles.find(x=>x.count===Number(count));if(!bundle)return false;
-  if(get()<bundle.cost){result(`Du trenger ${bundle.cost} diamanter 💎`);return false;}
+  if(get()<bundle.cost){result(tr('needDiamonds',{cost:bundle.cost}));return false;}
   buyBusy=true;refresh();
   try{
-   const ok=await spend(bundle.cost);if(!ok){result('Betalt Diamond-saldo kunne ikke trekkes akkurat nå. Prøv igjen.');return false;}
-   addBoxes(bundle.count);result(`🔐 ${bundle.count} Mystery Box${bundle.count===1?'':'er'} lagt i Mystery Vault.`);if(typeof showToast==='function')showToast(`+${bundle.count} Mystery Box${bundle.count===1?'':'er'} 🔐`);return true;
+   const ok=await spend(bundle.cost);if(!ok){result(tr('diamondDeductFailed'));return false;}
+   addBoxes(bundle.count);result(tr('mysteryBoxesAdded',{count:bundle.count}));if(typeof showToast==='function')showToast(tr('mysteryBoxesAddedShort',{count:bundle.count}));return true;
   }finally{buyBusy=false;refresh();}
  }
  function openBox(){
-  if(!takeBoxes(1)){result('Mystery Vault er tomt.');return null;}
-  const r=roll();grant(r);result(r.type==='egg'?`🎁 ${r.label}! Lagt i Nursery 🥚`:`🎁 ${r.label}!`);if(typeof showToast==='function')showToast(`Mystery Box: ${r.label}!`);refresh();return r;
+  if(!takeBoxes(1)){result(tr('mysteryVaultEmpty'));return null;}
+  const r=roll();grant(r);result(r.type==='egg'?tr('mysteryEggAdded',{label:r.label}):`🎁 ${r.label}!`);if(typeof showToast==='function')showToast(`Mystery Box: ${r.label}!`);refresh();return r;
  }
  function combineBoxes(){
-  if(boxCount()<3){result('Du trenger 3 uåpnede Mystery Boxer for å lage et egg.');return null;}
+  if(boxCount()<3){result(tr('needThreeBoxes'));return null;}
   if(!takeBoxes(3))return null;
-  const egg=rollFusionEgg();addEgg(egg.tier,1);result(`✨ 3 Mystery Boxer ble til ${egg.label}! Egget ligger i Nursery.`);if(typeof showToast==='function')showToast(`🥚 ${egg.label} lagt i Nursery!`);refresh();return egg;
+  const egg=rollFusionEgg();addEgg(egg.tier,1);result(tr('mysteryEggsFused',{label:egg.label}));if(typeof showToast==='function')showToast(tr('eggAddedToNursery',{label:egg.label}));refresh();return egg;
  }
  function ensure(){
   if(document.getElementById('mysteryShopMenu'))return;
