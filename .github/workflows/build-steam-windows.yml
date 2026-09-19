@@ -5,7 +5,9 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'desktop/**'\n      - 'game.js'\n      - 'js/desktop_controls.js'
+      - 'desktop/**'
+      - 'game.js'
+      - 'js/desktop_controls.js'
       - 'electron-builder.yml'
       - 'package.json'
       - 'scripts/validate-desktop-release.mjs'
