@@ -11,7 +11,10 @@ This branch introduces the first native desktop packaging layer for the existing
 - Node integration is disabled, context isolation and sandboxing are enabled.
 - Windows NSIS installer and portable EXE targets through electron-builder.
 - GitHub Actions workflow that validates and builds the Windows packages.
-- A deterministic desktop validation script that checks the release wrapper and packaging invariants.
+- A deterministic desktop validation script that checks the release wrapper, packaging invariants and PC input layer.
+- Native keyboard gameplay: A/D or Left/Right to steer, Space for Rainbow Boost, Esc/P for pause/back.
+- Gamepad API support: left stick/D-pad steering, A/Cross action, B/Circle back and Start pause.
+- Keyboard/controller focus navigation for player-facing menus without requiring a mouse.
 
 ## Local commands
 
@@ -44,7 +47,7 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 ## Still required before Steam release
 
 1. Add final Windows icon assets and Steam capsule/library artwork.
-2. Add keyboard/gamepad rebinding and verify every menu is fully keyboard/controller navigable.
+2. Add user-configurable keyboard/gamepad rebinding and complete packaged-hardware QA across Xbox, PlayStation and generic XInput-compatible controllers.
 3. Decide whether Steam achievements, cloud saves, leaderboards and overlay support are required for v1.
 4. Integrate Steamworks only after the standalone PC build is stable.
 5. Replace or adapt mobile-only real-money/IAP surfaces for the Steam SKU.
