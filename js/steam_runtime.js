@@ -41,8 +41,11 @@
   }
   async function saveCloudNow(){
     if(!bridge||!isPackagedPc()||restoring)return {ok:false,reason:'inactive'};
-    try{return await bridge.saveCloudSnapshot(snapshot());}
-    catch(e){return {ok:false,reason:String(e?.message||e)};}
+    try{
+      const result=await bridge.saveCloudSnapshot(snapshot());
+      if(result?.ok&&result.savedAt)originalSetItem.call(localStorage,'__orbuffSteamCloudAppliedAt',String(result.savedAt));
+      return result;
+    }catch(e){return {ok:false,reason:String(e?.message||e)};}
   }
   function scheduleCloudSave(){
     if(!bridge||!isPackagedPc()||restoring)return;
@@ -54,8 +57,16 @@
     try{
       const result=await bridge.loadCloudSnapshot();
       if(result?.ok&&result.exists&&result.data){
-        const changed=restore(result.data);
-        if(changed)sessionStorage.setItem('orbuffSteamCloudRestored','1');
+        const appliedAt=String(localStorage.getItem('__orbuffSteamCloudAppliedAt')||'');
+        const remoteAt=String(result.savedAt||'');
+        const shouldRestore=!appliedAt||(remoteAt&&remoteAt>appliedAt);
+        if(shouldRestore){
+          const changed=restore(result.data);
+          if(changed){
+            originalSetItem.call(localStorage,'__orbuffSteamCloudAppliedAt',remoteAt||new Date().toISOString());
+            sessionStorage.setItem('orbuffSteamCloudRestored','1');
+          }
+        }
       }
       return result;
     }catch(e){return {ok:false,reason:String(e?.message||e)};}
@@ -78,14 +89,15 @@
   }
 
   const originalSetItem=Storage.prototype.setItem;
-  Storage.prototype.setItem=function(key,value){
-    originalSetItem.call(this,key,value);
-    if(this===localStorage&&allowedKey(key))scheduleCloudSave();
-  };
-
-  addEventListener('beforeunload',()=>{try{saveCloudNow()}catch(e){}});
-  addEventListener('orbuff:achievement-unlocked',event=>unlockAchievement(event?.detail?.key));
-  addEventListener('sky-puff-ready',()=>{refreshStatus().then(syncAchievements);scheduleCloudSave();});
+  if(isPackagedPc()){
+    Storage.prototype.setItem=function(key,value){
+      originalSetItem.call(this,key,value);
+      if(this===localStorage&&allowedKey(key)&&key!=='__orbuffSteamCloudAppliedAt')scheduleCloudSave();
+    };
+    addEventListener('beforeunload',()=>{try{saveCloudNow()}catch(e){}});
+    addEventListener('orbuff:achievement-unlocked',event=>unlockAchievement(event?.detail?.key));
+    addEventListener('sky-puff-ready',()=>{refreshStatus().then(syncAchievements);scheduleCloudSave();});
+  }
 
   async function init(){
     if(!bridge||!isPackagedPc())return;
