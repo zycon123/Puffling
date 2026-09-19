@@ -15,6 +15,7 @@ This branch introduces the first native desktop packaging layer for the existing
 - Native keyboard gameplay: A/D or Left/Right to steer, Space for Rainbow Boost, Esc/P for pause/back.
 - Gamepad API support: left stick/D-pad steering, A/Cross action, B/Circle back and Start pause.
 - Keyboard/controller focus navigation for player-facing menus without requiring a mouse.
+- PC Controls menu supports persistent keyboard rebinding for left/right/boost/pause and gamepad rebinding for action/back/pause, with one-click reset to defaults.
 - Widescreen PC presentation keeps the validated 620px gameplay field intact while using side space for live height, coins, health, mode and control reference on large desktop displays.
 
 ## Local commands
@@ -48,7 +49,7 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 ## Still required before Steam release
 
 1. Add final Windows icon assets and Steam capsule/library artwork.
-2. Add user-configurable keyboard/gamepad rebinding and complete packaged-hardware QA across Xbox, PlayStation and generic XInput-compatible controllers.
+2. Complete packaged-hardware QA across Xbox, PlayStation and generic XInput-compatible controllers; user-configurable keyboard and core gamepad button rebinding is now implemented.
 3. Finish Steam achievements/Cloud/overlay validation against the real App ID; the runtime hooks and mappings are already implemented.
 4. Install and pin the selected Steamworks native Node binding after the real App ID is available; the safe main-process IPC adapter is already implemented.
 5. Integrate a future Steamworks purchase bridge only if paid Diamonds are desired on Steam; the packaged PC SKU now explicitly hides and blocks the current Apple/Google mobile IAP surface.
