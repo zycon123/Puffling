@@ -10,7 +10,7 @@
  function ensureActive(){
   const active=G.active?.();if(canUse(active))return active;
   const fallback=usableIds()[0]||'';if(!fallback)return '';
-  if(G.setActive?.(fallback)!==false){if(active&&typeof showToast==='function')showToast('Race byttet til en Orbuff som er klar til bruk 🏁');return fallback}return '';
+  if(G.setActive?.(fallback)!==false){if(active&&typeof showToast==='function')showToast(tr('raceSwitchedOrbuff'));return fallback}return '';
  }
  // The legacy Race bridge reads active/selected/equipped from the collection snapshot.
  // Decorate load() with the real gameplay selection without changing persisted save data.
@@ -18,7 +18,7 @@
   const baseLoad=F.load.bind(F);F.load=function(){const state=baseLoad(),active=G.active?.();if(active&&Number(state?.owned?.[active]||0)>0)state.active=active;return state};F.__orbuffRaceActiveDecorated=true;
  }
  function block(){
-  const msg='Ingen Orbuff er klar til Race. Gjenoppliv en utmattet Orbuff eller ta en Orbuff ut av OrbVault.';
+  const msg=tr('raceNoOrbuffReady');
   const status=document.getElementById('multiplayerStatus');if(status)status.textContent=msg;
   if(typeof showToast==='function')showToast('🔒 '+msg);
   return false;
@@ -31,7 +31,7 @@
  function chargeRaceLoss(state){
   if(raceLossCharged||!state||!(state.winner==='rival'||state.disconnectLoss))return null;
   raceLossCharged=true;const id=raceOrbuffId||G.active?.(),r=window.OrbuffEnergy?.consumeLoss?.(id);
-  if(r?.ok&&typeof showToast==='function')setTimeout(()=>showToast(`Race-tap: Orbuff mistet 1 energi • ❤️ ${r.energy}/${r.max}`),150);
+  if(r?.ok&&typeof showToast==='function')setTimeout(()=>showToast(tr('raceLossEnergy',{energy:r.energy,max:r.max})),150);
   return r||null;
  }
  const raceUi=window.SkyPuffRaceUI;

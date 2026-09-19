@@ -5,7 +5,7 @@ const localStorage={getItem:k=>data.has(k)?data.get(k):null,setItem:(k,v)=>data.
 let active='ember',stage=0,persisted=0,bossStarts=0,bossWins=0;
 const puffs={ember:{id:'ember',rarity:'common'},prism:{id:'prism',rarity:'rare'},starterpuff:{id:'starterpuff',rarity:'common',starterOnly:true}};
 const ctx={console,Date,JSON,Object,Number,String,Math,localStorage,running:false,multiplayerMode:false,save:{bank:1000},persist:()=>persisted++,refreshMenu:()=>{},showToast:()=>{},playBtnEl:null,retryBtnEl:null,startGame(){ctx.running=true;return true},startBossRush(){bossStarts++;ctx.running=true;return true},finishBossRushWin(){bossWins++;ctx.running=false;return true},endGame(){ctx.running=false;ctx.multiplayerMode=false},SkyPuffPufflingEvolution:{stageFor:()=>stage},SkyPuffFusion:{BASE:puffs,FUSIONS:{}},SkyPuffFusionUI:{renderDex:()=>{}},SkyPuffPufflingGameplay:{active:()=>active,getPuff:id=>puffs[id],setActive:id=>{active=id;return true}}};
-ctx.window=ctx;ctx.globalThis=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/orbuff_energy.js','utf8'),ctx,{filename:'js/orbuff_energy.js'});
+ctx.window=ctx;ctx.globalThis=ctx;vm.createContext(ctx);vm.runInContext(fs.readFileSync('js/localization_core.js','utf8'),ctx,{filename:'js/localization_core.js'});vm.runInContext(fs.readFileSync('js/orbuff_energy.js','utf8'),ctx,{filename:'js/orbuff_energy.js'});
 const E=ctx.OrbuffEnergy;if(!E)fail('Energy API missing');
 if(E.get('ember').energy!==5||E.get('ember').max!==5)fail('Base Orbuff must start with five energy');
 stage=2;if(E.get('prism').max!==6||E.get('prism').energy!==6)fail('Ascended Orbuff must have six energy');stage=0;
