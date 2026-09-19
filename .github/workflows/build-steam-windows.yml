@@ -8,6 +8,9 @@ on:
       - 'desktop/**'
       - 'game.js'
       - 'js/desktop_controls.js'
+      - 'js/pc_settings.js'
+      - 'js/desktop_presentation.js'
+      - 'scripts/validate-pc-*.mjs'
       - 'js/steam_runtime.js'
       - 'steam/**'
       - 'scripts/prepare-steam-build.mjs'
@@ -29,6 +32,14 @@ jobs:
           package-manager-cache: false
       - name: Validate PC wrapper
         run: npm run desktop:validate
+      - name: Test keyboard and controller behavior
+        run: node scripts/validate-pc-controls.mjs
+      - name: Install isolated browser test tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/orbuff-tests" --no-audit --no-fund playwright@1.62.1
+          "$RUNNER_TEMP/orbuff-tests/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Test PC settings in Chromium
+        run: ORBUFF_PLAYWRIGHT_MODULE="$RUNNER_TEMP/orbuff-tests/node_modules/playwright/index.mjs" node scripts/validate-pc-settings-browser.mjs
 
   build-windows:
     needs: validate-desktop

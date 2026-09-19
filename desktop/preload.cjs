@@ -10,3 +10,5 @@ contextBridge.exposeInMainWorld('OrbuffSteam', Object.freeze({
   loadCloudSnapshot: () => invoke('orbuff:steam:cloud:load'),
   openOverlay: (section) => invoke('orbuff:steam:overlay', { section: String(section || 'achievements') })
 }));
+
+contextBridge.exposeInMainWorld('OrbuffDesktop', {toggleFullscreen: () => ipcRenderer.invoke('orbuff:desktop:fullscreen')});

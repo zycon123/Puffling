@@ -69,3 +69,15 @@ The bridge intentionally keeps Steam native code in Electron's main process. Ren
 ## Release strategy
 
 Keep browser/mobile and Steam as one gameplay codebase, with thin platform adapters. The desktop shell should remain small. Steam-specific APIs should be isolated behind a platform bridge so the browser and mobile builds continue to work without Steam.
+
+## PC Settings and controls
+
+Open **PC Settings** from the main or pause menu. Music, volume and graphics use the existing shared game preferences. Fullscreen works from the settings button or F11 in the Windows app; Escape remains available for menu navigation.
+
+Keyboard actions support two saved bindings per action. Select a binding, then press a key; Escape cancels capture. Duplicate and reserved keys are rejected. Reset restores A/Left, D/Right, Space and P. Escape, Tab, Enter and fullscreen shortcuts are reserved so menus remain reachable.
+
+Standard-mapped controllers use the left stick / D-pad to steer, A/Cross to select and B/Circle to go back. Boost and pause can be mapped in Settings; connection status and Xbox/PlayStation button names are displayed. Unmapped devices need Steam Input's standard controller layout. Menu up/down changes focus, left/right adjusts sliders and selects. Keyboard arrows, Tab/Shift+Tab, Enter/Space and Escape work without a mouse.
+
+Closing Settings leaves an active run paused. Movement input clears on blur/disconnect. Touch and pointer handlers and the 620px PC playfield are unchanged. Saved controls validate on load; corrupt data restores defaults and unavailable storage is reported in the settings status.
+
+Regression: `node scripts/validate-pc-controls.mjs`. CI additionally runs `scripts/validate-pc-settings-browser.mjs` with isolated Playwright tooling and builds both Windows packages. Physical controller and packaged Windows hardware QA remain required before shipping.
