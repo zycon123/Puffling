@@ -50,7 +50,7 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 1. Add final Windows icon assets and Steam capsule/library artwork.
 2. Complete packaged-hardware QA of the implemented keyboard/gamepad rebinding across Xbox, PlayStation and generic XInput-compatible controllers.
 3. Finish Steam achievements/Cloud/overlay validation against the real App ID; the runtime hooks, conflict-safe Cloud restore and mappings are implemented.
-4. Install and pin the selected Steamworks native Node binding and update electron-builder to package it. `npm run steam:release:validate` now blocks release until both conditions are true.
+4. Done: `steamworks.js` 0.4.0 is installed as a pinned dependency and packaged into the Windows build (`asarUnpack` keeps its native `.node` addon and `steam_api64.dll` outside the asar archive so they load correctly). `npm run steam:release:validate --strict` no longer blocks on this; it now only blocks on the real App ID/Depot ID (item 7).
 5. Integrate a future Steamworks purchase bridge only if paid Diamonds are desired on Steam; the packaged PC SKU now explicitly hides and blocks the current Apple/Google mobile IAP surface.
 6. Run a real packaged Windows smoke test on multiple resolutions, DPI scales and fresh user profiles.
 7. Replace SteamPipe App/Depot placeholders using `npm run steam:prepare` after the real IDs exist; templates and generator are already implemented.

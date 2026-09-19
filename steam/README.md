@@ -63,6 +63,8 @@ Replace them only in a local/release generation step. Never commit Steam credent
 
 ## Native integration step after App ID
 
-Install the selected Steamworks Node binding in the Windows build environment. The current adapter targets the established `steamworks.js` API shape: `init`, `achievement.activate`, integer `stats`, `localplayer`, `overlay`, and callback pumping.
+`steamworks.js` 0.4.0 is now installed as a pinned dependency and packaged into the Windows build via `electron-builder.yml`'s `asarUnpack`, so its native `.node` addon and bundled `steam_api64.dll` load correctly from outside the asar archive. The adapter in `desktop/steam_runtime.cjs` targets its established API shape: `init`, `achievement.activate`, integer `stats`, `localplayer`, `overlay`, and callback pumping.
+
+What still requires a real App ID: `client = steamworks.init(appId)` only succeeds once a genuine registered App ID is supplied via `ORBUFF_STEAM_APP_ID` or `steam_appid.txt` (see "Release gate" above); until then the runtime stays a no-op standalone Windows build by design.
 
 The renderer security posture must stay unchanged: context isolation on, Node integration off, sandbox on.
