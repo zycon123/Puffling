@@ -1,13 +1,8 @@
+const {allowedOrigin}=require('./cors');
 function json(res,status,payload,origin=''){
   const headers={'content-type':'application/json','cache-control':'no-store'};
   if(origin)headers['access-control-allow-origin']=origin;
   res.writeHead(status,headers);res.end(JSON.stringify(payload));return true;
-}
-function allowedOrigin(req){
-  const origin=String(req.headers.origin||'');
-  if(!origin)return '';
-  if(origin==='https://zycon123.github.io'||origin==='capacitor://localhost'||origin==='http://localhost'||origin==='https://localhost')return origin;
-  return '';
 }
 function bearer(req){const h=String(req.headers.authorization||'');return /^Bearer\s+/i.test(h)?h.replace(/^Bearer\s+/i,'').trim():'';}
 function readJson(req,limit=64*1024){

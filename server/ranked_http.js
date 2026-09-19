@@ -1,7 +1,11 @@
+const cors=require('./cors');
 function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));return true;}
 module.exports=function createRankedHttp(store){
   return async function handleRanked(req,res){
     const url=new URL(req.url,'http://localhost');
+    if(!url.pathname.startsWith('/api/ranked/'))return false;
+    if(cors.handlePreflight(req,res,'GET,OPTIONS'))return true;
+    cors.applyCors(req,res);
     if(url.pathname==='/api/ranked/status'&&req.method==='GET'){
       return json(res,200,{ok:true,...store.status(),serverAuthoritative:false,version:store.version});
     }

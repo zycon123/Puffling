@@ -1,4 +1,5 @@
 const crypto=require('crypto');
+const cors=require('./cors');
 function json(res,status,body){res.writeHead(status,{'content-type':'application/json','cache-control':'no-store'});res.end(JSON.stringify(body));return true;}
 function bearer(req){const h=String(req.headers?.authorization||'');const m=h.match(/^Bearer\s+(.+)$/i);return m?m[1].trim():'';}
 function readJson(req,maxBytes=4096){return new Promise((resolve,reject)=>{let raw='',size=0;req.on('data',chunk=>{size+=chunk.length;if(size>maxBytes){reject(new Error('payload_too_large'));req.destroy();return;}raw+=chunk;});req.on('end',()=>{if(!raw)return resolve({});try{resolve(JSON.parse(raw));}catch{reject(new Error('invalid_json'));}});req.on('error',reject);});}
@@ -6,6 +7,9 @@ function newRecoveryKey(){return crypto.randomBytes(24).toString('base64url');}
 module.exports=function createAccountHttp(auth,rankedStore,accountStore){
   return async function handleAccount(req,res){
     const url=new URL(req.url,'http://localhost');
+    if(!url.pathname.startsWith('/api/account/'))return false;
+    if(cors.handlePreflight(req,res,'GET,POST,DELETE,OPTIONS'))return true;
+    cors.applyCors(req,res);
     if(url.pathname==='/api/account/status'&&req.method==='GET')return json(res,200,{ok:true,enabled:auth.enabled(),issuer:auth.issuer,audience:auth.audience,ttlSeconds:auth.ttlSeconds,deletionReady:!!accountStore?.status?.().ready,recoveryReady:!!accountStore?.status?.().recovery});
     if(url.pathname==='/api/account/guest'&&req.method==='POST'){
       if(!auth.enabled())return json(res,503,{ok:false,error:'auth_unavailable'});
