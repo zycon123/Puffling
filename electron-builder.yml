@@ -7,7 +7,7 @@ directories:
 
 files:
   - index.html
-  - styles.css
+  - style.css
   - game.js
   - audio_theme.js
   - assets/**/*
