@@ -1,6 +1,6 @@
 (function(){
  const unlockedThisRun=new Set();
- function unlock(key,title,reward){if(save[key])return false;save[key]=true;save.bank+=reward;persist();refreshMenu();showToast(`Achievement: ${title}! +${reward} 🪙 🏅`);return true;}
+ function unlock(key,title,reward){if(save[key])return false;save[key]=true;save.bank+=reward;persist();refreshMenu();showToast(`Achievement: ${title}! +${reward} 🪙 🏅`);try{window.dispatchEvent(new CustomEvent('orbuff:achievement-unlocked',{detail:{key,title}}));}catch(e){}return true;}
  function checkHeight(){
   const targets=[
    ['achSkyLegend','skyLegend',10000,'SKY LEGEND',1000],

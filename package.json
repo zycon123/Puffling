@@ -28,7 +28,8 @@
     "desktop:dist:win": "npm run desktop:validate && npx --yes electron-builder@26.15.3 --config electron-builder.yml --win nsis portable",
     "store:capture:prepare": "node scripts/prepare-store-capture.mjs",
     "store:generate": "node scripts/generate-store-assets.mjs",
-    "store:validate": "node scripts/validate-store-assets.mjs"
+    "store:validate": "node scripts/validate-store-assets.mjs",
+    "steam:prepare": "node scripts/prepare-steam-build.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",

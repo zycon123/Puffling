@@ -13,6 +13,9 @@ files:
   - assets/**/*
   - js/**/*
   - desktop/main.cjs
+  - desktop/preload.cjs
+  - desktop/steam_runtime.cjs
+  - steam/**
   - "!**/*.map"
   - "!dist/**/*"
   - "!mobile-web/**/*"
