@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import {pathToFileURL} from 'node:url';
-const {chromium}=await import(process.env.ORBUFF_PLAYWRIGHT_MODULE?pathToFileURL(process.env.ORBUFF_PLAYWRIGHT_MODULE).href:'playwright');
+const {chromium,devices}=await import(process.env.ORBUFF_PLAYWRIGHT_MODULE?pathToFileURL(process.env.ORBUFF_PLAYWRIGHT_MODULE).href:'playwright');
 const root=process.cwd();
 const server=createServer((req,res)=>{
   const file=path.resolve(root,'.'+decodeURIComponent(new URL(req.url,'http://localhost').pathname));
@@ -44,7 +44,7 @@ try{
   assert.equal(await page.evaluate(()=>W),620,'desktop width unchanged');
   assert.deepEqual(errors,[],'full game loads without page errors');
   await context.close();
-  const mobile=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const mobile=await browser.newContext({...devices['iPhone 13']});
   await mobile.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
   const phone=await mobile.newPage();await phone.goto(url);await phone.waitForFunction(()=>!!window.OrbuffPcSettings);assert.equal(await phone.locator('#start [data-pc-settings-open]').isVisible(),false,'PC settings do not alter touch menu');
   assert.equal(await phone.evaluate(()=>W),390,'mobile width unchanged');
