@@ -34,6 +34,7 @@ const storePolicy = fs.readFileSync(path.join(root, 'js/desktop_store_policy.js'
 const steamRenderer = fs.readFileSync(path.join(root, 'js/steam_runtime.js'), 'utf8');
 const desktopWidth = fs.readFileSync(path.join(root, 'js/desktop_game_width.js'), 'utf8');
 const achievements = fs.readFileSync(path.join(root, 'js/achievements.js'), 'utf8');
+const stateContent = fs.readFileSync(path.join(root, 'js/state_content.js'), 'utf8');
 const appBuild = fs.readFileSync(path.join(root, 'steam/app_build.vdf'), 'utf8');
 const depotBuild = fs.readFileSync(path.join(root, 'steam/depot_build_windows.vdf'), 'utf8');
 const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
@@ -88,6 +89,10 @@ const checks = [
   ['SteamPipe prepare requires env IDs', steamPrepare.includes('ORBUFF_STEAM_APP_ID')&&steamPrepare.includes('ORBUFF_STEAM_DEPOT_ID')&&steamPrepare.includes('replaceAll')],
   ['Steam prepare script registered', typeof pkg.scripts?.['steam:prepare'] === 'string'],
   ['Cloud restore has freshness guard', steamRenderer.includes('__orbuffSteamCloudAppliedAt')&&steamRenderer.includes('shouldRestore')],
+  ['core persist event emitted', stateContent.includes("CustomEvent('orbuff:persist')")],
+  ['Steam save/stat sync listens to persist', steamRenderer.includes("addEventListener('orbuff:persist'")&&steamRenderer.includes('scheduleSteamProgressSync')],
+  ['Steam stats are debounced', steamRenderer.includes('statTimer')&&steamRenderer.includes('setTimeout(()=>syncAchievements(),900)')],
+  ['desktop Steam identity is active-only', presentation.includes('orbuffDesktopSteamStatus')&&presentation.includes("if(!steamState.active)")&&presentation.includes("'orbuff:steam-status'")],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
