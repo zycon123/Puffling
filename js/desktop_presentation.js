@@ -56,9 +56,9 @@
       </aside>
       <aside class="orbuffDesktopRail right">
         <div id="orbuffDesktopControlsTitle" class="orbuffDesktopSectionTitle" style="margin-top:0">CONTROLS</div>
-        <div class="orbuffDesktopKey"><kbd>A/D ←/→</kbd><span id="orbuffDesktopSteerLabel">STEER</span></div>
-        <div class="orbuffDesktopKey"><kbd>SPACE</kbd><span id="orbuffDesktopBoostLabel">BOOST</span></div>
-        <div class="orbuffDesktopKey"><kbd>ESC / P</kbd><span id="orbuffDesktopPauseLabel">PAUSE</span></div>
+        <div class="orbuffDesktopKey"><kbd id="orbuffDesktopSteerKeys">A/D ←/→</kbd><span id="orbuffDesktopSteerLabel">STEER</span></div>
+        <div class="orbuffDesktopKey"><kbd id="orbuffDesktopBoostKeys">SPACE</kbd><span id="orbuffDesktopBoostLabel">BOOST</span></div>
+        <div class="orbuffDesktopKey"><kbd id="orbuffDesktopPauseKeys">ESC / P</kbd><span id="orbuffDesktopPauseLabel">PAUSE</span></div>
         <div class="orbuffDesktopKey"><kbd>F11</kbd><span id="orbuffDesktopFullscreenLabel">FULLSCREEN</span></div>
         <div class="orbuffDesktopKey"><kbd>🎮</kbd><span>A / ✕ · B / ○ · START</span></div>
         <div id="orbuffDesktopInputStatus">KEYBOARD</div>
@@ -102,6 +102,12 @@
     return t.menu;
   }
   function update(){
+    const controls=window.OrbuffDesktopControls;
+    if(controls){
+      setText('orbuffDesktopSteerKeys',controls.bindingLabel('left')+' · '+controls.bindingLabel('right'));
+      setText('orbuffDesktopBoostKeys',controls.bindingLabel('boost'));
+      setText('orbuffDesktopPauseKeys','Esc / '+controls.bindingLabel('pause'));
+    }
     const score=document.getElementById('score')?.textContent||'0';
     const coins=document.getElementById('coins')?.textContent||'0';
     const hp=document.getElementById('hp')?.textContent||'3';

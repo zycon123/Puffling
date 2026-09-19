@@ -15,7 +15,7 @@
    if(!STARTERS.has(card.dataset.pufflingId))return;
    const lines=[...card.querySelectorAll('.small')];
    const hint=lines.find(el=>/evolution|utvikler|evolve|entwickelt|evoluc|évolu/i.test(el.textContent||''));
-   if(hint)hint.textContent=t.card;
+   if(hint&&hint.textContent!==t.card)hint.textContent=t.card;
   });
  }
  function patchDetail(){

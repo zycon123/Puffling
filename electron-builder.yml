@@ -31,12 +31,15 @@ win:
   target:
     - nsis
     - portable
-  artifactName: "Orbuff-${version}-${arch}.${ext}"
 
 nsis:
+  artifactName: "Orbuff-${version}-${arch}-Setup.${ext}"
   oneClick: false
   perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Orbuff
+
+portable:
+  artifactName: "Orbuff-${version}-${arch}-Portable.${ext}"

@@ -19,6 +19,8 @@ jobs:
           package-manager-cache: false
       - name: Validate modular browser build
         run: node scripts/validate-build.mjs
+      - name: Validate PC control behavior
+        run: node scripts/validate-pc-controls.mjs
       - name: Validate runtime models
         run: node scripts/validate-runtime-models.mjs
       - name: Validate Orbuff player-facing branding

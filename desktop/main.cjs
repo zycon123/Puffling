@@ -7,6 +7,11 @@ let mainWindow = null;
 let steamRuntime = null;
 
 function registerSteamIpc() {
+  ipcMain.handle('orbuff:desktop:fullscreen', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return false;
+    mainWindow.setFullScreen(!mainWindow.isFullScreen());
+    return mainWindow.isFullScreen();
+  });
   ipcMain.handle('orbuff:steam:status', () => steamRuntime?.status?.() || { active:false, configured:false, error:'runtime_unavailable' });
   ipcMain.handle('orbuff:steam:achievement', (_event, payload) => steamRuntime?.unlockAchievement?.(payload?.id) || { ok:false, reason:'runtime_unavailable' });
   ipcMain.handle('orbuff:steam:stat', (_event, payload) => steamRuntime?.setStat?.(payload?.name, payload?.value) || { ok:false, reason:'runtime_unavailable' });
@@ -51,7 +56,7 @@ function createWindow() {
   });
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
-    if (input.type !== 'keyDown') return;
+    if (input.type !== 'keyDown' || input.isAutoRepeat) return;
 
     if (input.key === 'F11') {
       mainWindow.setFullScreen(!mainWindow.isFullScreen());
@@ -59,10 +64,7 @@ function createWindow() {
       return;
     }
 
-    if (input.key === 'Escape' && mainWindow.isFullScreen()) {
-      mainWindow.setFullScreen(false);
-      event.preventDefault();
-    }
+    // Escape belongs to renderer menu navigation, including in fullscreen.
   });
 
   mainWindow.loadFile(GAME_ENTRY);
