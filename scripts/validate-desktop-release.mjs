@@ -7,7 +7,8 @@ const requiredFiles = [
   'style.css',
   'game.js',
   'js/desktop_controls.js',
-  'js/desktop_presentation.js',\n  'js/desktop_store_policy.js',
+  'js/desktop_presentation.js',
+  'js/desktop_store_policy.js',
   'desktop/main.cjs',
   'electron-builder.yml'
 ];
@@ -23,6 +24,7 @@ const game = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
 const controls = fs.readFileSync(path.join(root, 'js/desktop_controls.js'), 'utf8');
 const presentation = fs.readFileSync(path.join(root, 'js/desktop_presentation.js'), 'utf8');
 const storePolicy = fs.readFileSync(path.join(root, 'js/desktop_store_policy.js'), 'utf8');
+const desktopWidth = fs.readFileSync(path.join(root, 'js/desktop_game_width.js'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
@@ -56,13 +58,13 @@ const checks = [
   ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
   ['desktop live run status', presentation.includes('orbuffDesktopHeight')&&presentation.includes('orbuffDesktopCoins')&&presentation.includes('orbuffDesktopHealth')],
   ['desktop mode status', presentation.includes('function currentMode')&&presentation.includes('bossArena')&&presentation.includes('multiplayerMode')],
+  ['620px gameplay balance preserved', desktopWidth.includes('MAX_DESKTOP_WIDTH=620')],
   ['PC store policy loaded after mobile Diamond store', diamondStorePos>=0&&storePolicyPos>diamondStorePos],
   ['PC store policy loaded before later menu cleanup', menuCleanupPos>=0&&storePolicyPos<menuCleanupPos],
   ['PC SKU detection is Electron file build only', storePolicy.includes("location.protocol==='file:'")&&storePolicy.includes('/Electron/i')],
   ['mobile IAP hidden on packaged PC', storePolicy.includes('openDiamondStore')&&storePolicy.includes("style.display='none'")],
   ['mobile purchase API blocked on packaged PC', storePolicy.includes("reason:'pc_mobile_iap_disabled'")&&storePolicy.includes('mobileIapAllowed:false')],
   ['Mystery Shop balance remains available', storePolicy.includes('existing balance')&&storePolicy.includes('mysteryShopMenu')],
-  ['620px gameplay balance preserved', presentation.includes('620px')===false],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
