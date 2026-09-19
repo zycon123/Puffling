@@ -38,17 +38,21 @@
   }
   function sanitize(candidate){
     const out=cloneDefaults();
+    const keyFallbacks=['KeyA','KeyD','Space','KeyP','KeyQ','KeyE','KeyF','KeyR','KeyS','KeyW'];
     const usedKeys=new Set();
     for(const action of KEY_ACTIONS){
-      const code=String(candidate?.keyboard?.[action]||DEFAULTS.keyboard[action]);
-      if(code&&!RESERVED_KEYS.has(code)&&!usedKeys.has(code)){out.keyboard[action]=code;usedKeys.add(code);}
-      else if(!usedKeys.has(DEFAULTS.keyboard[action]))usedKeys.add(DEFAULTS.keyboard[action]);
+      const requested=String(candidate?.keyboard?.[action]||'');
+      const candidates=[requested,DEFAULTS.keyboard[action],...keyFallbacks];
+      const code=candidates.find(value=>value&&!RESERVED_KEYS.has(value)&&!usedKeys.has(value))||DEFAULTS.keyboard[action];
+      out.keyboard[action]=code;usedKeys.add(code);
     }
+    const buttonFallbacks=[0,1,9,2,3,4,5,8,10,11];
     const usedButtons=new Set();
     for(const action of PAD_ACTIONS){
-      const n=Number(candidate?.gamepad?.[action]);
-      if(Number.isInteger(n)&&n>=0&&n<=31&&!usedButtons.has(n)){out.gamepad[action]=n;usedButtons.add(n);}
-      else usedButtons.add(DEFAULTS.gamepad[action]);
+      const requested=Number(candidate?.gamepad?.[action]);
+      const candidates=[requested,DEFAULTS.gamepad[action],...buttonFallbacks];
+      const n=candidates.find(value=>Number.isInteger(value)&&value>=0&&value<=31&&!usedButtons.has(value));
+      out.gamepad[action]=Number.isInteger(n)?n:DEFAULTS.gamepad[action];usedButtons.add(out.gamepad[action]);
     }
     return out;
   }
