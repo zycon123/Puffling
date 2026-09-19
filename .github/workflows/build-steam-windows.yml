@@ -8,6 +8,8 @@ on:
       - 'desktop/**'
       - 'game.js'
       - 'js/desktop_controls.js'
+      - 'js/desktop_control_settings.js'
+      - 'js/main_menu_cleanup.js'
       - 'js/steam_runtime.js'
       - 'steam/**'
       - 'scripts/prepare-steam-build.mjs'
