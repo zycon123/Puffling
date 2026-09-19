@@ -6,7 +6,7 @@ This branch introduces the first native desktop packaging layer for the existing
 
 - Secure Electron desktop shell loading the local Orbuff game files.
 - Windows-friendly 1280×900 default window with 900×700 minimum size.
-- F11 fullscreen toggle and Escape to leave fullscreen.
+- F11 fullscreen toggle and Escape for pause/back, including in fullscreen.
 - External web links open in the operating-system browser instead of replacing the game.
 - Node integration is disabled, context isolation and sandboxing are enabled.
 - Windows NSIS installer and portable EXE targets through electron-builder.
@@ -48,7 +48,7 @@ The commands pin Electron 44.4.2 and electron-builder 26.15.3 through npx, so th
 ## Still required before Steam release
 
 1. Add final Windows icon assets and Steam capsule/library artwork.
-2. Add user-configurable keyboard/gamepad rebinding and complete packaged-hardware QA across Xbox, PlayStation and generic XInput-compatible controllers.
+2. Complete packaged-hardware QA of the implemented keyboard/gamepad rebinding across Xbox, PlayStation and generic XInput-compatible controllers.
 3. Finish Steam achievements/Cloud/overlay validation against the real App ID; the runtime hooks, conflict-safe Cloud restore and mappings are implemented.
 4. Install and pin the selected Steamworks native Node binding and update electron-builder to package it. `npm run steam:release:validate` now blocks release until both conditions are true.
 5. Integrate a future Steamworks purchase bridge only if paid Diamonds are desired on Steam; the packaged PC SKU now explicitly hides and blocks the current Apple/Google mobile IAP surface.

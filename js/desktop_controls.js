@@ -211,7 +211,7 @@
       event.preventDefault();return;
     }
     if(['Enter','Space'].includes(event.code)){
-      if(!event.repeat)activateFocused();event.preventDefault();return;
+      if(!event.repeat)activateFocused();event.preventDefault();event.stopImmediatePropagation();return;
     }
     if(config.keys.pause.includes(event.code)&&!event.repeat)togglePause();
   },true);

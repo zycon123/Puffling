@@ -3,4 +3,7 @@ www/
 .DS_Store
 *.log
 store-capture.html
-steam_appid.txt\nsteam/credentials.vdf\nsteam/**/credentials.vdf\n
+steam_appid.txt
+steam/credentials.vdf
+steam/**/credentials.vdf
+dist/

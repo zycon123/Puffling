@@ -19,9 +19,10 @@ try{
   await context.addInitScript(()=>{
     window.__testPad=null;Object.defineProperty(navigator,'getGamepads',{value:()=>window.__testPad?[window.__testPad]:[]});
   });
-  const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const page=await context.newPage();const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('Browser error:',e.message)});
   const url=`http://127.0.0.1:${server.address().port}/`;
   await page.goto(url);
+  await page.locator('[data-starter-puffling="starterpuff"]').click({timeout:30000});
   const open=page.locator('#start [data-pc-settings-open]');await open.waitFor({state:'visible',timeout:30000});await open.click();
   const dialog=page.getByRole('dialog');await dialog.waitFor({state:'visible'});
   const left=page.locator('[data-pc-key="left"][data-slot="0"]');await left.click();await page.keyboard.press('j');assert.equal(await left.textContent(),'J');
@@ -49,4 +50,8 @@ try{
   assert.equal(await phone.evaluate(()=>W),390,'mobile width unchanged');
   await mobile.close();
   console.log('PASS browser PC settings: full-game boot, rebind/conflict/cancel, reload, focus trap, controller navigation, reset, pause safety, 620px and mobile layout.');
+}catch(error){
+  for(const context of browser.contexts())for(const page of context.pages())console.error('Visible page at failure:',await page.locator('body').innerText().catch(()=>''));
+  throw error;
 }finally{await browser.close();server.close()}
+
