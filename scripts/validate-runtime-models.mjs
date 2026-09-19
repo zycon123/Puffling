@@ -88,6 +88,8 @@ function run(context,relativePath){
  otherOverlay.style.display='none';ai.runCheck();if(restored!==1||ai.repairs!==1)fail('Missing-menu recovery no longer works');
  context.multiplayerMode=true;ai.runCheck();if(restored!==1||ai.repairs!==1)fail('Connecting/waiting multiplayer race was incorrectly kicked back to the main menu');
  context.multiplayerMode=false;ai.runCheck();if(restored!==2||ai.repairs!==2)fail('Missing-menu recovery stopped working after a multiplayer race ended');
+ context.multiplayerState='searching';ai.runCheck();if(restored!==2||ai.repairs!==2)fail('Quick Match "searching" gap (multiplayerMode still false, no overlay open yet, e.g. right after Race Again) was incorrectly kicked back to the main menu');
+ context.multiplayerState='idle';ai.runCheck();if(restored!==3||ai.repairs!==3)fail('Missing-menu recovery stopped working after multiplayerState returned to idle');
  ok('AI diagnostics dynamic overlay detection, legacy log migration and multiplayer-in-progress guard');
 }
 
