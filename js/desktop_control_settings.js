@@ -47,7 +47,7 @@
     keyCapture=action;button.textContent=copy().press;
     const handler=e=>{
       if(!keyCapture)return;
-      if(['Escape','Enter','Tab'].includes(e.code)){keyCapture='';render();return;}
+      if(['Escape','Enter','Tab'].includes(e.code)){keyCapture='';removeEventListener('keydown',handler,true);render();return;}
       e.preventDefault();e.stopPropagation();
       API()?.setKeyboardBinding?.(action,e.code);keyCapture='';removeEventListener('keydown',handler,true);render();
     };
