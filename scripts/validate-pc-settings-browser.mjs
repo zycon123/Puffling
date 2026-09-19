@@ -54,4 +54,3 @@ try{
   for(const context of browser.contexts())for(const page of context.pages())console.error('Visible page at failure:',await page.locator('body').innerText().catch(()=>''));
   throw error;
 }finally{await browser.close();server.close()}
-
