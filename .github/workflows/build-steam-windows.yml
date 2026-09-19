@@ -11,6 +11,7 @@ on:
       - 'js/pc_settings.js'
       - 'js/desktop_presentation.js'
       - 'scripts/validate-pc-*.mjs'
+      - 'scripts/validate-windows-artifacts.mjs'
       - 'js/steam_runtime.js'
       - 'steam/**'
       - 'scripts/prepare-steam-build.mjs'
@@ -54,6 +55,8 @@ jobs:
           package-manager-cache: false
       - name: Build NSIS and portable Windows packages
         run: npm run desktop:dist:win
+      - name: Verify separate installer and portable artifacts
+        run: node scripts/validate-windows-artifacts.mjs
       - name: Upload Windows build
         uses: actions/upload-artifact@v6
         with:
