@@ -113,3 +113,10 @@ const loader=read('game.js');for(const file of ['js/endless_boss_core.js','js/la
 const lateVisuals=read('js/late_boss_visuals.js');for(const id of ['solar','void','thunder','crystal','inferno','cosmic'])assert.ok(lateVisuals.includes(`'${id}'`),`late boss visual missing ${id}`);
 
 console.log(`✅ Full-game endurance simulation passed: 10 unique bosses, ${encounters.length} total boss encounters through 300000m, ${generated} procedural platforms; bounded arrays max platforms=${maxPlatforms}, coins=${maxCoins}, powerups=${maxPowerups}, enemies=${maxEnemies}; extreme boss=${extremeRef} HP=${extremeHp}`);
+
+// Race My Orbuff shares the same score/height variable as endless mode; without an explicit
+// guard, crossing a boss milestone (e.g. 1200m) mid-race would spawn a normal-mode boss
+// encounter on top of the race.
+const gameplayUpdateSrc=read('js/gameplay_update.js');
+assert.match(gameplayUpdateSrc,/if\(!boss&&!bossWarningActive&&!multiplayerMode\)\{const stage=nextBossStage\(\)/,'boss milestone spawning must be suppressed while a multiplayer Race is active');
+console.log('✅ Boss milestone encounters are suppressed during Race My Orbuff');
