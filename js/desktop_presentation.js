@@ -56,9 +56,9 @@
       </aside>
       <aside class="orbuffDesktopRail right">
         <div id="orbuffDesktopControlsTitle" class="orbuffDesktopSectionTitle" style="margin-top:0">CONTROLS</div>
-        <div class="orbuffDesktopKey"><kbd>A/D ←/→</kbd><span id="orbuffDesktopSteerLabel">STEER</span></div>
-        <div class="orbuffDesktopKey"><kbd>SPACE</kbd><span id="orbuffDesktopBoostLabel">BOOST</span></div>
-        <div class="orbuffDesktopKey"><kbd>ESC / P</kbd><span id="orbuffDesktopPauseLabel">PAUSE</span></div>
+        <div class="orbuffDesktopKey"><kbd id="orbuffDesktopSteerKeys">A/D ←/→</kbd><span id="orbuffDesktopSteerLabel">STEER</span></div>
+        <div class="orbuffDesktopKey"><kbd id="orbuffDesktopBoostKey">SPACE</kbd><span id="orbuffDesktopBoostLabel">BOOST</span></div>
+        <div class="orbuffDesktopKey"><kbd id="orbuffDesktopPauseKey">ESC / P</kbd><span id="orbuffDesktopPauseLabel">PAUSE</span></div>
         <div class="orbuffDesktopKey"><kbd>F11</kbd><span id="orbuffDesktopFullscreenLabel">FULLSCREEN</span></div>
         <div class="orbuffDesktopKey"><kbd>🎮</kbd><span>A / ✕ · B / ○ · START</span></div>
         <div id="orbuffDesktopInputStatus">KEYBOARD</div>
@@ -101,7 +101,16 @@
     }catch(e){}
     return t.menu;
   }
+  function updateBindingLabels(){
+    const s=window.OrbuffControlSettings;
+    const left=s?.keyLabel?.('left')||'A',right=s?.keyLabel?.('right')||'D';
+    const boost=s?.keyLabel?.('boost')||'SPACE',pause=s?.keyLabel?.('pause')||'P';
+    setText('orbuffDesktopSteerKeys',`${left}/${right} ←/→`);
+    setText('orbuffDesktopBoostKey',boost);
+    setText('orbuffDesktopPauseKey',`ESC / ${pause}`);
+  }
   function update(){
+    updateBindingLabels();
     const score=document.getElementById('score')?.textContent||'0';
     const coins=document.getElementById('coins')?.textContent||'0';
     const hp=document.getElementById('hp')?.textContent||'3';
@@ -123,8 +132,9 @@
   addEventListener('gamepadconnected',update);
   addEventListener('gamepaddisconnected',update);
   addEventListener('orbuff:steam-status',event=>updateSteamStatus(event?.detail));
-  setTimeout(()=>updateSteamStatus(window.OrbuffSteamRuntime?.status?.()),350);
+  addEventListener('orbuff:control-bindings',updateBindingLabels);
+  setTimeout(()=>{updateSteamStatus(window.OrbuffSteamRuntime?.status?.());updateBindingLabels();},350);
   setInterval(update,180);
 
-  window.OrbuffDesktopPresentation={update,applyCopy,updateSteamStatus};
+  window.OrbuffDesktopPresentation={update,applyCopy,updateSteamStatus,updateBindingLabels};
 })();
