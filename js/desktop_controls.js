@@ -4,7 +4,7 @@
   const DRIVE_DISTANCE=260;
   const NAV_REPEAT_MS=180;
   const STORAGE_KEY='orbuffPcControlsV1';
-  const DEFAULTS={keys:{left:['KeyA','ArrowLeft'],right:['KeyD','ArrowRight'],boost:['Space'],pause:['KeyP']},buttons:{boost:0,pause:9}};
+  const DEFAULTS={keys:{left:['KeyA','ArrowLeft'],right:['KeyD','ArrowRight'],boost:['Space'],attack:['KeyE'],pause:['KeyP']},buttons:{boost:0,pause:9}};
   const heldKeys=new Set();
   const allowedCode=code=>typeof code==='string'&&/^(Key[A-Z]|Digit[0-9]|Arrow(Left|Right|Up|Down)|Space|Shift(Left|Right)|Numpad[0-9]|Comma|Period|Slash|Semicolon|Quote|BracketLeft|BracketRight|Backslash|Minus|Equal)$/.test(code);
   function normalize(value){
@@ -14,6 +14,13 @@
     const candidate={};
     for(const action of Object.keys(DEFAULTS.keys)){
       const keys=value.keys?.[action];
+      if(keys===undefined){
+        // Saved config predates this action (e.g. Attack added later) — default
+        // it in place instead of discarding the player's whole saved layout.
+        const fallback=DEFAULTS.keys[action].filter(key=>!used.has(key));
+        candidate[action]=fallback;fallback.forEach(key=>used.add(key));
+        continue;
+      }
       if(!Array.isArray(keys)||!keys.length||keys.length>2||keys.some(key=>!allowedCode(key)||used.has(key)))return result;
       if(new Set(keys).size!==keys.length)return result;
       candidate[action]=keys.slice();keys.forEach(key=>used.add(key));
@@ -65,11 +72,11 @@
   let lastAxisNav=0;
 
   const COPY={
-    no:'PC: A/D eller ←/→ • Space: Rainbow Boost • Esc/P: Pause',
-    en:'PC: A/D or ←/→ • Space: Rainbow Boost • Esc/P: Pause',
-    de:'PC: A/D oder ←/→ • Leertaste: Rainbow Boost • Esc/P: Pause',
-    es:'PC: A/D o ←/→ • Espacio: Rainbow Boost • Esc/P: Pausa',
-    fr:'PC : A/D ou ←/→ • Espace : Rainbow Boost • Esc/P : Pause'
+    no:'PC: A/D eller ←/→ • Space: Rainbow Boost • E: Angrep • Esc/P: Pause',
+    en:'PC: A/D or ←/→ • Space: Rainbow Boost • E: Attack • Esc/P: Pause',
+    de:'PC: A/D oder ←/→ • Leertaste: Rainbow Boost • E: Angriff • Esc/P: Pause',
+    es:'PC: A/D o ←/→ • Espacio: Rainbow Boost • E: Ataque • Esc/P: Pausa',
+    fr:'PC : A/D ou ←/→ • Espace : Rainbow Boost • E : Attaque • Esc/P : Pause'
   };
 
   function currentLanguage(){
@@ -153,6 +160,10 @@
     if(!gameplayActive())return;
     try{doBoost()}catch(e){}
   }
+  function attack(){
+    if(!gameplayActive())return;
+    try{window.SkyPuffRaceUI?.useAttack?.()}catch(e){}
+  }
   function shouldUseDesktopHint(){
     try{return !!window.skyPuffPlatform?.desktop||matchMedia('(pointer:fine)').matches||[...navigator.getGamepads?.()||[]].some(Boolean)}catch(e){return false}
   }
@@ -167,7 +178,7 @@
       hint.style.cssText='margin-top:8px;font-size:10px;line-height:1.35;opacity:.72';
       card.appendChild(hint);
     }
-    hint.textContent=(COPY[currentLanguage()]||COPY.en).replace(/A\/D (eller|or|oder|o|ou) ←\/→/,bindingLabel('left')+' · '+bindingLabel('right')).replace(/Space|Leertaste|Espacio|Espace/,bindingLabel('boost')).replace('Esc/P','Esc / '+bindingLabel('pause'));
+    hint.textContent=(COPY[currentLanguage()]||COPY.en).replace(/A\/D (eller|or|oder|o|ou) ←\/→/,bindingLabel('left')+' · '+bindingLabel('right')).replace(/Space|Leertaste|Espacio|Espace/,bindingLabel('boost')).replace(/\bE\b/,bindingLabel('attack')).replace('Esc/P','Esc / '+bindingLabel('pause'));
     hint.style.display=shouldUseDesktopHint()?'block':'none';
   }
   function ensureFocusStyle(){
@@ -201,6 +212,7 @@
       if(!action)return;
       event.preventDefault();heldKeys.add(event.code);
       if(!event.repeat&&action==='boost')boost();
+      if(!event.repeat&&action==='attack')attack();
       if(!event.repeat&&action==='pause')togglePause();
       return;
     }
@@ -308,6 +320,7 @@
     activateFocused,
     backAction,
     boost,
+    attack,
     gamepadSupported:()=>typeof navigator.getGamepads==='function'
   };
 })();
