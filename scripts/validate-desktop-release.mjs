@@ -16,7 +16,8 @@ const requiredFiles = [
   'electron-builder.yml',
   'steam/app_build.vdf',
   'steam/depot_build_windows.vdf',
-  'steam/README.md'
+  'steam/README.md',
+  'scripts/prepare-steam-build.mjs'
 ];
 
 const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(root, file)));
@@ -36,6 +37,7 @@ const achievements = fs.readFileSync(path.join(root, 'js/achievements.js'), 'utf
 const appBuild = fs.readFileSync(path.join(root, 'steam/app_build.vdf'), 'utf8');
 const depotBuild = fs.readFileSync(path.join(root, 'steam/depot_build_windows.vdf'), 'utf8');
 const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
+const steamPrepare = fs.readFileSync(path.join(root, 'scripts/prepare-steam-build.mjs'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
@@ -83,6 +85,9 @@ const checks = [
   ['SteamPipe App ID placeholder present', appBuild.includes('ORBUFF_STEAM_APP_ID')],
   ['SteamPipe Depot ID placeholder present', appBuild.includes('ORBUFF_STEAM_DEPOT_ID')&&depotBuild.includes('ORBUFF_STEAM_DEPOT_ID')],
   ['Steam credentials ignored', gitignore.includes('steam/credentials.vdf')&&gitignore.includes('steam_appid.txt')],
+  ['SteamPipe prepare requires env IDs', steamPrepare.includes('ORBUFF_STEAM_APP_ID')&&steamPrepare.includes('ORBUFF_STEAM_DEPOT_ID')&&steamPrepare.includes('replaceAll')],
+  ['Steam prepare script registered', typeof pkg.scripts?.['steam:prepare'] === 'string'],
+  ['Cloud restore has freshness guard', steamRenderer.includes('__orbuffSteamCloudAppliedAt')&&steamRenderer.includes('shouldRestore')],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
