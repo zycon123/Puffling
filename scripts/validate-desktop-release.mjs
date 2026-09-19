@@ -7,6 +7,7 @@ const requiredFiles = [
   'style.css',
   'game.js',
   'js/desktop_controls.js',
+  'js/desktop_control_settings.js',
   'js/desktop_presentation.js',
   'js/desktop_store_policy.js',
   'js/steam_runtime.js',
@@ -29,6 +30,7 @@ const steamMain = fs.readFileSync(path.join(root, 'desktop/steam_runtime.cjs'), 
 const config = fs.readFileSync(path.join(root, 'electron-builder.yml'), 'utf8');
 const game = fs.readFileSync(path.join(root, 'game.js'), 'utf8');
 const controls = fs.readFileSync(path.join(root, 'js/desktop_controls.js'), 'utf8');
+const controlSettings = fs.readFileSync(path.join(root, 'js/desktop_control_settings.js'), 'utf8');
 const presentation = fs.readFileSync(path.join(root, 'js/desktop_presentation.js'), 'utf8');
 const storePolicy = fs.readFileSync(path.join(root, 'js/desktop_store_policy.js'), 'utf8');
 const steamRenderer = fs.readFileSync(path.join(root, 'js/steam_runtime.js'), 'utf8');
@@ -43,6 +45,8 @@ const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
 const controlsPos=game.indexOf("'js/desktop_controls.js'");
+const controlSettingsPos=game.indexOf("'js/desktop_control_settings.js'");
+const mainMenuPos=game.indexOf("'js/main_menu_cleanup.js'");
 const presentationPos=game.indexOf("'js/desktop_presentation.js'");
 const gameplayPos=game.indexOf("'js/gameplay_update.js'");
 const diamondStorePos=game.indexOf("'js/diamond_iap_store.js'");
@@ -63,12 +67,18 @@ const checks = [
   ['desktop controls loaded before gameplay loop', gameplayPos>=0&&controlsPos<gameplayPos],
   ['desktop presentation loaded after controls', presentationPos>controlsPos],
   ['desktop presentation loaded before gameplay loop', presentationPos<gameplayPos],
-  ['keyboard A/D support', controls.includes("case 'KeyA'")&&controls.includes("case 'KeyD'")],
+  ['persistent keyboard bindings', controls.includes("BINDINGS_KEY='orbuffPcBindingsV1'")&&controls.includes('setKeyboardBinding')],
+  ['persistent gamepad bindings', controls.includes('setGamepadBinding')&&controls.includes('bindings.gamepad.action')],
+  ['safe arrow navigation fallback', controls.includes("event.code==='ArrowLeft'")&&controls.includes("event.code==='ArrowRight'")],
   ['keyboard arrows support', controls.includes("case 'ArrowLeft'")&&controls.includes("case 'ArrowRight'")],
   ['Rainbow Boost keyboard action', controls.includes("case 'Space'")&&controls.includes('doBoost()')],
   ['pause/back keyboard actions', controls.includes("case 'Escape'")&&controls.includes("case 'KeyP'")],
   ['Gamepad API support', controls.includes('navigator.getGamepads')&&controls.includes('gamepadconnected')],
   ['menu focus navigation', controls.includes('function navigateFocus')&&controls.includes('focus({preventScroll:false})')],
+  ['control settings loaded before main menu cleanup', controlSettingsPos>=0&&mainMenuPos>controlSettingsPos],
+  ['keyboard capture UI', controlSettings.includes('captureKey')&&controlSettings.includes('setKeyboardBinding')],
+  ['gamepad capture UI', controlSettings.includes('capturePad')&&controlSettings.includes('navigator.getGamepads')],
+  ['restore default controls UI', controlSettings.includes('resetBindings')&&controlSettings.includes('pcControlsReset')],
   ['widescreen PC frame', presentation.includes('orbuffDesktopFrame')&&presentation.includes('@media (min-width:1100px)')],
   ['620px gameplay balance preserved', desktopWidth.includes('MAX_DESKTOP_WIDTH=620')],
   ['PC store policy loaded after mobile Diamond store', diamondStorePos>=0&&storePolicyPos>diamondStorePos],
