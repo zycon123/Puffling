@@ -17,7 +17,7 @@ const requiredFiles = [
   'steam/app_build.vdf',
   'steam/depot_build_windows.vdf',
   'steam/README.md',
-  'scripts/prepare-steam-build.mjs'
+  'scripts/prepare-steam-build.mjs',\n  'scripts/validate-steam-release.mjs'
 ];
 
 const missing = requiredFiles.filter((file) => !fs.existsSync(path.join(root, file)));
@@ -38,7 +38,7 @@ const stateContent = fs.readFileSync(path.join(root, 'js/state_content.js'), 'ut
 const appBuild = fs.readFileSync(path.join(root, 'steam/app_build.vdf'), 'utf8');
 const depotBuild = fs.readFileSync(path.join(root, 'steam/depot_build_windows.vdf'), 'utf8');
 const gitignore = fs.readFileSync(path.join(root, '.gitignore'), 'utf8');
-const steamPrepare = fs.readFileSync(path.join(root, 'scripts/prepare-steam-build.mjs'), 'utf8');
+const steamPrepare = fs.readFileSync(path.join(root, 'scripts/prepare-steam-build.mjs'), 'utf8');\nconst steamReleaseValidator = fs.readFileSync(path.join(root, 'scripts/validate-steam-release.mjs'), 'utf8');
 const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 const inputPos=game.indexOf("'js/input_missions_boss_spawn.js'");
@@ -87,8 +87,8 @@ const checks = [
   ['SteamPipe Depot ID placeholder present', appBuild.includes('ORBUFF_STEAM_DEPOT_ID')&&depotBuild.includes('ORBUFF_STEAM_DEPOT_ID')],
   ['Steam credentials ignored', gitignore.includes('steam/credentials.vdf')&&gitignore.includes('steam_appid.txt')],
   ['SteamPipe prepare requires env IDs', steamPrepare.includes('ORBUFF_STEAM_APP_ID')&&steamPrepare.includes('ORBUFF_STEAM_DEPOT_ID')&&steamPrepare.includes('replaceAll')],
-  ['Steam prepare script registered', typeof pkg.scripts?.['steam:prepare'] === 'string'],
-  ['Cloud restore has freshness guard', steamRenderer.includes('__orbuffSteamCloudAppliedAt')&&steamRenderer.includes('shouldRestore')],
+  ['Steam prepare script registered', typeof pkg.scripts?.['steam:prepare'] === 'string'],\n  ['Steam readiness script registered', typeof pkg.scripts?.['steam:readiness'] === 'string'],\n  ['Steam strict release script registered', typeof pkg.scripts?.['steam:release:validate'] === 'string'],
+  ['Cloud restore tracks local progress', steamRenderer.includes('__orbuffSteamLocalPersistAt')&&steamRenderer.includes('remote_newer_than_local')],\n  ['Cloud restore preserves ambiguous local progress', steamRenderer.includes('unversioned_local_progress_present')&&steamRenderer.includes("action:'keep-local'")],\n  ['Steam release gate exists', steamReleaseValidator.includes('--strict')&&steamReleaseValidator.includes('Steam native binding installed')],
   ['core persist event emitted', stateContent.includes("CustomEvent('orbuff:persist')")],
   ['Steam save/stat sync listens to persist', steamRenderer.includes("addEventListener('orbuff:persist'")&&steamRenderer.includes('scheduleSteamProgressSync')],
   ['Steam stats are debounced', steamRenderer.includes('statTimer')&&steamRenderer.includes('setTimeout(()=>syncAchievements(),900)')],
