@@ -100,6 +100,11 @@ const i18n={
 Object.assign(i18n.de,{multiplayerIntro:'Wer zuerst 1500 m erreicht, gewinnt. Spiele gegen einen Freund oder einen zufälligen Gegner.'});
 Object.assign(i18n.es,{multiplayerIntro:'Gana quien llegue primero a 1500 m. Compite contra un amigo o un jugador aleatorio.'});
 Object.assign(i18n.fr,{multiplayerIntro:'Le premier à atteindre 1500 m gagne. Affrontez un ami ou un joueur aléatoire.'});
+Object.assign(i18n.no,{scoreSavedLocalAntiCheat:'Resultat lagret lokalt • sikkerhetskontroll'});
+Object.assign(i18n.en,{scoreSavedLocalAntiCheat:'Score saved locally • anti-cheat review'});
+Object.assign(i18n.de,{scoreSavedLocalAntiCheat:'Ergebnis lokal gespeichert • Anti-Cheat-Prüfung'});
+Object.assign(i18n.es,{scoreSavedLocalAntiCheat:'Resultado guardado localmente • revisión anti-trampas'});
+Object.assign(i18n.fr,{scoreSavedLocalAntiCheat:'Score enregistré localement • vérification anti-triche'});
 let lang=localStorage.skyPuffLang||'no';
 function tr(key,vars={}){const t=(i18n[lang]&&i18n[lang][key])||i18n.no[key]||key;return Object.entries(vars).reduce((s,[k,v])=>s.replaceAll('{'+k+'}',v),t);}
 
@@ -228,7 +233,7 @@ async function submitOnlineScore(height){
  if(!anti.ok){
    if(window.skyPuffAntiCheat)window.skyPuffAntiCheat.noteBlockedSubmission();
    console.warn('Online score blocked by anti-cheat',anti);
-   showToast('Score lagret lokalt • anti-cheat review');
+   showToast(tr('scoreSavedLocalAntiCheat'));
    return;
  }
  if(!API_BASE)return;
