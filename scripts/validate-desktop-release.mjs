@@ -4,7 +4,7 @@ import path from 'node:path';
 const root = process.cwd();
 const requiredFiles = [
   'index.html',
-  'styles.css',
+  'style.css',
   'game.js',
   'desktop/main.cjs',
   'electron-builder.yml'
@@ -27,6 +27,7 @@ const checks = [
   ['fullscreen keyboard support', /F11/.test(main) && /Escape/.test(main)],
   ['Steam-safe Windows app id', /com\.zyconstudios\.orbuff/.test(config)],
   ['packaged game entry', /index\.html/.test(config)],
+  ['packaged stylesheet', /style\.css/.test(config)],
   ['desktop start script', typeof pkg.scripts?.['desktop:start'] === 'string'],
   ['Windows distribution script', typeof pkg.scripts?.['desktop:dist:win'] === 'string']
 ];
