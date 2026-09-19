@@ -7,7 +7,9 @@ const store=new Map();const localStorage={getItem:k=>store.has(k)?store.get(k):n
 const window={localStorage,skyPuffConfig:{iapVerifyUrl:'https://example.test/iap/verify'},SkyPuffDiamonds:{get:()=>0},PufflingDiamondWallet:{status:()=>({ready:false}),token:()=>'',acceptServerBalance:()=>{}},console};window.window=window;
 const fetch=async url=>({ok:true,status:200,json:async()=>String(url).includes('/iap/status')?{ok:true,ready:true,providerReady:false,providerMode:'disabled'}:{ok:false,error:'unexpected_fetch'}});
 const context={window,localStorage,console,setTimeout,clearTimeout,fetch};
-vm.createContext(context);vm.runInContext(source,context,{filename:'diamond_iap_store.js'});
+vm.createContext(context);
+vm.runInContext(fs.readFileSync('js/localization_core.js','utf8'),context,{filename:'js/localization_core.js'});
+vm.runInContext(source,context,{filename:'diamond_iap_store.js'});
 const api=window.PufflingDiamondStore;if(!api)fail('PufflingDiamondStore API missing');
 const catalog=api.catalog();if(catalog.length!==4)fail(`expected 4 products, got ${catalog.length}`);
 const amounts=catalog.map(x=>x.diamonds).join(',');if(amounts!=='25,75,250,600')fail(`unexpected diamond amounts ${amounts}`);

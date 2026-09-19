@@ -12,6 +12,7 @@ const localStorage=storage();
 const document={readyState:'loading',addEventListener(){},getElementById(){return null;},querySelector(){return null;}};
 const ctx={console,Math:fakeMath,Date,JSON,Map,Set,Number,String,Object,Array,RegExp,Promise,localStorage,document,setTimeout:()=>0,clearTimeout(){},requestAnimationFrame:()=>0,CustomEvent:class CustomEvent{constructor(type,opts={}){this.type=type;this.detail=opts.detail;}},save:{bank:0},persist(){},refreshMenu(){},showToast(){},running:false,score:0,boss:null,bossDefeated:false};
 ctx.window=ctx;ctx.globalThis=ctx;ctx.addEventListener=()=>{};ctx.dispatchEvent=()=>true;vm.createContext(ctx);
+run(ctx,'js/localization_core.js');
 for(const file of ['js/puff_fusion_core.js','js/puffling_collection_50.js','js/puffling_collection_36.js','js/puffling_unique_traits.js','js/steal_my_puff_core.js','js/puffling_progression.js','js/puffling_evolution.js','js/puffling_nursery_vault.js','js/diamond_mystery_shop.js','js/diamond_iap_store.js'])run(ctx,file);
 const F=ctx.SkyPuffFusion,N=ctx.SkyPuffNurseryVault,P=ctx.SkyPuffPufflingProgress,E=ctx.SkyPuffPufflingEvolution,M=ctx.SkyPuffMysteryShop,D=ctx.SkyPuffDiamonds,R=ctx.SkyPuffRace,I=ctx.PufflingDiamondStore;
 if(!F||!N||!P||!E||!M||!D||!R||!I)fail('One or more core gameplay APIs did not initialize');
