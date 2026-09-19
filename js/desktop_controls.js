@@ -43,6 +43,9 @@
     if(!['left','right','boost','pause'].includes(action))return false;
     const value=String(code||'').trim();
     if(!/^[A-Za-z0-9]+$/.test(value))return false;
+    const previous=bindings.keyboard[action];
+    const conflict=Object.keys(bindings.keyboard).find(key=>key!==action&&bindings.keyboard[key]===value);
+    if(conflict)bindings.keyboard[conflict]=previous;
     bindings.keyboard[action]=value;
     keyState.left=false;keyState.right=false;
     persistBindings();
@@ -52,6 +55,9 @@
     if(!['action','back','pause'].includes(action))return false;
     const value=Number(index);
     if(!Number.isInteger(value)||value<0||value>31)return false;
+    const previous=bindings.gamepad[action];
+    const conflict=Object.keys(bindings.gamepad).find(key=>key!==action&&bindings.gamepad[key]===value);
+    if(conflict)bindings.gamepad[conflict]=previous;
     bindings.gamepad[action]=value;
     persistBindings();
     return true;
