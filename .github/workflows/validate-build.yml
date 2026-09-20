@@ -33,6 +33,8 @@ jobs:
         run: node scripts/validate-smoke-check-timing.mjs
       - name: Validate Puffling Trade localization
         run: node scripts/validate-trade-localization.mjs
+      - name: Validate desktop Attack key HUD
+        run: node scripts/validate-desktop-attack-hud.mjs
       - name: Validate Orbuff player-facing branding
         run: node scripts/validate-orbuff-branding.mjs
       - name: Validate Orbuff energy and revival
