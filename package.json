@@ -29,6 +29,8 @@
     "store:capture:prepare": "node scripts/prepare-store-capture.mjs",
     "store:generate": "node scripts/generate-store-assets.mjs",
     "store:validate": "node scripts/validate-store-assets.mjs",
+    "steam:store:generate": "node scripts/generate-steam-store-assets.mjs",
+    "steam:store:validate": "node scripts/validate-steam-store-assets.mjs",
     "steam:prepare": "node scripts/prepare-steam-build.mjs",
     "steam:readiness": "node scripts/validate-steam-release.mjs",
     "steam:release:validate": "node scripts/validate-steam-release.mjs --strict"
