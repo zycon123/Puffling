@@ -39,6 +39,8 @@ jobs:
         run: node scripts/validate-menu-localization-regex.mjs
       - name: Validate follower hides while paused
         run: node scripts/validate-follower-pause-visibility.mjs
+      - name: Validate mobile Join button is not clipped
+        run: node scripts/validate-mobile-join-button.mjs
       - name: Validate Orbuff player-facing branding
         run: node scripts/validate-orbuff-branding.mjs
       - name: Validate Orbuff energy and revival
