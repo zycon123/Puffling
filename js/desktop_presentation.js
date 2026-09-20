@@ -1,11 +1,11 @@
 /* Orbuff — widescreen desktop presentation v1.0 */
 (function(){
   const COPY={
-    no:{pc:'PC BUILD',run:'RUN STATUS',height:'HØYDE',coins:'MYNTER',health:'LIV',mode:'MODUS',controls:'KONTROLLER',steer:'STYR',boost:'BOOST',pause:'PAUSE',fullscreen:'FULLSKJERM',endless:'ENDLESS',boss:'BOSS',race:'RACE',menu:'MENY',controller:'KONTROLLER TILKOBLET',keyboard:'TASTATUR'},
-    en:{pc:'PC BUILD',run:'RUN STATUS',height:'HEIGHT',coins:'COINS',health:'HEALTH',mode:'MODE',controls:'CONTROLS',steer:'STEER',boost:'BOOST',pause:'PAUSE',fullscreen:'FULLSCREEN',endless:'ENDLESS',boss:'BOSS',race:'RACE',menu:'MENU',controller:'CONTROLLER CONNECTED',keyboard:'KEYBOARD'},
-    de:{pc:'PC BUILD',run:'RUN-STATUS',height:'HÖHE',coins:'MÜNZEN',health:'LEBEN',mode:'MODUS',controls:'STEUERUNG',steer:'LENKEN',boost:'BOOST',pause:'PAUSE',fullscreen:'VOLLBILD',endless:'ENDLOS',boss:'BOSS',race:'RENNEN',menu:'MENÜ',controller:'CONTROLLER VERBUNDEN',keyboard:'TASTATUR'},
-    es:{pc:'PC BUILD',run:'ESTADO',height:'ALTURA',coins:'MONEDAS',health:'VIDA',mode:'MODO',controls:'CONTROLES',steer:'MOVER',boost:'BOOST',pause:'PAUSA',fullscreen:'PANTALLA COMPLETA',endless:'ENDLESS',boss:'JEFE',race:'CARRERA',menu:'MENÚ',controller:'MANDO CONECTADO',keyboard:'TECLADO'},
-    fr:{pc:'PC BUILD',run:'ÉTAT',height:'HAUTEUR',coins:'PIÈCES',health:'VIE',mode:'MODE',controls:'COMMANDES',steer:'DIRIGER',boost:'BOOST',pause:'PAUSE',fullscreen:'PLEIN ÉCRAN',endless:'ENDLESS',boss:'BOSS',race:'COURSE',menu:'MENU',controller:'MANETTE CONNECTÉE',keyboard:'CLAVIER'}
+    no:{pc:'PC BUILD',run:'RUN STATUS',height:'HØYDE',coins:'MYNTER',health:'LIV',mode:'MODUS',controls:'KONTROLLER',steer:'STYR',boost:'BOOST',attack:'ANGREP',pause:'PAUSE',fullscreen:'FULLSKJERM',endless:'ENDLESS',boss:'BOSS',race:'RACE',menu:'MENY',controller:'KONTROLLER TILKOBLET',keyboard:'TASTATUR'},
+    en:{pc:'PC BUILD',run:'RUN STATUS',height:'HEIGHT',coins:'COINS',health:'HEALTH',mode:'MODE',controls:'CONTROLS',steer:'STEER',boost:'BOOST',attack:'ATTACK',pause:'PAUSE',fullscreen:'FULLSCREEN',endless:'ENDLESS',boss:'BOSS',race:'RACE',menu:'MENU',controller:'CONTROLLER CONNECTED',keyboard:'KEYBOARD'},
+    de:{pc:'PC BUILD',run:'RUN-STATUS',height:'HÖHE',coins:'MÜNZEN',health:'LEBEN',mode:'MODUS',controls:'STEUERUNG',steer:'LENKEN',boost:'BOOST',attack:'ANGRIFF',pause:'PAUSE',fullscreen:'VOLLBILD',endless:'ENDLOS',boss:'BOSS',race:'RENNEN',menu:'MENÜ',controller:'CONTROLLER VERBUNDEN',keyboard:'TASTATUR'},
+    es:{pc:'PC BUILD',run:'ESTADO',height:'ALTURA',coins:'MONEDAS',health:'VIDA',mode:'MODO',controls:'CONTROLES',steer:'MOVER',boost:'BOOST',attack:'ATAQUE',pause:'PAUSA',fullscreen:'PANTALLA COMPLETA',endless:'ENDLESS',boss:'JEFE',race:'CARRERA',menu:'MENÚ',controller:'MANDO CONECTADO',keyboard:'TECLADO'},
+    fr:{pc:'PC BUILD',run:'ÉTAT',height:'HAUTEUR',coins:'PIÈCES',health:'VIE',mode:'MODE',controls:'COMMANDES',steer:'DIRIGER',boost:'BOOST',attack:'ATTAQUE',pause:'PAUSE',fullscreen:'PLEIN ÉCRAN',endless:'ENDLESS',boss:'BOSS',race:'COURSE',menu:'MENU',controller:'MANETTE CONNECTÉE',keyboard:'CLAVIER'}
   };
 
   function language(){
@@ -58,6 +58,7 @@
         <div id="orbuffDesktopControlsTitle" class="orbuffDesktopSectionTitle" style="margin-top:0">CONTROLS</div>
         <div class="orbuffDesktopKey"><kbd id="orbuffDesktopSteerKeys">A/D ←/→</kbd><span id="orbuffDesktopSteerLabel">STEER</span></div>
         <div class="orbuffDesktopKey"><kbd id="orbuffDesktopBoostKeys">SPACE</kbd><span id="orbuffDesktopBoostLabel">BOOST</span></div>
+        <div class="orbuffDesktopKey" id="orbuffDesktopAttackRow" style="display:none"><kbd id="orbuffDesktopAttackKeys">E</kbd><span id="orbuffDesktopAttackLabel">ATTACK</span></div>
         <div class="orbuffDesktopKey"><kbd id="orbuffDesktopPauseKeys">ESC / P</kbd><span id="orbuffDesktopPauseLabel">PAUSE</span></div>
         <div class="orbuffDesktopKey"><kbd>F11</kbd><span id="orbuffDesktopFullscreenLabel">FULLSCREEN</span></div>
         <div class="orbuffDesktopKey"><kbd>🎮</kbd><span>A / ✕ · B / ○ · START</span></div>
@@ -89,6 +90,7 @@
     setText('orbuffDesktopControlsTitle',t.controls);
     setText('orbuffDesktopSteerLabel',t.steer);
     setText('orbuffDesktopBoostLabel',t.boost);
+    setText('orbuffDesktopAttackLabel',t.attack);
     setText('orbuffDesktopPauseLabel',t.pause);
     setText('orbuffDesktopFullscreenLabel',t.fullscreen);
   }
@@ -101,13 +103,19 @@
     }catch(e){}
     return t.menu;
   }
+  function inRace(){
+    try{return typeof multiplayerMode!=='undefined'&&!!multiplayerMode}catch(e){return false}
+  }
   function update(){
     const controls=window.OrbuffDesktopControls;
     if(controls){
       setText('orbuffDesktopSteerKeys',controls.bindingLabel('left')+' · '+controls.bindingLabel('right'));
       setText('orbuffDesktopBoostKeys',controls.bindingLabel('boost'));
+      setText('orbuffDesktopAttackKeys',controls.bindingLabel('attack'));
       setText('orbuffDesktopPauseKeys','Esc / '+controls.bindingLabel('pause'));
     }
+    const attackRow=document.getElementById('orbuffDesktopAttackRow');
+    if(attackRow)attackRow.style.display=inRace()?'grid':'none';
     const score=document.getElementById('score')?.textContent||'0';
     const coins=document.getElementById('coins')?.textContent||'0';
     const hp=document.getElementById('hp')?.textContent||'3';
