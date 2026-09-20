@@ -1,4 +1,10 @@
 (function(){
+ // Runs last in the loader, but a few menu modules (e.g. steal_my_puffling_menu.js)
+ // finish their own DOM setup via a deferred setTimeout(...,100) rather than
+ // synchronously -- running this check immediately would always report their
+ // elements as missing even on a perfectly healthy load. Give those a moment.
+ setTimeout(runSmokeCheck,200);
+ function runSmokeCheck(){
   const missing=[];
   const requiredFunctions=['reset','startGame','update','draw','loop','spawnBoss','openBossRush','openMultiplayer','openShop','closeShop','renderShop','loadLeaderboard','submitOnlineScore','persist','refreshMenu','tr','startMusic','stopMusic','getEndlessBossStage'];
   for(const name of requiredFunctions){if(typeof window[name]!=='function'&&typeof globalThis[name]!=='function')missing.push('fn:'+name);}
@@ -52,4 +58,5 @@
   try{const fixed=window.PufflingBossRush?.allStages?.()||[];if(fixed.length<10)missing.push('boss-rush:expected-at-least-10-fixed-bosses');}catch(e){missing.push('boss-rush:check-failed');}
   try{if(document.title!=='Orbuff')missing.push('brand:title');const h=document.querySelector('#start h1');if(h&&h.textContent.trim()!=='Orbuff')missing.push('brand:main-heading');}catch(e){missing.push('brand:check-failed');}
   const result={ok:missing.length===0,missing,version:typeof SKY_PUFF_VERSION==='string'?SKY_PUFF_VERSION:'unknown',pufflingCount:(Object.keys(window.SkyPuffFusion?.BASE||{}).length+Object.keys(window.SkyPuffFusion?.FUSIONS||{}).length),extraPufflings:window.PufflingExtraCollection?.count||0,expansion36:window.PufflingExpansion36?.count||0,quickRaceRating:window.SkyPuffQuickRank?.profile?.().rating||0,tradeReady:!!window.PufflingTrade,leaderboardReady:typeof API_BASE==='string'&&!!API_BASE,iapReady:!!window.PufflingDiamondStore?.canPurchase?.(),paidDiamondWallet:window.PufflingDiamondWallet?.status?.()||null,saveRepairs:window.PufflingSaveIntegrity?.repaired||[],checkedAt:new Date().toISOString()};window.skyPuffSmokeCheck=result;if(result.ok)console.info('Puffling smoke check: OK',result);else console.error('Puffling smoke check failed:',missing);
+ }
 })();

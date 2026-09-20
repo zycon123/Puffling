@@ -19,5 +19,5 @@ if(musicVolumeEl){
 }
 document.addEventListener('visibilitychange',()=>{
  if(document.hidden){if(window.stopSkyTheme)window.stopSkyTheme();}
- else if(musicEnabled&&!boss)startMusic();
+ else if(musicEnabled&&(typeof boss==='undefined'||!boss))startMusic();
 });
