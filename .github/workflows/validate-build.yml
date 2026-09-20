@@ -37,6 +37,8 @@ jobs:
         run: node scripts/validate-desktop-attack-hud.mjs
       - name: Validate menu localization regex patterns
         run: node scripts/validate-menu-localization-regex.mjs
+      - name: Validate follower hides while paused
+        run: node scripts/validate-follower-pause-visibility.mjs
       - name: Validate Orbuff player-facing branding
         run: node scripts/validate-orbuff-branding.mjs
       - name: Validate Orbuff energy and revival
