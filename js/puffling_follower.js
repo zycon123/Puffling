@@ -22,7 +22,7 @@
     const d=ensure(),G=window.SkyPuffPufflingGameplay;
     try{
       const id=G?.active?.(),p=G?.getPuff?.(id);
-      if(!p||typeof running==='undefined'||!running||typeof player==='undefined'||!player){d.style.display='none';requestAnimationFrame(tick);return;}
+      if(!p||typeof running==='undefined'||!running||(typeof paused!=='undefined'&&paused)||typeof player==='undefined'||!player){d.style.display='none';requestAnimationFrame(tick);return;}
       setVisual(d,id,p);
       const bob=Math.sin(t/280)*4;
       const side=(typeof player.vx==='number'&&player.vx<0)?36:-36;
