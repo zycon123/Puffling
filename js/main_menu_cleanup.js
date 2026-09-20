@@ -7,7 +7,7 @@
   es:{pufflings:'ORBUFFS ☁️',modes:'MODOS DE JUEGO ⚔️',more:'MÁS ☰',back:'VOLVER',open:'ABRIR',audio:'Audio',titles:{pufflings:'Orbuffs',modes:'Modos de juego',more:'Más'},sub:{pufflings:'Colección, huevos y Mystery Shop',modes:'Elige cómo quieres jugar',more:'Recompensas, mejoras y ayuda'}},
   fr:{pufflings:'ORBUFFS ☁️',modes:'MODES DE JEU ⚔️',more:'PLUS ☰',back:'RETOUR',open:'OUVRIR',audio:'Audio',titles:{pufflings:'Orbuffs',modes:'Modes de jeu',more:'Plus'},sub:{pufflings:'Collection, œufs et Mystery Shop',modes:'Choisissez votre mode de jeu',more:'Récompenses, améliorations et aide'}}};
  const GROUPS={
-  pufflings:[['puffdexBtn','☁️','Puffdex'],['nurseryVaultBtn','🥚','Nursery & Vault'],['mysteryShopBtn','💎','Mystery Shop']],
+  pufflings:[['puffdexBtn','☁️','Puffdex'],['nurseryVaultBtn','🥚','Nursery & Vault'],['mysteryShopBtn','💎','Mystery Shop'],['tradePufflingBtn','🔄','Trade Orbuffs']],
   modes:[['multiplayerBtn','⚔️','Multiplayer'],['bossRushBtn','👑','Boss Rush'],['leaderboardBtn','🏆','Highscore']],
   more:[['dailyBtn','🎁','Daglig belønning'],['shopBtn','🎨','Cosmetics'],['upgradeBtn','⬆️','Oppgraderinger'],['achievementsBtn','🏅','Achievements'],['gameGuideBtn','📖','Spillguide'],['audioSettingsBtn','🔊','Lyd'],['diagnosticsBtn','🛠️','System & Support']]
  };
