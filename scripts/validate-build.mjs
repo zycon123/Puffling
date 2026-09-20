@@ -70,6 +70,19 @@ for(const token of ['spMainNav','spMenuHub','pufflingsHubBtn','modesHubBtn','mor
 if(/menuCollectionGroup|menuMoreGroup/.test(menuCleanup))fail('Legacy crowded main-menu groups are still active');else ok('Compact categorized main navigation');
 if(!menuCleanup.includes("['gameGuideBtn','📖','Spillguide']"))fail('Spillguide is not reachable from the visible More menu');else ok('Spillguide is reachable from the visible More menu');
 if(!menuCleanup.includes("['tradePufflingBtn','🔄','Trade Orbuffs']"))fail('Trade Orbuffs is not reachable from any visible hub menu (its button only exists inside the hidden legacy .menuActions container)');else ok('Trade Orbuffs is reachable from the visible Orbuffs menu');
+{
+  // Each hub tile's label is the original button's own text with known emoji
+  // stripped out (openHub()'s `stripped` regex) -- if a GROUPS icon isn't in
+  // that strip list, the tile renders the icon twice (once as its dedicated
+  // <span>, once left over inside the label), as happened when Trade Orbuffs
+  // was added without updating the strip regex.
+  const groupIcons=[...menuCleanup.matchAll(/\['[a-zA-Z]+Btn','([^']+)'/g)].map(m=>m[1]);
+  const stripMatch=menuCleanup.match(/replace\(\/\[([^\]]*)\]\/gu/);
+  const stripped=stripMatch?stripMatch[1]:'';
+  const missing=groupIcons.filter(icon=>!stripped.includes(icon));
+  if(missing.length)fail(`Hub menu icon(s) not in the label strip regex, so they'd render doubled: ${missing.join(' ')}`);
+  else ok('Every hub menu icon is stripped from its own tile label');
+}
 const firstPaintIds=['menuPrimaryGroup','spMainNav','pufflingsHubBtn','modesHubBtn','moreHubBtn'];
 for(const id of firstPaintIds)if(!index.includes(`id="${id}"`)&&!index.includes(`id='${id}'`))fail(`Compact first paint is missing DOM id: ${id}`);
 if(!/#start\s+\.menuActions\s*\{[^}]*display\s*:\s*none\s*!important/i.test(index))fail('Legacy main-menu actions are not hidden before first paint');else ok('Legacy actions hidden before first paint');
