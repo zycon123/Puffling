@@ -27,6 +27,12 @@ jobs:
         run: node scripts/validate-quick-match-room-reset.mjs
       - name: Validate Race My Orbuff exit cleanup
         run: node scripts/validate-race-exit-cleanup.mjs
+      - name: Validate music bridge visibility handling
+        run: node scripts/validate-music-bridge-visibility.mjs
+      - name: Validate smoke check timing
+        run: node scripts/validate-smoke-check-timing.mjs
+      - name: Validate Puffling Trade localization
+        run: node scripts/validate-trade-localization.mjs
       - name: Validate Orbuff player-facing branding
         run: node scripts/validate-orbuff-branding.mjs
       - name: Validate Orbuff energy and revival
