@@ -87,5 +87,7 @@ jobs:
         run: node scripts/validate-native-assets-pipeline.mjs
       - name: Validate generated store graphics
         run: node scripts/validate-store-assets.mjs
+      - name: Validate Steam store page graphics
+        run: node scripts/validate-steam-store-assets.mjs
       - name: Validate launch readiness
         run: node scripts/validate-launch-readiness.mjs
