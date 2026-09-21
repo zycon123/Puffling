@@ -63,6 +63,17 @@ Large-scale public launch still needs operational monitoring/scaling and final p
 - Real-money purchases require the native iOS/Android billing bridge and provider verification; browser beta stays fail-closed for real purchases.
 - Store packaging/signing, privacy/legal metadata and final Android/iOS device certification are separate release steps.
 
+## Ownership, licensing and IP
+Original Puffling project code and original project-authored material are intended to remain proprietary. See:
+
+- `LICENSE` — proprietary repository license
+- `COPYRIGHT.md` — ownership scope and contributor/AI-assistance notes
+- `THIRD_PARTY_NOTICES.md` — third-party runtime licenses
+- `docs/IP_RIGHTS_AUDIT.md` — current pre-release IP audit and remaining legal/name-clearance gates
+- `docs/ASSET_PROVENANCE.md` — provenance register for code, art, audio and future release assets
+
+The repository license does **not** mean the word mark `Puffling` has been registered or cleared. Trademark/name clearance remains a release gate.
+
 ## Local Race server
 ```bash
 cd server
